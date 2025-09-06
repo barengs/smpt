@@ -10,6 +10,7 @@
         "dedoc/scramble": "^0.12.31",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "laravolt/indonesia": "^0.38.0",
         "spatie/laravel-permission": "^6.21",
         "tymon/jwt-auth": "^2.2"
     },

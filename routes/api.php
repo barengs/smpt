@@ -1,10 +1,14 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\AuthRegisterController;
-use App\Http\Controllers\Api\Main\StaffController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\Main\StaffController;
+use App\Http\Controllers\Api\Master\CityController;
+use App\Http\Controllers\Api\AuthRegisterController;
+use App\Http\Controllers\Api\Master\VillageController;
+use App\Http\Controllers\Api\Master\DistrictController;
+use App\Http\Controllers\Api\Master\ProvinceController;
 
 Route::group([
 
@@ -43,4 +47,13 @@ Route::group([
     Route::post('/bulk-restore', [StaffController::class, 'bulkRestore']);
     Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
 
+});
+
+Route::group(['prefix' => 'master'], function () {
+    Route::apiResource('province', ProvinceController::class);
+    Route::apiResource('city', CityController::class);
+    Route::apiResource('district', DistrictController::class);
+    Route::apiResource('village', VillageController::class);
+    Route::get('village/{id}/district', [VillageController::class, 'showByDistrict']);
+    Route::get('village/{nik}/nik', [VillageController::class, 'showByNik']);
 });
