@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Master\ClassGroupController;
 use App\Http\Controllers\Api\Master\EducationController;
 use App\Http\Controllers\Api\Master\OccupationController;
 use App\Http\Controllers\Api\Master\EmploymentController;
+use App\Http\Controllers\Api\Master\ChartOfAccountController;
 
 Route::group([
 
@@ -84,4 +85,5 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('employment/trashed', [EmploymentController::class, 'trashed']);
     Route::post('employment/{id}/restore', [EmploymentController::class, 'restore']);
     Route::apiResource('employment', EmploymentController::class);
+    Route::apiResource('chart-of-account', ChartOfAccountController::class);
 });
