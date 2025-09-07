@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuthRegisterController;
 use App\Http\Controllers\Api\Master\VillageController;
 use App\Http\Controllers\Api\Master\DistrictController;
 use App\Http\Controllers\Api\Master\ProvinceController;
+use App\Http\Controllers\Api\Master\ProfessionController;
 
 Route::group([
 
@@ -54,6 +55,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('city', CityController::class);
     Route::apiResource('district', DistrictController::class);
     Route::apiResource('village', VillageController::class);
+    Route::get('profession/trashed', [ProfessionController::class, 'trashed'])->name('profession.trashed');
+    Route::apiResource('profession', ProfessionController::class);
+    Route::post('profession/{id}/restore', [ProfessionController::class, 'restore']);
     Route::get('village/{id}/district', [VillageController::class, 'showByDistrict']);
     Route::get('village/{nik}/nik', [VillageController::class, 'showByNik']);
 });
