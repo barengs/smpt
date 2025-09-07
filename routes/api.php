@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Master\ProvinceController;
 use App\Http\Controllers\Api\Master\ProfessionController;
 use App\Http\Controllers\Api\Master\ProgramController;
 use App\Http\Controllers\Api\Master\StudyController;
+use App\Http\Controllers\Api\Master\ClassGroupController;
 
 Route::group([
 
@@ -60,12 +61,15 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('village/{id}/district', [VillageController::class, 'showByDistrict']);
     Route::get('village/{nik}/nik', [VillageController::class, 'showByNik']);
     Route::get('profession/trashed', [ProfessionController::class, 'trashed'])->name('profession.trashed');
-    Route::apiResource('profession', ProfessionController::class);
     Route::post('profession/{id}/restore', [ProfessionController::class, 'restore']);
+    Route::apiResource('profession', ProfessionController::class);
     Route::get('program/trashed', [ProgramController::class, 'trashed']);
-    Route::apiResource('program', ProgramController::class);
     Route::post('program/{id}/restore', [ProgramController::class, 'restore']);
+    Route::apiResource('program', ProgramController::class);
     Route::get('study/trashed', [StudyController::class, 'trashed']);
-    Route::apiResource('study', StudyController::class);
     Route::post('study/{id}/restore', [StudyController::class, 'restore']);
+    Route::apiResource('study', StudyController::class);
+    Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
+    Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);
+    Route::apiResource('class-group', ClassGroupController::class);
 });
