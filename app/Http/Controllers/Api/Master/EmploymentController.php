@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\Api\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Occupation;
+use App\Models\Employment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
-class OccupationController extends Controller
+class EmploymentController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -18,12 +18,12 @@ class OccupationController extends Controller
     public function index()
     {
         try {
-            $occupations = Occupation::latest()->paginate(10);
+            $employments = Employment::latest()->paginate(10);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Data pekerjaan berhasil diambil',
-                'data' => $occupations
+                'data' => $employments
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -41,9 +41,7 @@ class OccupationController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'code' => 'nullable|string|max:255',
-                'name' => 'required|string|max:255|unique:occupations',
-                'description' => 'nullable|string'
+                'name' => 'required|string|max:255'
             ]);
 
             if ($validator->fails()) {
@@ -54,12 +52,12 @@ class OccupationController extends Controller
                 ], 422);
             }
 
-            $occupation = Occupation::create($request->all());
+            $employment = Employment::create($request->all());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pekerjaan berhasil ditambahkan',
-                'data' => $occupation
+                'message' => 'Jenis pekerjaan berhasil ditambahkan',
+                'data' => $employment
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
@@ -70,13 +68,13 @@ class OccupationController extends Controller
         } catch (QueryException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan pekerjaan',
+                'message' => 'Gagal menambahkan jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat menambahkan pekerjaan',
+                'message' => 'Terjadi kesalahan saat menambahkan jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -88,24 +86,24 @@ class OccupationController extends Controller
     public function show(string $id)
     {
         try {
-            $occupation = Occupation::find($id);
+            $employment = Employment::find($id);
 
-            if (!$occupation) {
+            if (!$employment) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pekerjaan tidak ditemukan'
+                    'message' => 'Jenis pekerjaan tidak ditemukan'
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data pekerjaan berhasil diambil',
-                'data' => $occupation
+                'message' => 'Data jenis pekerjaan berhasil diambil',
+                'data' => $employment
             ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data pekerjaan',
+                'message' => 'Gagal mengambil data jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -117,19 +115,17 @@ class OccupationController extends Controller
     public function update(Request $request, string $id)
     {
         try {
-            $occupation = Occupation::find($id);
+            $employment = Employment::find($id);
 
-            if (!$occupation) {
+            if (!$employment) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pekerjaan tidak ditemukan'
+                    'message' => 'Jenis pekerjaan tidak ditemukan'
                 ], 404);
             }
 
             $validator = Validator::make($request->all(), [
-                'code' => 'nullable|string|max:255',
-                'name' => 'required|string|max:255|unique:occupations,name,'.$id,
-                'description' => 'nullable|string'
+                'name' => 'required|string|max:255'
             ]);
 
             if ($validator->fails()) {
@@ -140,12 +136,12 @@ class OccupationController extends Controller
                 ], 422);
             }
 
-            $occupation->update($request->all());
+            $employment->update($request->all());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pekerjaan berhasil diperbarui',
-                'data' => $occupation
+                'message' => 'Jenis pekerjaan berhasil diperbarui',
+                'data' => $employment
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
@@ -156,13 +152,13 @@ class OccupationController extends Controller
         } catch (QueryException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui pekerjaan',
+                'message' => 'Gagal memperbarui jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memperbarui pekerjaan',
+                'message' => 'Terjadi kesalahan saat memperbarui jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -174,25 +170,25 @@ class OccupationController extends Controller
     public function destroy(string $id)
     {
         try {
-            $occupation = Occupation::find($id);
+            $employment = Employment::find($id);
 
-            if (!$occupation) {
+            if (!$employment) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pekerjaan tidak ditemukan'
+                    'message' => 'Jenis pekerjaan tidak ditemukan'
                 ], 404);
             }
 
-            $occupation->delete();
+            $employment->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pekerjaan berhasil dihapus'
+                'message' => 'Jenis pekerjaan berhasil dihapus'
             ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus pekerjaan',
+                'message' => 'Gagal menghapus jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -204,33 +200,33 @@ class OccupationController extends Controller
     public function restore(string $id)
     {
         try {
-            $occupation = Occupation::withTrashed()->find($id);
+            $employment = Employment::withTrashed()->find($id);
 
-            if (!$occupation) {
+            if (!$employment) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pekerjaan tidak ditemukan'
+                    'message' => 'Jenis pekerjaan tidak ditemukan'
                 ], 404);
             }
 
-            if (!$occupation->trashed()) {
+            if (!$employment->trashed()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pekerjaan tidak dalam keadaan terhapus'
+                    'message' => 'Jenis pekerjaan tidak dalam keadaan terhapus'
                 ], 400);
             }
 
-            $occupation->restore();
+            $employment->restore();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pekerjaan berhasil dipulihkan',
-                'data' => $occupation
+                'message' => 'Jenis pekerjaan berhasil dipulihkan',
+                'data' => $employment
             ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memulihkan pekerjaan',
+                'message' => 'Gagal memulihkan jenis pekerjaan',
                 'error' => $e->getMessage()
             ], 500);
         }
@@ -242,17 +238,17 @@ class OccupationController extends Controller
     public function trashed()
     {
         try {
-            $occupations = Occupation::onlyTrashed()->latest()->paginate(10);
+            $employments = Employment::onlyTrashed()->latest()->paginate(10);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data pekerjaan terhapus berhasil diambil',
-                'data' => $occupations
+                'message' => 'Data jenis pekerjaan terhapus berhasil diambil',
+                'data' => $employments
             ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data pekerjaan terhapus',
+                'message' => 'Gagal mengambil data jenis pekerjaan terhapus',
                 'error' => $e->getMessage()
             ], 500);
         }

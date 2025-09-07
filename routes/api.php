@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\Master\ProgramController;
 use App\Http\Controllers\Api\Master\StudyController;
 use App\Http\Controllers\Api\Master\ClassGroupController;
 use App\Http\Controllers\Api\Master\EducationController;
+use App\Http\Controllers\Api\Master\OccupationController;
+use App\Http\Controllers\Api\Master\EmploymentController;
 
 Route::group([
 
@@ -76,4 +78,10 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('education/trashed', [EducationController::class, 'trashed']);
     Route::post('education/{id}/restore', [EducationController::class, 'restore']);
     Route::apiResource('education', EducationController::class);
+    Route::get('occupation/trashed', [OccupationController::class, 'trashed']);
+    Route::post('occupation/{id}/restore', [OccupationController::class, 'restore']);
+    Route::apiResource('occupation', OccupationController::class);
+    Route::get('employment/trashed', [EmploymentController::class, 'trashed']);
+    Route::post('employment/{id}/restore', [EmploymentController::class, 'restore']);
+    Route::apiResource('employment', EmploymentController::class);
 });

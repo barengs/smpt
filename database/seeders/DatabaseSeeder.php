@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ProfessionSeeder::class,
             ClassGroupSeeder::class,
             EducationSeeder::class,
+            OccupationSeeder::class,
         ]);
     }
 }
