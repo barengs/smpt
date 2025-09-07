@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\Master\ProfessionController;
 use App\Http\Controllers\Api\Master\ProgramController;
 use App\Http\Controllers\Api\Master\StudyController;
 use App\Http\Controllers\Api\Master\ClassGroupController;
+use App\Http\Controllers\Api\Master\EducationController;
 
 Route::group([
 
@@ -72,4 +73,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
     Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);
     Route::apiResource('class-group', ClassGroupController::class);
+    Route::get('education/trashed', [EducationController::class, 'trashed']);
+    Route::post('education/{id}/restore', [EducationController::class, 'restore']);
+    Route::apiResource('education', EducationController::class);
 });
