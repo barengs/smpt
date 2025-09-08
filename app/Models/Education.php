@@ -10,5 +10,13 @@ class Education extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'educations';
+
     protected $guarded = ['id'];
+
+
+    public function education_class ()
+    {
+        return $this->belongsToMany(EducationClass::class, 'education_has_education_classes', 'education_id', 'education_class_id');
+    }
 }

@@ -18,7 +18,9 @@ class EducationController extends Controller
     public function index()
     {
         try {
-            $education = Education::latest()->paginate(10);
+            $education = Education::with(['education_class' => function ($query) {
+                $query->select('name',);
+            } ])->get();
 
             return response()->json([
                 'success' => true,

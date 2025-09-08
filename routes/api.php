@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Master\EmploymentController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
 use App\Http\Controllers\Api\Master\LessonHourController;
 use App\Http\Controllers\Api\Master\RoomController;
+use App\Http\Controllers\Api\Master\ConrolPanelController;
 
 Route::group([
 
@@ -94,4 +95,13 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('room/trashed', [RoomController::class, 'trashed']);
     Route::post('room/{id}/restore', [RoomController::class, 'restore']);
     Route::apiResource('room', RoomController::class);
+
+    // Control Panel routes
+    Route::get('control-panel', [ConrolPanelController::class, 'index']);
+    Route::post('control-panel', [ConrolPanelController::class, 'store']);
+    Route::get('control-panel/{id}', [ConrolPanelController::class, 'show']);
+    Route::put('control-panel/{id?}', [ConrolPanelController::class, 'update']);
+    Route::delete('control-panel/{id}', [ConrolPanelController::class, 'destroy']);
+    Route::post('control-panel/logo', [ConrolPanelController::class, 'updateLogo']);
+    Route::post('control-panel/favicon', [ConrolPanelController::class, 'updateFavicon']);
 });
