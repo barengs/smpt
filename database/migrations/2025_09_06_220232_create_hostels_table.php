@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('program_id')->nullable();
             $table->integer('capacity')->nullable();
             $table->string('description')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }
