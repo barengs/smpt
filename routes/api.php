@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\Master\OccupationController;
 use App\Http\Controllers\Api\Master\EmploymentController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
 use App\Http\Controllers\Api\Master\LessonHourController;
+use App\Http\Controllers\Api\Master\RoomController;
 
 Route::group([
 
@@ -90,4 +91,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('lesson-hour/trashed', [LessonHourController::class, 'trashed']);
     Route::post('lesson-hour/{id}/restore', [LessonHourController::class, 'restore']);
     Route::apiResource('lesson-hour', LessonHourController::class);
+    Route::get('room/trashed', [RoomController::class, 'trashed']);
+    Route::post('room/{id}/restore', [RoomController::class, 'restore']);
+    Route::apiResource('room', RoomController::class);
 });

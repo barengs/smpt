@@ -2,9 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Room extends Model
 {
-    protected $guarded = [];
+    use HasFactory, SoftDeletes;
+
+    protected $guarded = ['id'];
+
+    public function hostel()
+    {
+        return $this->belongsTo(Hostel::class);
+    }
 }
