@@ -45,7 +45,7 @@ class Staff extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
@@ -56,5 +56,10 @@ class Staff extends Model
     public function getFullNameAttribute()
     {
         return $this->first_name . ' ' . $this->last_name;
+    }
+
+    public function study()
+    {
+        return $this->belongsToMany(Study::class, 'staff_studies', 'staff_id', 'study_id');
     }
 }
