@@ -20,6 +20,9 @@ use App\Http\Controllers\Api\Master\ChartOfAccountController;
 use App\Http\Controllers\Api\Master\LessonHourController;
 use App\Http\Controllers\Api\Master\RoomController;
 use App\Http\Controllers\Api\Master\ConrolPanelController;
+use App\Http\Controllers\Api\Main\ActivityController;
+use App\Http\Controllers\Api\Main\NewsController;
+use App\Http\Controllers\Api\Main\RoleController;
 
 Route::group([
 
@@ -104,4 +107,18 @@ Route::group(['prefix' => 'master'], function () {
     Route::delete('control-panel/{id}', [ConrolPanelController::class, 'destroy']);
     Route::post('control-panel/logo', [ConrolPanelController::class, 'updateLogo']);
     Route::post('control-panel/favicon', [ConrolPanelController::class, 'updateFavicon']);
+
+    // Activity routes
+    Route::apiResource('activity', ActivityController::class);
+});
+
+// Main routes
+Route::group(['prefix' => 'main'], function () {
+    // News routes
+    Route::apiResource('news', NewsController::class);
+
+    // Role routes
+    Route::apiResource('role', RoleController::class);
+    Route::post('role/{id}/assign-permissions', [RoleController::class, 'assignPermissions']);
+    Route::post('role/{id}/remove-permissions', [RoleController::class, 'removePermissions']);
 });

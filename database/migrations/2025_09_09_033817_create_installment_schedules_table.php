@@ -13,15 +13,12 @@ return new class extends Migration
     {
         Schema::create('installment_schedules', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('account_number', 20);
-            $table->foreignUuid('original_transaction_id')->constrained('transactions', 'id')->onDelete('restrict');
-            $table->decimal('principal_amount', 18, 2);
-            $table->decimal('total_amount_due', 18, 2);
-            $table->decimal('monthly_payment', 18, 2);
-            $table->integer('number_of_installments');
-            $table->decimal('remaining_balance', 18, 2);
-            $table->enum('status', ['ACTIVE', 'PAID_OFF', 'DEFAULT']);
-            $table->date('start_date');
+            $table->foreignUuid('plan_id')->constrained('installment_plans', 'id')->onDelete('cascade');
+            $table->date('due_date');
+            $table->decimal('amount_due', 18, 2);
+            $table->enum('status', ['PENDING', 'PAID', 'OVERDUE']);
+            $table->date('payment_date')->nullable();
+            $table->foreignUuid('payment_transaction_id')->nullable()->constrained('transactions', 'id')->onDelete('set null');
             $table->timestamps();
         });
     }

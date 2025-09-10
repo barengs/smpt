@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('institutional_bills', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('customer_id')->constrained('students', 'id')->onDelete('restrict');
-            $table->foreignId('inst_product_id')->constrained('institutional_products', 'inst_product_id')->onDelete('restrict');
+            $table->foreignUuid('inst_product_id')->constrained('institutional_products', 'id')->onDelete('restrict');
             $table->string('customer_ref_number')->comment('e.g., NIM');
             $table->decimal('amount', 18, 2);
             $table->enum('status', ['UNPAID', 'PAID', 'IN_INSTALLMENT', 'CANCELED']);

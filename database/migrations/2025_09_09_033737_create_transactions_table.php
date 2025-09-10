@@ -26,7 +26,6 @@ return new class extends Migration
             $table->foreign('source_account')->references('account_number')->on('accounts')->onDelete('restrict');
             $table->foreign('destination_account')->references('account_number')->on('accounts')->onDelete('restrict');
             $table->foreign('transaction_type_id')->references('id')->on('transaction_types')->onDelete('restrict');
-            $table->timestamps();
         });
     }
 

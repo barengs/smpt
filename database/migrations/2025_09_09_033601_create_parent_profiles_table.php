@@ -23,7 +23,7 @@ return new class extends Migration
             $table->enum('gender', ['L', 'P'])->default('L');
             $table->string('card_address')->nullable();
             $table->string('domicile_address')->nullable();
-            $table->foreignId('village_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('village_id')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('occupation')->nullable();

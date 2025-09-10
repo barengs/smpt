@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('student_classes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')
-                ->constrained()
+                ->constrained('students')
                 ->cascadeOnDelete();
             $table->foreignId('class_id')
-                ->constrained()
+                ->constrained('classrooms')
                 ->cascadeOnDelete();
             $table->unique(['student_id', 'class_id']);
             $table->timestamps();
