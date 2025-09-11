@@ -18,6 +18,13 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
         });
+
+
+        Schema::create('staff_studies', function (Blueprint $table) {
+            $table->foreignId('staff_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('study_id')->constrained()->cascadeOnDelete();
+            $table->unique(['staff_id', 'study_id']);
+        });
     }
 
     /**

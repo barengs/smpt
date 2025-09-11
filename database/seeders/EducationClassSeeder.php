@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\EducationClass;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class EducationClassSeeder extends Seeder
 {
@@ -12,6 +13,13 @@ class EducationClassSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        $data = [
+            ["code" => "EC001", "name" => "Formal"],
+            ["code" => "EC002", "name" => "Non Formal"],
+        ];
+
+        foreach ($data as $value) {
+            EducationClass::create($value);
+        }
     }
 }

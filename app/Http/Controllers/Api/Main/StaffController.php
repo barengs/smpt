@@ -23,47 +23,9 @@ class StaffController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Staff::with('user');
+            $query = User::whereHas('staff')->with(['staff', 'roles'])->get();
 
-            // Filter by status if provided
-            if ($request->has('status')) {
-                $query->where('status', $request->status);
-            }
-
-            // Search by name or email if provided
-            if ($request->has('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
-                });
-            }
-
-            // Filter by user ID if provided
-            if ($request->has('user_id')) {
-                $query->where('user_id', $request->user_id);
-            }
-
-            // Sort by column if provided
-            $sortBy = $request->get('sort_by', 'created_at');
-            $sortDirection = $request->get('sort_direction', 'desc');
-
-            // Validate sort parameters
-            $allowedSortColumns = ['first_name', 'last_name', 'email', 'status', 'created_at', 'updated_at'];
-            $allowedSortDirections = ['asc', 'desc'];
-
-            if (in_array($sortBy, $allowedSortColumns) && in_array($sortDirection, $allowedSortDirections)) {
-                $query->orderBy($sortBy, $sortDirection);
-            } else {
-                $query->orderBy('created_at', 'desc'); // Default sorting
-            }
-
-            // Pagination
-            $perPage = $request->get('per_page', 15);
-            $staff = $query->paginate($perPage);
-
-            return response()->json($staff);
+            return response()->json($query);
         } catch (QueryException $e) {
             return response()->json([
                 'error' => 'Database error occurred while fetching staff members',

@@ -9,5 +9,12 @@ class EducationClass extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'education_classes';
+
     protected $guarded = ['id'];
+
+    public function education()
+    {
+        return $this->belongsToMany(Education::class, 'education_has_education_classes', 'education_class_id', 'education_id');
+    }
 }
