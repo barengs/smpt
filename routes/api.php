@@ -46,30 +46,6 @@ Route::group([
 
 });
 
-Route::group([
-
-    'middleware' => 'api',
-    'prefix' => 'staff'
-
-], function ($router) {
-
-    Route::get('/', [StaffController::class, 'index']);
-    Route::post('/', [StaffController::class, 'store']);
-    Route::get('/{id}', [StaffController::class, 'show']);
-    Route::put('/{id}', [StaffController::class, 'update']);
-    Route::delete('/{id}', [StaffController::class, 'destroy']);
-    Route::post('/{id}/restore', [StaffController::class, 'restore']);
-    Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);
-    Route::get('/{id}/user', [StaffController::class, 'getByUserId']);
-    Route::put('/{id}/status', [StaffController::class, 'updateStatus']);
-    Route::get('/trashed', [StaffController::class, 'trashed']);
-    Route::get('/statistics', [StaffController::class, 'statistics']);
-    Route::post('/bulk-delete', [StaffController::class, 'bulkDelete']);
-    Route::post('/bulk-restore', [StaffController::class, 'bulkRestore']);
-    Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
-
-});
-
 Route::group(['prefix' => 'master'], function () {
     Route::apiResource('province', ProvinceController::class);
     Route::apiResource('city', CityController::class);
@@ -151,4 +127,16 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('permission', PermissionController::class);
     Route::post('permission/{id}/assign-roles', [PermissionController::class, 'assignRoles']);
     Route::post('permission/{id}/remove-roles', [PermissionController::class, 'removeRoles']);
+
+    // Staff routes
+    Route::apiResource('staff', StaffController::class);
+    Route::post('/{id}/restore', [StaffController::class, 'restore']);
+    Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);
+    Route::get('/{id}/user', [StaffController::class, 'getByUserId']);
+    Route::put('/{id}/status', [StaffController::class, 'updateStatus']);
+    Route::get('/trashed', [StaffController::class, 'trashed']);
+    Route::get('/statistics', [StaffController::class, 'statistics']);
+    Route::post('/bulk-delete', [StaffController::class, 'bulkDelete']);
+    Route::post('/bulk-restore', [StaffController::class, 'bulkRestore']);
+    Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
 });
