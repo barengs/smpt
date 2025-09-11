@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\AuthRegisterController;
 use App\Http\Controllers\Api\Main\AccountController;
 use App\Http\Controllers\Api\Master\StudyController;
 use App\Http\Controllers\Api\Main\ActivityController;
+use App\Http\Controllers\Api\Main\DashboardController;
 use App\Http\Controllers\Api\Master\ProgramController;
 use App\Http\Controllers\Api\Master\VillageController;
 use App\Http\Controllers\Api\Main\PermissionController;
@@ -123,6 +124,9 @@ Route::group(['prefix' => 'master'], function () {
 
 // Main routes
 Route::group(['prefix' => 'main'], function () {
+    // Dashboard
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('dashboard/student-statistics-by-period', [DashboardController::class, 'studentStatisticsByPeriod'])->name('dashboard.student-statistics-by-period');
     // Registration routes
     Route::apiResource('registration', RegistrationController::class);
     Route::get('registration/curent-year', [RegistrationController::class, 'getByCurrentYear'])->name('registration.current-year');
