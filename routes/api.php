@@ -117,9 +117,6 @@ Route::group(['prefix' => 'master'], function () {
 
     // Menu routes
     Route::apiResource('menu', MenuController::class);
-
-    // Activity routes
-    Route::apiResource('activity', ActivityController::class);
 });
 
 // Main routes
@@ -127,6 +124,8 @@ Route::group(['prefix' => 'main'], function () {
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/student-statistics-by-period', [DashboardController::class, 'studentStatisticsByPeriod'])->name('dashboard.student-statistics-by-period');
+
+    Route::apiResource('control-panel', ConrolPanelController::class);
     // Registration routes
     Route::apiResource('registration', RegistrationController::class);
     Route::get('registration/curent-year', [RegistrationController::class, 'getByCurrentYear'])->name('registration.current-year');
@@ -141,6 +140,7 @@ Route::group(['prefix' => 'main'], function () {
 
     // News routes
     Route::apiResource('news', NewsController::class);
+    Route::apiResource('activity', ActivityController::class);
 
     // Role routes
     Route::apiResource('role', RoleController::class);
