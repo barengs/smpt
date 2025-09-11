@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
             } elseif ($user->name === 'rosi') {
                 $user->assignRole('walikelas');
             } elseif ($user->name === 'bahul') {
-                $user->assignRole('kasir');
+                $user->assignRole('teller');
             }
         }
     }

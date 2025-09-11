@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class AccountMovement extends Model
 {
-    //
+    protected $guarded = ['id'];
 }

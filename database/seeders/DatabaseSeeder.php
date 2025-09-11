@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
+            MenuSeeder::class,
             StaffSeeder::class,
             ControlPanelSeeder::class,
             ProvincesSeeder::class,
@@ -33,6 +34,8 @@ class DatabaseSeeder extends Seeder
             EducationSeeder::class,
             OccupationSeeder::class,
             ChartOfAccountSeeder::class,
+            ParentProfileSeeder::class,
+            StudentSeeder::class,
         ]);
     }
 }

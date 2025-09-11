@@ -26,12 +26,13 @@ class RoleSeeder extends Seeder
                 'name' => 'asatidz',
                 'guard_name' => 'api',
             ],
+
             [
                 'name' => 'walikelas',
                 'guard_name' => 'api',
             ],
             [
-                'name' => 'kasir',
+                'name' => 'teller',
                 'guard_name' => 'api',
             ],
             [
