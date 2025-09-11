@@ -58,7 +58,7 @@ class Staff extends Model
         return $this->first_name . ' ' . $this->last_name;
     }
 
-    public function study()
+    public function studies()
     {
         return $this->belongsToMany(Study::class, 'staff_studies', 'staff_id', 'study_id');
     }

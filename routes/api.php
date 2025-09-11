@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Master\StaffStudyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -139,4 +140,6 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('/bulk-delete', [StaffController::class, 'bulkDelete']);
     Route::post('/bulk-restore', [StaffController::class, 'bulkRestore']);
     Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
+
+    Route::apiResource('staff-study', StaffStudyController::class);
 });

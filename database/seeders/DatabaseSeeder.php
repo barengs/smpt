@@ -30,12 +30,15 @@ class DatabaseSeeder extends Seeder
             VillagesSeeder::class,
             ProfessionSeeder::class,
             ClassGroupSeeder::class,
+            HostelSeeder::class,
             EducationClassSeeder::class,
             EducationSeeder::class,
             OccupationSeeder::class,
             ChartOfAccountSeeder::class,
             ParentProfileSeeder::class,
             StudentSeeder::class,
+            StudySeeder::class,
+            LessonHourSeeder::class,
         ]);
     }
 }
