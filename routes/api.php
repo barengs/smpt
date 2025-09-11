@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Master\StaffStudyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -43,30 +44,6 @@ Route::group([
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::post('me', [AuthController::class, 'me']);
     Route::post('register', [AuthRegisterController::class, 'register']);
-
-});
-
-Route::group([
-
-    'middleware' => 'api',
-    'prefix' => 'staff'
-
-], function ($router) {
-
-    Route::get('/', [StaffController::class, 'index']);
-    Route::post('/', [StaffController::class, 'store']);
-    Route::get('/{id}', [StaffController::class, 'show']);
-    Route::put('/{id}', [StaffController::class, 'update']);
-    Route::delete('/{id}', [StaffController::class, 'destroy']);
-    Route::post('/{id}/restore', [StaffController::class, 'restore']);
-    Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);
-    Route::get('/{id}/user', [StaffController::class, 'getByUserId']);
-    Route::put('/{id}/status', [StaffController::class, 'updateStatus']);
-    Route::get('/trashed', [StaffController::class, 'trashed']);
-    Route::get('/statistics', [StaffController::class, 'statistics']);
-    Route::post('/bulk-delete', [StaffController::class, 'bulkDelete']);
-    Route::post('/bulk-restore', [StaffController::class, 'bulkRestore']);
-    Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
 
 });
 
@@ -151,4 +128,18 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('permission', PermissionController::class);
     Route::post('permission/{id}/assign-roles', [PermissionController::class, 'assignRoles']);
     Route::post('permission/{id}/remove-roles', [PermissionController::class, 'removeRoles']);
+
+    // Staff routes
+    Route::apiResource('staff', StaffController::class);
+    Route::post('/{id}/restore', [StaffController::class, 'restore']);
+    Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);
+    Route::get('/{id}/user', [StaffController::class, 'getByUserId']);
+    Route::put('/{id}/status', [StaffController::class, 'updateStatus']);
+    Route::get('/trashed', [StaffController::class, 'trashed']);
+    Route::get('/statistics', [StaffController::class, 'statistics']);
+    Route::post('/bulk-delete', [StaffController::class, 'bulkDelete']);
+    Route::post('/bulk-restore', [StaffController::class, 'bulkRestore']);
+    Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
+
+    Route::apiResource('staff-study', StaffStudyController::class);
 });
