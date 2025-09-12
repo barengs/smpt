@@ -13,6 +13,51 @@ class OccupationSeeder extends Seeder
      */
     public function run(): void
     {
-        Occupation::factory()->count(10)->create();
+        $occupations = [
+            'Petani',
+            'Guru',
+            'Dosen',
+            'Wirausaha',
+            'Karyawan Swasta',
+            'Karyawan BUMN',
+            'Karyawan BUMD',
+            'PNS',
+            'TNI',
+            'Polri',
+            'Dokter',
+            'Perawat',
+            'Apoteker',
+            'Psikolog',
+            'Psikiater',
+            'Bidan',
+            'Ahli Gizi',
+            'Tenaga Medis Lainnya',
+            'Tenaga Kesehatan Lainnya',
+            'Ahli Hukum',
+            'Notaris',
+            'Pengacara',
+            'Hakim',
+            'Jaksa',
+            'Tukang',
+            'Buruh',
+            'Nelayan',
+            'Peternak',
+            'Pedagang',
+            'Buruh Harian Lepas',
+            'Pekerja Lepas',
+            'Pekerja Lepas Lainnya',
+            'Pekerja Sosial',
+            'Pekerja Sosial Masyarakat',
+            'Pekerja Sosial Kesehatan',
+            'Pekerja Sosial Pendidikan',
+            'Pekerja Sosial Lingkungan',
+        ];
+
+        // Insert each occupation into the database
+        foreach ($occupations as $occupation) {
+            Occupation::create([
+                'name' => $occupation,
+            ]);
+        }
     }
 }
