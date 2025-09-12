@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Main;
 
+use App\Http\Resources\StaffResource;
 use Exception;
 use App\Models\User;
 use App\Models\Staff;
@@ -25,7 +26,7 @@ class StaffController extends Controller
         try {
             $query = User::whereHas('staff')->with(['staff', 'roles'])->get();
 
-            return response()->json($query);
+            return new StaffResource('Data berhasil diambil', $query, 200);
         } catch (QueryException $e) {
             return response()->json([
                 'error' => 'Database error occurred while fetching staff members',
@@ -106,7 +107,7 @@ class StaffController extends Controller
             // Load the user relationship
             $staff->load('user');
 
-            return response()->json($staff, 201);
+            return new StaffResource('Data berhasil di simpan', $staff, 200);
         } catch (ValidationException $e) {
             return response()->json([
                 'error' => 'Validation failed',

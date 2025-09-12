@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Master\StaffStudyController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -12,6 +11,8 @@ use App\Http\Controllers\Api\Master\MenuController;
 use App\Http\Controllers\Api\Master\RoomController;
 use App\Http\Controllers\Api\AuthRegisterController;
 use App\Http\Controllers\Api\Main\AccountController;
+use App\Http\Controllers\Api\Main\ProductController;
+use App\Http\Controllers\Api\Main\StudentController;
 use App\Http\Controllers\Api\Master\StudyController;
 use App\Http\Controllers\Api\Main\ActivityController;
 use App\Http\Controllers\Api\Main\DashboardController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Api\Master\EmploymentController;
 use App\Http\Controllers\Api\Master\LessonHourController;
 use App\Http\Controllers\Api\Master\OccupationController;
 use App\Http\Controllers\Api\Master\ProfessionController;
+use App\Http\Controllers\Api\Master\StaffStudyController;
 use App\Http\Controllers\Api\Master\ConrolPanelController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
@@ -94,6 +96,9 @@ Route::group(['prefix' => 'master'], function () {
 
     // Menu routes
     Route::apiResource('menu', MenuController::class);
+
+    // Product routes
+    Route::apiResource('product', ProductController::class);
 });
 
 // Main routes
@@ -142,4 +147,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('/bulk-force-delete', [StaffController::class, 'bulkForceDelete']);
 
     Route::apiResource('staff-study', StaffStudyController::class);
+
+    // Student
+    Route::apiResource('student', StudentController::class);
 });
