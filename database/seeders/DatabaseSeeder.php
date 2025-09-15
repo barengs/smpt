@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             StudySeeder::class,
             LessonHourSeeder::class,
             ProductSeeder::class,
+            ProgramSeeder::class
         ]);
     }
 }
