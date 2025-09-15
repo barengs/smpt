@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\Master\DistrictController;
 use App\Http\Controllers\Api\Master\ProvinceController;
 use App\Http\Controllers\Api\Main\TransactionController;
 use App\Http\Controllers\Api\Master\EducationController;
+use App\Http\Controllers\Api\Master\EducationTypeController;
 use App\Http\Controllers\Api\Main\RegistrationController;
 use App\Http\Controllers\Api\Master\ClassGroupController;
 use App\Http\Controllers\Api\Master\EmploymentController;
@@ -71,6 +72,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('education/trashed', [EducationController::class, 'trashed']);
     Route::post('education/{id}/restore', [EducationController::class, 'restore']);
     Route::apiResource('education', EducationController::class);
+    Route::get('education-type/trashed', [EducationTypeController::class, 'trashed']);
+    Route::apiResource('education-type', EducationTypeController::class);
+    Route::post('education-type/{education_type}/restore', [EducationTypeController::class, 'restore']);
     Route::get('occupation/trashed', [OccupationController::class, 'trashed']);
     Route::post('occupation/{id}/restore', [OccupationController::class, 'restore']);
     Route::apiResource('occupation', OccupationController::class);
