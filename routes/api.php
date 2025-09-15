@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Main\NewsController;
 use App\Http\Controllers\Api\Main\RoleController;
 use App\Http\Controllers\Api\Main\StaffController;
+use App\Http\Controllers\Api\Main\ParentController;
 use App\Http\Controllers\Api\Master\CityController;
 use App\Http\Controllers\Api\Master\MenuController;
 use App\Http\Controllers\Api\Master\RoomController;
@@ -23,7 +24,6 @@ use App\Http\Controllers\Api\Master\DistrictController;
 use App\Http\Controllers\Api\Master\ProvinceController;
 use App\Http\Controllers\Api\Main\TransactionController;
 use App\Http\Controllers\Api\Master\EducationController;
-use App\Http\Controllers\Api\Master\EducationTypeController;
 use App\Http\Controllers\Api\Main\RegistrationController;
 use App\Http\Controllers\Api\Master\ClassGroupController;
 use App\Http\Controllers\Api\Master\EmploymentController;
@@ -33,7 +33,10 @@ use App\Http\Controllers\Api\Master\ProfessionController;
 use App\Http\Controllers\Api\Master\StaffStudyController;
 use App\Http\Controllers\Api\Master\ConrolPanelController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
+use App\Http\Controllers\Api\Master\EducationTypeController;
+use App\Http\Controllers\Api\Master\AcademicYearController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
+use App\Http\Controllers\Api\Master\IntershipSupervisorController;
 
 Route::group([
 
@@ -75,6 +78,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('education-type/trashed', [EducationTypeController::class, 'trashed']);
     Route::apiResource('education-type', EducationTypeController::class);
     Route::post('education-type/{education_type}/restore', [EducationTypeController::class, 'restore']);
+    Route::get('academic-year/trashed', [AcademicYearController::class, 'trashed']);
+    Route::post('academic-year/{id}/restore', [AcademicYearController::class, 'restore']);
+    Route::apiResource('academic-year', AcademicYearController::class);
     Route::get('occupation/trashed', [OccupationController::class, 'trashed']);
     Route::post('occupation/{id}/restore', [OccupationController::class, 'restore']);
     Route::apiResource('occupation', OccupationController::class);
@@ -88,6 +94,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('room/trashed', [RoomController::class, 'trashed']);
     Route::post('room/{id}/restore', [RoomController::class, 'restore']);
     Route::apiResource('room', RoomController::class);
+    Route::get('supervisor/trashed', [IntershipSupervisorController::class, 'trashed']);
+    Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
+    Route::apiResource('supervisor', IntershipSupervisorController::class);
 
     // Control Panel routes
     Route::get('control-panel', [ConrolPanelController::class, 'index']);
@@ -154,4 +163,5 @@ Route::group(['prefix' => 'main'], function () {
 
     // Student
     Route::apiResource('student', StudentController::class);
+    Route::apiResource('parent', ParentController::class);
 });
