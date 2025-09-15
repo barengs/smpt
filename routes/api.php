@@ -167,4 +167,6 @@ Route::group(['prefix' => 'main'], function () {
     // Student
     Route::apiResource('student', StudentController::class);
     Route::apiResource('parent', ParentController::class);
+    Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
+    ->name('parent.getByNik');
 });
