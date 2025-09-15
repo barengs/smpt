@@ -87,6 +87,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('employment/trashed', [EmploymentController::class, 'trashed']);
     Route::post('employment/{id}/restore', [EmploymentController::class, 'restore']);
     Route::apiResource('employment', EmploymentController::class);
+    // Chart Of Account
+    Route::get('chart-of-account/header-accounts', [ChartOfAccountController::class, 'headerAccounts'])->name('chart-of-account.header-accounts');
+    Route::get('chart-of-account/detail-accounts', [ChartOfAccountController::class, 'detailAccounts'])->name('chart-of-account.detail-accounts');
     Route::apiResource('chart-of-account', ChartOfAccountController::class);
     Route::get('lesson-hour/trashed', [LessonHourController::class, 'trashed']);
     Route::post('lesson-hour/{id}/restore', [LessonHourController::class, 'restore']);
