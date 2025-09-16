@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\Main\PermissionController;
 use App\Http\Controllers\Api\Master\DistrictController;
 use App\Http\Controllers\Api\Master\ProvinceController;
 use App\Http\Controllers\Api\Main\TransactionController;
+use App\Http\Controllers\Api\Master\ClassroomController;
 use App\Http\Controllers\Api\Master\EducationController;
 use App\Http\Controllers\Api\Main\RegistrationController;
 use App\Http\Controllers\Api\Master\ClassGroupController;
@@ -102,7 +103,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
     Route::apiResource('supervisor', IntershipSupervisorController::class);
     Route::apiResource('hostel', HostelController::class);
-
+    Route::apiResource('classroom', ClassroomController::class);
+    Route::apiResource('class-group', ClassGroupController::class);
     // Control Panel routes
     Route::get('control-panel', [ConrolPanelController::class, 'index']);
     Route::post('control-panel', [ConrolPanelController::class, 'store']);
