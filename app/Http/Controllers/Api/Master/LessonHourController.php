@@ -18,7 +18,7 @@ class LessonHourController extends Controller
     public function index()
     {
         try {
-            $lessonHours = LessonHour::latest()->paginate(10);
+            $lessonHours = LessonHour::orderByDesc('id')->get();
 
             return response()->json([
                 'success' => true,
