@@ -17,7 +17,7 @@ class ClassroomController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $classrooms = Classroom::with('classGroups')->latest()->paginate(10);
+            $classrooms = Classroom::with('classGroups')->orderByDesc('id')->get();
             return response()->json(new ClassroomResource('Data kelas berhasil diambil', $classrooms, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new ClassroomResource('Gagal mengambil data kelas', null, 500), 500);
