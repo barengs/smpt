@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\Master\AcademicYearController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Http\Controllers\Api\Master\EducationTypeController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
+use App\Http\Controllers\Api\Master\EducationClassController;
 use App\Http\Controllers\Api\Master\IntershipSupervisorController;
 
 Route::group([
@@ -105,6 +106,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('hostel', HostelController::class);
     Route::apiResource('classroom', ClassroomController::class);
     Route::apiResource('class-group', ClassGroupController::class);
+    Route::apiResource('education-class', EducationClassController::class);
     // Control Panel routes
     Route::get('control-panel', [ConrolPanelController::class, 'index']);
     Route::post('control-panel', [ConrolPanelController::class, 'store']);
