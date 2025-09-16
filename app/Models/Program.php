@@ -11,4 +11,9 @@ class Program extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded = ['id'];
+
+    public function hostels()
+    {
+        return $this->hasMany(Hostel::class);
+    }
 }

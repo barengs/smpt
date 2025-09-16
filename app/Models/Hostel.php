@@ -11,4 +11,9 @@ class Hostel extends Model
     use HasFactory, SoftDeletes;
 
     protected $guarded = ['id'];
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class, 'program_id');
+    }
 }
