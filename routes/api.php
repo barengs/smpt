@@ -121,6 +121,9 @@ Route::group(['prefix' => 'master'], function () {
 
     // Product routes
     Route::apiResource('product', ProductController::class);
+
+    Route::apiResource('staff-study', StaffStudyController::class);
+    Route::get('staff-study/teachers/all', [StaffStudyController::class, 'getAllTeachers'])->name('staff-study.teachers.all');
 });
 
 // Main routes
