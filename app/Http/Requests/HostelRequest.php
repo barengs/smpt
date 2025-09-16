@@ -26,6 +26,7 @@ class HostelRequest extends FormRequest
             'description' => 'nullable|string',
             'capacity' => 'nullable|integer|min:1',
             'status' => 'nullable|boolean',
+            'program_id' => 'nullable|exists:programs,id',
         ];
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
@@ -33,6 +34,7 @@ class HostelRequest extends FormRequest
             $rules['description'] = 'sometimes|nullable|string';
             $rules['capacity'] = 'sometimes|nullable|integer|min:1';
             $rules['status'] = 'sometimes|nullable|boolean';
+            $rules['program_id'] = 'sometimes|nullable|integer|exists:programs,id';
         }
 
         return $rules;

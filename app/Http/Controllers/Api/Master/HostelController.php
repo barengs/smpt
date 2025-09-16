@@ -56,12 +56,6 @@ class HostelController extends Controller
     public function update(HostelRequest $request, string $id): JsonResponse
     {
         try {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'program_id' => 'nullable',
-                'description' => 'nullable',
-                'capacity' => 'nullable',
-            ]);
 
             $hostel = Hostel::findOrFail($id);
             $hostel->update([
