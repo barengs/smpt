@@ -18,7 +18,7 @@ class RoomController extends Controller
     public function index()
     {
         try {
-            $rooms = Room::with('hostel')->latest();
+            $rooms = Room::with('hostel')->orderByDesc('id')->get();
 
             return response()->json([
                 'success' => true,
