@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\Main\ProductController;
 use App\Http\Controllers\Api\Main\StudentController;
 use App\Http\Controllers\Api\Master\StudyController;
 use App\Http\Controllers\Api\Main\ActivityController;
+use App\Http\Controllers\Api\Master\HostelController;
 use App\Http\Controllers\Api\Main\DashboardController;
 use App\Http\Controllers\Api\Master\ProgramController;
 use App\Http\Controllers\Api\Master\VillageController;
@@ -32,9 +33,9 @@ use App\Http\Controllers\Api\Master\OccupationController;
 use App\Http\Controllers\Api\Master\ProfessionController;
 use App\Http\Controllers\Api\Master\StaffStudyController;
 use App\Http\Controllers\Api\Master\ConrolPanelController;
+use App\Http\Controllers\Api\Master\AcademicYearController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Http\Controllers\Api\Master\EducationTypeController;
-use App\Http\Controllers\Api\Master\AcademicYearController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
 use App\Http\Controllers\Api\Master\IntershipSupervisorController;
 
@@ -100,6 +101,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('supervisor/trashed', [IntershipSupervisorController::class, 'trashed']);
     Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
     Route::apiResource('supervisor', IntershipSupervisorController::class);
+    Route::apiResource('hostel', HostelController::class);
 
     // Control Panel routes
     Route::get('control-panel', [ConrolPanelController::class, 'index']);
