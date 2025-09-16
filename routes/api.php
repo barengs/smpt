@@ -161,6 +161,8 @@ Route::group(['prefix' => 'main'], function () {
 
     // Staff routes
     Route::apiResource('staff', StaffController::class);
+    Route::get('staff/teachers/roles', [StaffController::class, 'getStaffByRoles'])->name('staff.by-roles');
+
     Route::post('/{id}/restore', [StaffController::class, 'restore']);
     Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);
     Route::get('/{id}/user', [StaffController::class, 'getByUserId']);
