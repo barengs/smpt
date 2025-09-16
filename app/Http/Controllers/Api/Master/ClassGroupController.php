@@ -19,7 +19,7 @@ class ClassGroupController extends Controller
     public function index()
     {
         try {
-            $classGroups = ClassGroup::with('classroom')->latest()->paginate(10);
+            $classGroups = ClassGroup::with('classroom')->orderByDesc('id')->get();
 
             return response()->json([
                 'success' => true,
