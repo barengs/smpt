@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Api\Master;
 
-use App\Http\Controllers\Controller;
+use Exception;
 use App\Models\ControlPanel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Exception;
+use App\Http\Controllers\Controller;
+use Intervention\Image\ImageManager;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use Intervention\Image\Drivers\Imagick\Driver;
 
 class ConrolPanelController extends Controller
 {
@@ -405,5 +407,34 @@ class ConrolPanelController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function uploadImage($file, &$validatedData, $columnName)
+    {
+        $image = new ImageManager(new Driver());
+        $timestamp = now()->timestamp;
+        $fileName = $timestamp . '_' . $file->getClientOriginalName();
+
+        // Large logo
+        $largeImage = $image->read($file->getRealPath());
+        $largeImage->cover(512, 512);
+        Storage::disk('public')->put('uploads/logos/large/' . $fileName, (string) $largeImage->encode());
+
+        // Small logo
+        $smallImage = $image->read($file->getRealPath());
+        $smallImage->scaleDown(128, 128);
+        Storage::disk('public')->put('uploads/logos/small/' . $fileName, (string) $smallImage->encode());
+
+        $validatedData[$columnName] = $fileName;
+    }
+
+    private function uploadFavicon($file)
+    {
+        $fileName = $file->getClientOriginalName();
+
+        // Store favicon in a separate directory without resizing
+        $file->storeAs('public/uploads/favicons', $fileName);
+
+        return $fileName;
     }
 }
