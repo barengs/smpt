@@ -56,10 +56,11 @@ class HostelController extends Controller
     public function update(HostelRequest $request, string $id): JsonResponse
     {
         try {
+
             $hostel = Hostel::findOrFail($id);
             $hostel->update([
                 'name' => $request->name,
-                'program_id' => $request->program_id,
+                'program_id' => $request->program_id ?? $hostel->program_id,
                 'description' => $request->description,
                 'capacity' => $request->capacity ?? $hostel->capacity, // Keep existing capacity if not provided
             ]);
