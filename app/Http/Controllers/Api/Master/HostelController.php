@@ -17,7 +17,7 @@ class HostelController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $hostels = Hostel::latest()->paginate(10);
+            $hostels = Hostel::with('program')->paginate(10);
             return response()->json(new HostelResource('Data asrama berhasil diambil', $hostels, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new HostelResource('Gagal mengambil data asrama', null, 500), 500);
@@ -57,7 +57,12 @@ class HostelController extends Controller
     {
         try {
             $hostel = Hostel::findOrFail($id);
-            $hostel->update($request->validated());
+            $hostel->update([
+                'name' => $request->name,
+                'program_id' => $request->program_id,
+                'description' => $request->description,
+                'capacity' => $request->capacity ?? $hostel->capacity, // Keep existing capacity if not provided
+            ]);
             return response()->json(new HostelResource('Asrama berhasil diperbarui', $hostel, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new HostelResource('Gagal memperbarui asrama', null, 500), 500);
