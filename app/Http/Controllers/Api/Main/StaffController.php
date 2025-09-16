@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers\Api\Main;
 
-use App\Http\Resources\StaffResource;
 use Exception;
 use App\Models\User;
 use App\Models\Staff;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Resources\StaffResource;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StaffController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function index(Request $request)
     {
@@ -28,15 +29,9 @@ class StaffController extends Controller
 
             return new StaffResource('Data berhasil diambil', $query, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while fetching staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while fetching staff members', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while fetching staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while fetching staff members', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -44,7 +39,7 @@ class StaffController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function store(Request $request)
     {
@@ -65,17 +60,13 @@ class StaffController extends Controller
 
             // Return validation errors if any
             if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()
-                ], 422);
+                return new StaffResource('Validation failed', $validator->errors(), 422);
             }
 
             // Check if user already has a staff record
             $existingStaff = Staff::where('user_id', $request->user_id)->first();
             if ($existingStaff) {
-                return response()->json([
-                    'error' => 'User already has a staff record'
-                ], 409);
+                return new StaffResource('User already has a staff record', null, 409);
             }
 
             DB::beginTransaction();
@@ -109,22 +100,14 @@ class StaffController extends Controller
 
             return new StaffResource('Data berhasil di simpan', $staff, 200);
         } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'message' => $e->errors()
-            ], 422);
+            DB::rollBack();
+            return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
             DB::rollBack();
-            return response()->json([
-                'error' => 'Database error occurred while creating staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while creating staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'error' => 'An error occurred while creating staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while creating staff member', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -132,7 +115,7 @@ class StaffController extends Controller
      * Display the specified resource.
      *
      * @param  string  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function show($id)
     {
@@ -140,22 +123,14 @@ class StaffController extends Controller
             $staff = Staff::with('user')->find($id);
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found'
-                ], 404);
+                return new StaffResource('Staff not found', null, 404);
             }
 
-            return response()->json($staff);
+            return new StaffResource('Data berhasil diambil', $staff, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while fetching staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while fetching staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while fetching staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while fetching staff member', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -164,7 +139,7 @@ class StaffController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  string  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function update(Request $request, $id)
     {
@@ -172,9 +147,7 @@ class StaffController extends Controller
             $staff = Staff::find($id);
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found'
-                ], 404);
+                return new StaffResource('Staff not found', null, 404);
             }
 
             // Validate the request data
@@ -194,18 +167,14 @@ class StaffController extends Controller
 
             // Return validation errors if any
             if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()
-                ], 422);
+                return new StaffResource('Validation failed', $validator->errors(), 422);
             }
 
             // Check if changing user_id and if that user already has a staff record
             if ($request->has('user_id') && $request->user_id != $staff->user_id) {
                 $existingStaff = Staff::where('user_id', $request->user_id)->first();
                 if ($existingStaff) {
-                    return response()->json([
-                        'error' => 'User already has a staff record'
-                    ], 409);
+                    return new StaffResource('User already has a staff record', null, 409);
                 }
             }
 
@@ -215,22 +184,13 @@ class StaffController extends Controller
             // Load the user relationship
             $staff->load('user');
 
-            return response()->json($staff);
+            return new StaffResource('Data berhasil di update', $staff, 200);
         } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'message' => $e->errors()
-            ], 422);
+            return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while updating staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while updating staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while updating staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while updating staff member', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -250,7 +210,7 @@ class StaffController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  string  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function destroy($id)
     {
@@ -258,27 +218,17 @@ class StaffController extends Controller
             $staff = Staff::find($id);
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found'
-                ], 404);
+                return new StaffResource('Staff not found', null, 404);
             }
 
             // Delete the staff (soft delete)
             $staff->delete();
 
-            return response()->json([
-                'message' => 'Staff deleted successfully'
-            ]);
+            return new StaffResource('Staff deleted successfully', null, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while deleting staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while deleting staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while deleting staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while deleting staff member', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -286,7 +236,7 @@ class StaffController extends Controller
      * Restore a soft deleted staff member.
      *
      * @param  string  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function restore($id)
     {
@@ -294,38 +244,28 @@ class StaffController extends Controller
             $staff = Staff::withTrashed()->find($id);
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found'
-                ], 404);
+                return new StaffResource('Staff not found', null, 404);
             }
 
             if (!$staff->trashed()) {
-                return response()->json([
-                    'error' => 'Staff is not deleted'
-                ], 400);
+                return new StaffResource('Staff is not deleted', null, 400);
             }
 
             // Restore the staff
             $staff->restore();
 
-            return response()->json($staff);
+            return new StaffResource('Data berhasil di restore', $staff, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while restoring staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while restoring staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while restoring staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while restoring staff member', ['message' => $e->getMessage()], 500);
         }
     }
 
     /**
      * Get all soft deleted staff members.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function trashed(Request $request)
     {
@@ -360,17 +300,11 @@ class StaffController extends Controller
             $perPage = $request->get('per_page', 15);
             $staff = $query->paginate($perPage);
 
-            return response()->json($staff);
+            return new StaffResource('Data berhasil diambil', $staff, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while fetching trashed staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while fetching trashed staff members', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while fetching trashed staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while fetching trashed staff members', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -378,37 +312,27 @@ class StaffController extends Controller
      * Get staff by user ID.
      *
      * @param  int  $userId
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function getByUserId($userId)
     {
         try {
             // Validate user ID
             if (!is_numeric($userId)) {
-                return response()->json([
-                    'error' => 'Invalid user ID'
-                ], 400);
+                return new StaffResource('Invalid user ID', null, 400);
             }
 
             $staff = Staff::with('user')->where('user_id', $userId)->first();
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found for this user'
-                ], 404);
+                return new StaffResource('Staff not found for this user', null, 404);
             }
 
-            return response()->json($staff);
+            return new StaffResource('Data berhasil diambil', $staff, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while fetching staff by user ID',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while fetching staff by user ID', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while fetching staff by user ID',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while fetching staff by user ID', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -416,7 +340,7 @@ class StaffController extends Controller
      * Bulk delete staff members.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function bulkDelete(Request $request)
     {
@@ -427,32 +351,19 @@ class StaffController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()
-                ], 422);
+                return new StaffResource('Validation failed', $validator->errors(), 422);
             }
 
             $ids = $request->input('ids');
             $deletedCount = Staff::whereIn('id', $ids)->delete();
 
-            return response()->json([
-                'message' => $deletedCount . ' staff members deleted successfully'
-            ]);
+            return new StaffResource($deletedCount . ' staff members deleted successfully', null, 200);
         } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'message' => $e->errors()
-            ], 422);
+            return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while bulk deleting staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while bulk deleting staff members', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while bulk deleting staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while bulk deleting staff members', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -460,7 +371,7 @@ class StaffController extends Controller
      * Bulk restore staff members.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function bulkRestore(Request $request)
     {
@@ -471,32 +382,19 @@ class StaffController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()
-                ], 422);
+                return new StaffResource('Validation failed', $validator->errors(), 422);
             }
 
             $ids = $request->input('ids');
             $restoredCount = Staff::withTrashed()->whereIn('id', $ids)->restore();
 
-            return response()->json([
-                'message' => $restoredCount . ' staff members restored successfully'
-            ]);
+            return new StaffResource($restoredCount . ' staff members restored successfully', null, 200);
         } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'message' => $e->errors()
-            ], 422);
+            return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while bulk restoring staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while bulk restoring staff members', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while bulk restoring staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while bulk restoring staff members', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -505,7 +403,7 @@ class StaffController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  string  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function updateStatus(Request $request, $id)
     {
@@ -513,9 +411,7 @@ class StaffController extends Controller
             $staff = Staff::find($id);
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found'
-                ], 404);
+                return new StaffResource('Staff not found', null, 404);
             }
 
             $validator = Validator::make($request->all(), [
@@ -523,39 +419,25 @@ class StaffController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()
-                ], 422);
+                return new StaffResource('Validation failed', $validator->errors(), 422);
             }
 
             $staff->update(['status' => $request->status]);
 
-            return response()->json([
-                'message' => 'Staff status updated successfully',
-                'staff' => $staff
-            ]);
+            return new StaffResource('Staff status updated successfully', $staff, 200);
         } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'message' => $e->errors()
-            ], 422);
+            return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while updating staff status',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while updating staff status', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while updating staff status',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while updating staff status', ['message' => $e->getMessage()], 500);
         }
     }
 
     /**
      * Get staff statistics.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function statistics()
     {
@@ -565,22 +447,18 @@ class StaffController extends Controller
             $inactive = Staff::where('status', 'Tidak Aktif')->count();
             $trashed = Staff::onlyTrashed()->count();
 
-            return response()->json([
+            $data = [
                 'total' => $total,
                 'active' => $active,
                 'inactive' => $inactive,
                 'trashed' => $trashed
-            ]);
+            ];
+
+            return new StaffResource('Data berhasil diambil', $data, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while fetching staff statistics',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while fetching staff statistics', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while fetching staff statistics',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while fetching staff statistics', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -588,7 +466,7 @@ class StaffController extends Controller
      * Force delete staff members (permanently remove from database).
      *
      * @param  string  $id
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function forceDelete($id)
     {
@@ -596,27 +474,17 @@ class StaffController extends Controller
             $staff = Staff::withTrashed()->find($id);
 
             if (!$staff) {
-                return response()->json([
-                    'error' => 'Staff not found'
-                ], 404);
+                return new StaffResource('Staff not found', null, 404);
             }
 
             // Force delete the staff
             $staff->forceDelete();
 
-            return response()->json([
-                'message' => 'Staff permanently deleted successfully'
-            ]);
+            return new StaffResource('Staff permanently deleted successfully', null, 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while force deleting staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while force deleting staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while force deleting staff member',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while force deleting staff member', ['message' => $e->getMessage()], 500);
         }
     }
 
@@ -624,7 +492,7 @@ class StaffController extends Controller
      * Bulk force delete staff members.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \App\Http\Resources\StaffResource
      */
     public function bulkForceDelete(Request $request)
     {
@@ -635,32 +503,68 @@ class StaffController extends Controller
             ]);
 
             if ($validator->fails()) {
-                return response()->json([
-                    'error' => $validator->errors()
-                ], 422);
+                return new StaffResource('Validation failed', $validator->errors(), 422);
             }
 
             $ids = $request->input('ids');
             $deletedCount = Staff::withTrashed()->whereIn('id', $ids)->forceDelete();
 
-            return response()->json([
-                'message' => $deletedCount . ' staff members permanently deleted successfully'
-            ]);
+            return new StaffResource($deletedCount . ' staff members permanently deleted successfully', null, 200);
         } catch (ValidationException $e) {
-            return response()->json([
-                'error' => 'Validation failed',
-                'message' => $e->errors()
-            ], 422);
+            return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
-            return response()->json([
-                'error' => 'Database error occurred while bulk force deleting staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('Database error occurred while bulk force deleting staff members', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
-            return response()->json([
-                'error' => 'An error occurred while bulk force deleting staff members',
-                'message' => $e->getMessage()
-            ], 500);
+            return new StaffResource('An error occurred while bulk force deleting staff members', ['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get staff with specific roles (asatidz and walikelas only).
+     */
+    public function getStaffByRoles()
+    {
+        try {
+            $data = User::whereHas('staff')
+                ->where(function ($query) {
+                    $query->whereHas('roles', function ($subQuery) {
+                        $subQuery->where('name', 'asatidz');
+                    })->orWhereHas('roles', function ($subQuery) {
+                        $subQuery->where('name', 'walikelas');
+                    });
+                })
+                ->with(['staff', 'roles'])
+                ->get();
+
+            return new StaffResource('data ditemukan', $data, 200);
+        } catch (Exception $e) {
+            return response()->json('terjadi kesalahan: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get a single staff member by ID with specific roles (asatidz and walikelas only).
+     */
+    public function getStaffByRolesById(string $id)
+    {
+        try {
+            $data = User::whereHas('staff')
+                ->where('id', $id)
+                ->where(function ($query) {
+                    $query->whereHas('roles', function ($subQuery) {
+                        $subQuery->where('name', 'asatidz');
+                    })->orWhereHas('roles', function ($subQuery) {
+                        $subQuery->where('name', 'walikelas');
+                    });
+                })
+                ->with(['staff', 'roles'])
+                ->firstOrFail();
+
+            return new StaffResource('data ditemukan', $data, 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json('data tidak ditemukan', 404);
+        } catch (Exception $e) {
+            return response()->json('terjadi kesalahan: ' . $e->getMessage(), 500);
         }
     }
 }
