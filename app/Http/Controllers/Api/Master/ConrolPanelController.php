@@ -91,14 +91,12 @@ class ConrolPanelController extends Controller
 
             // Handle logo upload
             if ($request->hasFile('app_logo')) {
-                $logoPath = $request->file('app_logo')->store('logos', 'public');
-                $data['app_logo'] = $logoPath;
+                $this->uploadImage($request->file('app_logo'), $validatedData, 'app_logo');
             }
 
             // Handle favicon upload
             if ($request->hasFile('app_favicon')) {
-                $faviconPath = $request->file('app_favicon')->store('favicons', 'public');
-                $data['app_favicon'] = $faviconPath;
+                $data['app_favicon'] = $this->uploadFavicon($request->file('app_favicon'));
             }
 
             $controlPanel = ControlPanel::create($data);
@@ -215,8 +213,7 @@ class ConrolPanelController extends Controller
                 if ($controlPanel->app_logo) {
                     Storage::disk('public')->delete($controlPanel->app_logo);
                 }
-                $logoPath = $request->file('app_logo')->store('logos', 'public');
-                $data['app_logo'] = $logoPath;
+                $this->uploadImage($request->file('app_logo'), $data, 'app_logo');
             }
 
             // Handle favicon upload
@@ -225,8 +222,7 @@ class ConrolPanelController extends Controller
                 if ($controlPanel->app_favicon) {
                     Storage::disk('public')->delete($controlPanel->app_favicon);
                 }
-                $faviconPath = $request->file('app_favicon')->store('favicons', 'public');
-                $data['app_favicon'] = $faviconPath;
+                $data['app_favicon'] = $this->uploadFavicon($request->file('app_favicon'));
             }
 
             $controlPanel->update($data);
