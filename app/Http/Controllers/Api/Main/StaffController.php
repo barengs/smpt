@@ -97,6 +97,7 @@ class StaffController extends Controller
                 'code' => $this->generateCode(),
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
+                'email' => $request->email,
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'nik' => $request->nik,
