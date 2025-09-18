@@ -94,7 +94,7 @@ class StaffController extends Controller
             // Create the staff
             $staff = Staff::create([
                 'user_id' => $user->id,
-                'code' => $this->generateStaffCode(),
+                'code' => $this->generateCode(),
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'phone' => $request->phone,
