@@ -608,11 +608,17 @@ class StaffController extends Controller
             // Adjust year (assuming 00-30 is 2000-2030 and 31-99 is 1931-1999)
             $fullYear = (int)$year <= 30 ? "20{$year}" : "19{$year}";
 
-            // Format birth date
-            $formattedBirthDate = "{$fullYear}-{$month}-{$day}";
+            // Adjust day for gender (for females, 40 is added to the day)
+            $adjustedDay = (int)$day;
+            if ($adjustedDay > 40) {
+                $adjustedDay = $adjustedDay - 40;
+                $gender = 'Perempuan';
+            } else {
+                $gender = 'Laki-laki';
+            }
 
-            // Determine gender (odd = male, even = female)
-            $gender = $genderCode % 2 === 1 ? 'Laki-laki' : 'Perempuan';
+            // Format birth date
+            $formattedBirthDate = sprintf("%s-%s-%02d", $fullYear, $month, $adjustedDay);
 
             // Get region information
             $province = DB::table(config('laravolt.indonesia.table_prefix').'provinces')
