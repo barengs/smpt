@@ -598,15 +598,11 @@ class StaffController extends Controller
             $cityCode = substr($nik, 0, 4);
             $districtCode = substr($nik, 0, 6);
             $birthDate = substr($nik, 6, 6);
-            $genderCode = (int)substr($nik, 12, 1);
 
-            // Parse birth date (YYMMDD format)
-            $year = substr($birthDate, 0, 2);
+            // Parse birth date (DDMMYY format for Indonesian NIK)
+            $day = substr($birthDate, 0, 2);
             $month = substr($birthDate, 2, 2);
-            $day = substr($birthDate, 4, 2);
-
-            // Adjust year (assuming 00-30 is 2000-2030 and 31-99 is 1931-1999)
-            $fullYear = (int)$year <= 30 ? "20{$year}" : "19{$year}";
+            $year = substr($birthDate, 4, 2);
 
             // Adjust day for gender (for females, 40 is added to the day)
             $adjustedDay = (int)$day;
@@ -616,6 +612,9 @@ class StaffController extends Controller
             } else {
                 $gender = 'Laki-laki';
             }
+
+            // Adjust year (assuming 00-30 is 2000-2030 and 31-99 is 1931-1999)
+            $fullYear = (int)$year <= 30 ? "20{$year}" : "19{$year}";
 
             // Format birth date
             $formattedBirthDate = sprintf("%s-%s-%02d", $fullYear, $month, $adjustedDay);
