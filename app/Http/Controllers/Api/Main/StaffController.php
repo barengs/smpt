@@ -9,10 +9,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
+use Intervention\Image\ImageManager;
 use App\Http\Resources\StaffResource;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Intervention\Image\Drivers\Imagick\Driver;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class StaffController extends Controller
@@ -43,26 +46,23 @@ class StaffController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            // Validate the request data
-            $validator = Validator::make($request->all(), [
-                'first_name' => 'required|string|max:255',
-                'last_name' => 'required|string|max:255',
-                'nik' => 'nullable|string|max:20|unique:staff,nik',
-                'nip' => 'nullable|string|max:20|unique:staff,nip',
-                'email' => 'required|email|unique:staff,email',
-                'phone' => 'nullable|string|max:20',
-                'address' => 'nullable|string|max:500',
-                'zip_code' => 'nullable|string|max:10',
-                'photo' => 'nullable|string|max:255',
-                'status' => 'required|in:Aktif,Tidak Aktif',
-                'role' => 'required',
-            ]);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'password' => 'required|string|min:6|confirmed',
+            'email' => 'required|email|unique:staff,email',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'nik' => 'nullable|string|max:20|unique:staff,nik',
+            'nip' => 'nullable|string|max:20|unique:staff,nip',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'zip_code' => 'nullable|string|max:10',
+            'photo' => 'nullable|string|max:255',
+            'status' => 'required|in:Aktif,Tidak Aktif',
+            'role' => 'required',
+        ]);
 
-            // Return validation errors if any
-            if ($validator->fails()) {
-                return new StaffResource('Validation failed', $validator->errors(), 422);
-            }
+        try {
 
             // Check if user already has a staff record
             $existingStaff = Staff::where('user_id', $request->user_id)->first();
@@ -76,10 +76,20 @@ class StaffController extends Controller
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'password' => $request->password ? Hash::make($request->password) : Hash::make('password'),
             ]);
 
             $user->syncRoles($request->role);
+
+            if ($request->hasFile('photo')) {
+                $image = new ImageManager(new Driver());
+                $timestamp = now()->timestamp;
+                $fileName = $timestamp . '_' . $request->file('photo')->getClientOriginalName();
+
+                $largeImage = $image->read($request->file('photo')->getRealPath());
+                $largeImage->cover(512, 512);
+                Storage::disk('public')->put('uploads/logos/large/' . $fileName, (string) $largeImage->encode());
+            }
 
             // Create the staff
             $staff = Staff::create([
@@ -91,9 +101,12 @@ class StaffController extends Controller
                 'address' => $request->address,
                 'nik' => $request->nik,
                 'nip' => $request->nip,
+                'gender' => $request->gender,
+                'village_id' => $request->village_id,
                 'zip_code' => $request->zip_code,
                 'marital_status' => $request->marital_status,
                 'status' => $request->status,
+                'job_id' => $request->job_id,
             ]);
 
             DB::commit();
