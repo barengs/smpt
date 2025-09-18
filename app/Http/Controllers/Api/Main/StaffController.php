@@ -49,6 +49,7 @@ class StaffController extends Controller
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'nik' => 'nullable|string|max:20|unique:staff,nik',
+                'nip' => 'nullable|string|max:20|unique:staff,nip',
                 'email' => 'required|email|unique:staff,email',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:500',
@@ -89,7 +90,9 @@ class StaffController extends Controller
                 'phone' => $request->phone,
                 'address' => $request->address,
                 'nik' => $request->nik,
+                'nip' => $request->nip,
                 'zip_code' => $request->zip_code,
+                'marital_status' => $request->marital_status,
                 'status' => $request->status,
             ]);
 
@@ -153,15 +156,17 @@ class StaffController extends Controller
             // Validate the request data
             $validator = Validator::make($request->all(), [
                 'user_id' => 'sometimes|required|exists:users,id',
-                'code' => 'sometimes|required|unique:staff,code,' . $id,
+                'code' => 'sometimes|required|unique:staff,code,',
                 'first_name' => 'sometimes|required|string|max:255',
                 'last_name' => 'sometimes|required|string|max:255',
-                'nik' => 'nullable|string|max:20|unique:staff,nik,' . $id,
-                'email' => 'sometimes|required|email|unique:staff,email,' . $id,
+                'nip' => 'nullable|string|max:20|unique:staff,nip,',
+                'nik' => 'nullable|string|max:20|unique:staff,nik,',
+                'email' => 'sometimes|required|email|unique:staff,email',
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:500',
                 'zip_code' => 'nullable|string|max:10',
                 'photo' => 'nullable|string|max:255',
+                'marital_status' => 'sometimes|required|in:Single,Married,Divorced,Widowed',
                 'status' => 'sometimes|required|in:Aktif,Tidak Aktif',
             ]);
 
@@ -565,6 +570,81 @@ class StaffController extends Controller
             return response()->json('data tidak ditemukan', 404);
         } catch (Exception $e) {
             return response()->json('terjadi kesalahan: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Check NIK and extract information like province, city, district, birth date, and gender.
+     *
+     * @param Request $request
+     * @return \App\Http\Resources\StaffResource
+     */
+    public function checkNik(Request $request)
+    {
+        try {
+            // Validate the request
+            $validator = Validator::make($request->all(), [
+                'nik' => 'required|string|size:16',
+            ]);
+
+            if ($validator->fails()) {
+                return new StaffResource('Validation failed', $validator->errors(), 422);
+            }
+
+            $nik = $request->input('nik');
+
+            // Extract information from NIK
+            $provinceCode = substr($nik, 0, 2);
+            $cityCode = substr($nik, 0, 4);
+            $districtCode = substr($nik, 0, 6);
+            $birthDate = substr($nik, 6, 6);
+            $genderCode = (int)substr($nik, 12, 1);
+
+            // Parse birth date (YYMMDD format)
+            $year = substr($birthDate, 0, 2);
+            $month = substr($birthDate, 2, 2);
+            $day = substr($birthDate, 4, 2);
+
+            // Adjust year (assuming 00-30 is 2000-2030 and 31-99 is 1931-1999)
+            $fullYear = (int)$year <= 30 ? "20{$year}" : "19{$year}";
+
+            // Format birth date
+            $formattedBirthDate = "{$fullYear}-{$month}-{$day}";
+
+            // Determine gender (odd = male, even = female)
+            $gender = $genderCode % 2 === 1 ? 'Laki-laki' : 'Perempuan';
+
+            // Get region information
+            $province = DB::table(config('laravolt.indonesia.table_prefix').'provinces')
+                ->where('code', $provinceCode)
+                ->first();
+
+            $city = DB::table(config('laravolt.indonesia.table_prefix').'cities')
+                ->where('code', $cityCode)
+                ->first();
+
+            $district = DB::table(config('laravolt.indonesia.table_prefix').'districts')
+                ->where('code', $districtCode)
+                ->first();
+
+            // Prepare response data
+            $data = [
+                'nik' => $nik,
+                'province' => $province ? $province->name : null,
+                'city' => $city ? $city->name : null,
+                'district' => $district ? $district->name : null,
+                'birth_date' => $formattedBirthDate,
+                'gender' => $gender,
+                'province_code' => $provinceCode,
+                'city_code' => $cityCode,
+                'district_code' => $districtCode,
+            ];
+
+            return new StaffResource('NIK information retrieved successfully', $data, 200);
+        } catch (QueryException $e) {
+            return new StaffResource('Database error occurred while checking NIK', ['message' => $e->getMessage()], 500);
+        } catch (Exception $e) {
+            return new StaffResource('An error occurred while checking NIK', ['message' => $e->getMessage()], 500);
         }
     }
 }

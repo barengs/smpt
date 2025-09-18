@@ -6,6 +6,10 @@ use App\Models\Menu;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\MenuResource;
+use App\Models\Permission;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use App\Http\Resources\MenuPermissionResource;
 
 class MenuController extends Controller
 {
@@ -123,6 +127,106 @@ class MenuController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $menu = Menu::findOrFail($id);
+
+            // Delete related permissions first
+            $menu->permissions()->detach();
+
+            // Delete the menu
+            $menu->delete();
+
+            return new MenuResource('Menu deleted successfully', null, 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Failed to delete menu',
+                'error' => $th->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Assign permissions to a menu
+     *
+     * @param Request $request
+     * @param string $menuId
+     * @return \App\Http\Resources\MenuPermissionResource
+     */
+    public function assignMenuPermission(Request $request, string $menuId)
+    {
+        try {
+            // Validate the request
+            $validator = Validator::make($request->all(), [
+                'permissions' => 'required|array',
+                'permissions.*' => 'exists:permissions,id',
+            ]);
+
+            if ($validator->fails()) {
+                return new MenuPermissionResource('Validation failed', $validator->errors(), 422);
+            }
+
+            // Find the menu
+            $menu = Menu::findOrFail($menuId);
+
+            // Sync permissions to the menu
+            $menu->permissions()->sync($request->permissions);
+
+            // Load the permissions relationship
+            $menu->load('permissions');
+
+            return new MenuPermissionResource('Permissions assigned to menu successfully', $menu, 200);
+        } catch (\Throwable $th) {
+            return new MenuPermissionResource('Failed to assign permissions to menu', ['error' => $th->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get permissions assigned to a menu
+     *
+     * @param string $menuId
+     * @return \App\Http\Resources\MenuPermissionResource
+     */
+    public function getMenuPermissions(string $menuId)
+    {
+        try {
+            // Find the menu with its permissions
+            $menu = Menu::with('permissions')->findOrFail($menuId);
+
+            return new MenuPermissionResource('Menu permissions retrieved successfully', $menu->permissions, 200);
+        } catch (\Throwable $th) {
+            return new MenuPermissionResource('Failed to retrieve menu permissions', ['error' => $th->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Remove specific permissions from a menu
+     *
+     * @param Request $request
+     * @param string $menuId
+     * @return \App\Http\Resources\MenuPermissionResource
+     */
+    public function removeMenuPermission(Request $request, string $menuId)
+    {
+        try {
+            // Validate the request
+            $validator = Validator::make($request->all(), [
+                'permissions' => 'required|array',
+                'permissions.*' => 'exists:permissions,id',
+            ]);
+
+            if ($validator->fails()) {
+                return new MenuPermissionResource('Validation failed', $validator->errors(), 422);
+            }
+
+            // Find the menu
+            $menu = Menu::findOrFail($menuId);
+
+            // Detach specified permissions from the menu
+            $menu->permissions()->detach($request->permissions);
+
+            return new MenuPermissionResource('Permissions removed from menu successfully', null, 200);
+        } catch (\Throwable $th) {
+            return new MenuPermissionResource('Failed to remove permissions from menu', ['error' => $th->getMessage()], 500);
+        }
     }
 }

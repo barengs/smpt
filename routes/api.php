@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Http\Controllers\Api\Master\EducationTypeController;
 use App\Http\Controllers\Api\Master\ChartOfAccountController;
 use App\Http\Controllers\Api\Master\EducationClassController;
+use App\Http\Controllers\Api\Main\ClassScheduleController;
 use App\Http\Controllers\Api\Master\IntershipSupervisorController;
 
 Route::group([
@@ -118,6 +119,9 @@ Route::group(['prefix' => 'master'], function () {
 
     // Menu routes
     Route::apiResource('menu', MenuController::class);
+    Route::post('menu/{id}/assign-permissions', [MenuController::class, 'assignMenuPermission']);
+    Route::get('menu/{id}/permissions', [MenuController::class, 'getMenuPermissions']);
+    Route::post('menu/{id}/remove-permissions', [MenuController::class, 'removeMenuPermission']);
 
     // Product routes
     Route::apiResource('product', ProductController::class);
@@ -162,6 +166,8 @@ Route::group(['prefix' => 'main'], function () {
     // Staff routes
     Route::apiResource('staff', StaffController::class);
     Route::get('staff/teachers/roles', [StaffController::class, 'getStaffByRoles'])->name('staff.by-roles');
+    Route::get('staff/teachers/roles/{id}', [StaffController::class, 'getStaffByRolesById'])->name('staff.by-roles.id');
+    Route::post('staff/check-nik', [StaffController::class, 'checkNik'])->name('staff.check-nik');
 
     Route::post('/{id}/restore', [StaffController::class, 'restore']);
     Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);
@@ -180,4 +186,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('parent', ParentController::class);
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
     ->name('parent.getByNik');
+
+    // Class Schedule
+    Route::apiResource('class-schedule', ClassScheduleController::class);
 });
