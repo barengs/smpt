@@ -49,6 +49,13 @@ class AcademicYearController extends Controller
     {
         try {
             $academicYear = AcademicYear::create($request->validated());
+            // jika berhasil update data lainnya
+            // nonaktifkan tahun ajaran yang lain
+            if ($academicYear) {
+                AcademicYear::where('id', '!=', $academicYear->id)->update([
+                    'active' => false
+                ]);
+            }
             return new AcademicYearResource('Tahun ajaran berhasil ditambahkan', $academicYear, 201);
         } catch (\Exception $e) {
             Log::error('Error creating academic year: ' . $e->getMessage());
