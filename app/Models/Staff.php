@@ -21,11 +21,15 @@ class Staff extends Model
         'first_name',
         'last_name',
         'nik',
+        'nip',
         'email',
         'phone',
         'address',
         'zip_code',
         'photo',
+        'marital_status',
+        'village_id',
+        'job_id',
         'status',
     ];
 

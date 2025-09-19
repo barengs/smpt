@@ -137,7 +137,8 @@ class StaffController extends Controller
     public function show($id)
     {
         try {
-            $staff = Staff::with('user')->find($id);
+            // Load staff with user and roles information
+            $staff = Staff::with(['user.roles'])->find($id);
 
             if (!$staff) {
                 return new StaffResource('Staff not found', null, 404);
