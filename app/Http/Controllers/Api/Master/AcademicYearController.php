@@ -26,6 +26,23 @@ class AcademicYearController extends Controller
     }
 
     /**
+     * Display the specified resource where active = true.
+     */
+    public function showActiveAcademic()
+    {
+        try {
+            $academicYear = AcademicYear::where('active', true)->first();
+            if (!$academicYear) {
+                return new AcademicYearResource('Tidak ada tahun ajaran yang aktif', null, 404);
+            }
+            return new AcademicYearResource('Data tahun ajaran berhasil diambil', $academicYear, 200);
+        } catch (\Exception $e) {
+            Log::error('Error retrieving active academic year: ' . $e->getMessage());
+            return new AcademicYearResource('Gagal mengambil data tahun ajaran yang aktif', null, 500);
+        }
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(AcademicYearRequest $request)
