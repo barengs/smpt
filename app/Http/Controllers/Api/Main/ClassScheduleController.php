@@ -25,8 +25,8 @@ class ClassScheduleController extends Controller
             $schedules = ClassSchedule::with([
                 'academicYear',
                 'education',
-                'classroom',
-                'classGroup',
+                'details.classroom',
+                'details.classGroup',
                 'details.lessonHour',
                 'details.teacher',
                 'details.study'
@@ -48,19 +48,10 @@ class ClassScheduleController extends Controller
         try {
             DB::beginTransaction();
 
-            // Check for schedule conflicts
-            $conflict = $this->checkScheduleConflicts($request);
-            if ($conflict) {
-                return new ClassScheduleResource('Jadwal bentrok ditemukan', $conflict, 409);
-            }
-
             // Create the schedule header
             $schedule = ClassSchedule::create($request->only([
                 'academic_year_id',
                 'education_id',
-                'classroom_id',
-                'class_group_id',
-                'day',
                 'session',
                 'status'
             ]));
@@ -68,8 +59,18 @@ class ClassScheduleController extends Controller
             // Create schedule details
             $details = [];
             foreach ($request->details as $detail) {
+                // Check for schedule conflicts
+                $conflict = $this->checkDetailScheduleConflicts($detail, $schedule->id);
+                if ($conflict) {
+                    DB::rollBack();
+                    return new ClassScheduleResource('Jadwal bentrok ditemukan', $conflict, 409);
+                }
+
                 $details[] = [
                     'class_schedule_id' => $schedule->id,
+                    'classroom_id' => $detail['classroom_id'],
+                    'class_group_id' => $detail['class_group_id'],
+                    'day' => $detail['day'],
                     'lesson_hour_id' => $detail['lesson_hour_id'],
                     'teacher_id' => $detail['teacher_id'],
                     'study_id' => $detail['study_id'],
@@ -84,8 +85,8 @@ class ClassScheduleController extends Controller
             $schedule->load([
                 'academicYear',
                 'education',
-                'classroom',
-                'classGroup',
+                'details.classroom',
+                'details.classGroup',
                 'details.lessonHour',
                 'details.teacher',
                 'details.study'
@@ -115,8 +116,8 @@ class ClassScheduleController extends Controller
             $schedule = ClassSchedule::with([
                 'academicYear',
                 'education',
-                'classroom',
-                'classGroup',
+                'details.classroom',
+                'details.classGroup',
                 'details.lessonHour',
                 'details.teacher',
                 'details.study'
@@ -140,19 +141,10 @@ class ClassScheduleController extends Controller
 
             DB::beginTransaction();
 
-            // Check for schedule conflicts (excluding current schedule)
-            $conflict = $this->checkScheduleConflicts($request, $id);
-            if ($conflict) {
-                return new ClassScheduleResource('Jadwal bentrok ditemukan', $conflict, 409);
-            }
-
             // Update the schedule header
             $schedule->update($request->only([
                 'academic_year_id',
                 'education_id',
-                'classroom_id',
-                'class_group_id',
-                'day',
                 'session',
                 'status'
             ]));
@@ -163,8 +155,18 @@ class ClassScheduleController extends Controller
             // Create new schedule details
             $details = [];
             foreach ($request->details as $detail) {
+                // Check for schedule conflicts
+                $conflict = $this->checkDetailScheduleConflicts($detail, $schedule->id);
+                if ($conflict) {
+                    DB::rollBack();
+                    return new ClassScheduleResource('Jadwal bentrok ditemukan', $conflict, 409);
+                }
+
                 $details[] = [
                     'class_schedule_id' => $schedule->id,
+                    'classroom_id' => $detail['classroom_id'],
+                    'class_group_id' => $detail['class_group_id'],
+                    'day' => $detail['day'],
                     'lesson_hour_id' => $detail['lesson_hour_id'],
                     'teacher_id' => $detail['teacher_id'],
                     'study_id' => $detail['study_id'],
@@ -179,8 +181,8 @@ class ClassScheduleController extends Controller
             $schedule->load([
                 'academicYear',
                 'education',
-                'classroom',
-                'classGroup',
+                'details.classroom',
+                'details.classGroup',
                 'details.lessonHour',
                 'details.teacher',
                 'details.study'
@@ -230,55 +232,53 @@ class ClassScheduleController extends Controller
     }
 
     /**
-     * Check for schedule conflicts for a teacher
+     * Check for schedule conflicts for a teacher in a detail
      *
-     * @param ClassScheduleRequest $request
-     * @param string|null $excludeScheduleId
+     * @param array $detail
+     * @param string $excludeScheduleId
      * @return array|null
      */
-    private function checkScheduleConflicts(ClassScheduleRequest $request, $excludeScheduleId = null)
+    private function checkDetailScheduleConflicts($detail, $excludeScheduleId = null)
     {
         try {
-            $conflicts = [];
+            $teacherId = $detail['teacher_id'];
+            $day = $detail['day'];
+            $lessonHourId = $detail['lesson_hour_id'];
 
-            foreach ($request->details as $detail) {
-                $teacherId = $detail['teacher_id'];
-                $day = $request->day;
-                $lessonHourId = $detail['lesson_hour_id'];
+            // Check for conflicts with existing schedules
+            $query = ClassScheduleDetail::where('teacher_id', $teacherId)
+                ->where('day', $day)
+                ->where('lesson_hour_id', $lessonHourId);
 
-                // Check for conflicts with existing schedules
-                $query = ClassScheduleDetail::where('teacher_id', $teacherId)
-                    ->whereHas('classSchedule', function ($q) use ($day) {
-                        $q->where('day', $day);
-                    })
-                    ->where('lesson_hour_id', $lessonHourId);
+            // Exclude the current schedule if updating
+            if ($excludeScheduleId) {
+                $query->where('class_schedule_id', '!=', $excludeScheduleId);
+            }
 
-                // Exclude the current schedule if updating
-                if ($excludeScheduleId) {
-                    $query->where('class_schedule_id', '!=', $excludeScheduleId);
-                }
+            // Get conflicting schedules
+            $conflictingDetails = $query->with(['classSchedule', 'classroom', 'classGroup'])->get();
 
-                // Get conflicting schedules
-                $conflictingDetails = $query->with('classSchedule')->get();
-
+            if ($conflictingDetails->count() > 0) {
+                $conflicts = [];
                 foreach ($conflictingDetails as $conflictDetail) {
                     $conflicts[] = [
                         'teacher_id' => $teacherId,
                         'teacher_name' => $conflictDetail->teacher->first_name . ' ' . $conflictDetail->teacher->last_name,
                         'conflicting_schedule' => [
                             'id' => $conflictDetail->classSchedule->id,
-                            'day' => $conflictDetail->classSchedule->day,
+                            'day' => $conflictDetail->day,
                             'session' => $conflictDetail->classSchedule->session,
-                            'classroom' => $conflictDetail->classSchedule->classroom->name ?? null,
-                            'class_group' => $conflictDetail->classSchedule->classGroup->name ?? null,
+                            'classroom' => $conflictDetail->classroom->name ?? null,
+                            'class_group' => $conflictDetail->classGroup->name ?? null,
                         ],
                         'lesson_hour' => $conflictDetail->lessonHour->name ?? null,
                         'study' => $conflictDetail->study->name ?? null,
                     ];
                 }
+                return $conflicts;
             }
 
-            return !empty($conflicts) ? $conflicts : null;
+            return null;
         } catch (Exception $e) {
             // Log error but don't stop the process
             return null;

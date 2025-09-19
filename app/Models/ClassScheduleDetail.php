@@ -13,6 +13,16 @@ class ClassScheduleDetail extends Model
         return $this->belongsTo(ClassSchedule::class);
     }
 
+    public function classroom()
+    {
+        return $this->belongsTo(Classroom::class);
+    }
+
+    public function classGroup()
+    {
+        return $this->belongsTo(ClassGroup::class);
+    }
+
     public function lessonHour()
     {
         return $this->belongsTo(LessonHour::class);

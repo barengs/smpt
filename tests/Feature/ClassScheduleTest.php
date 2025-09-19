@@ -52,13 +52,13 @@ class ClassScheduleTest extends TestCase
         $data = [
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
-            'classroom_id' => $this->classroom->id,
-            'class_group_id' => $this->classGroup->id,
-            'day' => 'senin',
             'session' => 'pagi',
             'status' => 'active',
             'details' => [
                 [
+                    'classroom_id' => $this->classroom->id,
+                    'class_group_id' => $this->classGroup->id,
+                    'day' => 'senin',
                     'lesson_hour_id' => $this->lessonHour->id,
                     'teacher_id' => $this->teacher->id,
                     'study_id' => $this->study->id,
@@ -78,14 +78,14 @@ class ClassScheduleTest extends TestCase
         $this->assertDatabaseHas('class_schedules', [
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
-            'classroom_id' => $this->classroom->id,
-            'class_group_id' => $this->classGroup->id,
-            'day' => 'senin',
             'session' => 'pagi',
             'status' => 'active',
         ]);
 
         $this->assertDatabaseHas('class_schedule_details', [
+            'classroom_id' => $this->classroom->id,
+            'class_group_id' => $this->classGroup->id,
+            'day' => 'senin',
             'lesson_hour_id' => $this->lessonHour->id,
             'teacher_id' => $this->teacher->id,
             'study_id' => $this->study->id,
@@ -98,6 +98,11 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
+        ]);
+
+        // Create a detail for this schedule
+        $detail = \App\Models\ClassScheduleDetail::factory()->create([
+            'class_schedule_id' => $schedule->id,
             'classroom_id' => $this->classroom->id,
             'class_group_id' => $this->classGroup->id,
         ]);
@@ -118,6 +123,11 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
+        ]);
+
+        // Create a detail for this schedule
+        $detail = \App\Models\ClassScheduleDetail::factory()->create([
+            'class_schedule_id' => $schedule->id,
             'classroom_id' => $this->classroom->id,
             'class_group_id' => $this->classGroup->id,
         ]);
@@ -138,9 +148,6 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
-            'classroom_id' => $this->classroom->id,
-            'class_group_id' => $this->classGroup->id,
-            'day' => 'senin',
             'session' => 'pagi',
         ]);
 
@@ -151,13 +158,13 @@ class ClassScheduleTest extends TestCase
         $data = [
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
-            'classroom_id' => $this->classroom->id,
-            'class_group_id' => $newClassGroup->id,
-            'day' => 'selasa',
             'session' => 'sore',
             'status' => 'active',
             'details' => [
                 [
+                    'classroom_id' => $this->classroom->id,
+                    'class_group_id' => $newClassGroup->id,
+                    'day' => 'selasa',
                     'lesson_hour_id' => $this->lessonHour->id,
                     'teacher_id' => $this->teacher->id,
                     'study_id' => $this->study->id,
@@ -176,9 +183,13 @@ class ClassScheduleTest extends TestCase
 
         $this->assertDatabaseHas('class_schedules', [
             'id' => $schedule->id,
+            'session' => 'sore',
+        ]);
+
+        $this->assertDatabaseHas('class_schedule_details', [
+            'class_schedule_id' => $schedule->id,
             'class_group_id' => $newClassGroup->id,
             'day' => 'selasa',
-            'session' => 'sore',
         ]);
     }
 
@@ -188,13 +199,13 @@ class ClassScheduleTest extends TestCase
         $schedule = ClassSchedule::factory()->create([
             'academic_year_id' => $this->academicYear->id,
             'education_id' => $this->education->id,
-            'classroom_id' => $this->classroom->id,
-            'class_group_id' => $this->classGroup->id,
         ]);
 
         // Create a detail for this schedule
         $detail = \App\Models\ClassScheduleDetail::factory()->create([
             'class_schedule_id' => $schedule->id,
+            'classroom_id' => $this->classroom->id,
+            'class_group_id' => $this->classGroup->id,
             'lesson_hour_id' => $this->lessonHour->id,
             'teacher_id' => $this->teacher->id,
             'study_id' => $this->study->id,
