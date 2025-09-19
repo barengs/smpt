@@ -70,6 +70,11 @@ class User extends Authenticatable implements JWTSubject
 
     public function staff()
     {
-        return $this->hasOne(Staff::class);
+        return $this->hasOne(Staff::class, 'user_id', 'id');
+    }
+
+    public function parent()
+    {
+        return $this->hasOne(ParentProfile::class, 'user_id', 'id');
     }
 }
