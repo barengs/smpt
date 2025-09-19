@@ -18,16 +18,7 @@ return new class extends Migration
                 ->cascadeOnDelete(); // tahun akademik
             $table->foreignId('education_id')
                 ->constrained('educations')
-                ->onDelete('cascade'); // program studi
-            $table->foreignId('classroom_id')
-                ->constrained('classrooms')
-                ->onDelete('cascade'); // kelas
-            $table->foreignId('class_group_id')
-                ->constrained('class_groups')
-                ->onDelete('cascade'); // rombel
-            $table->string('day')
-                ->nullable()
-                ->comment('senin, selasa, rabu, dll'); // hari
+                ->onDelete('cascade'); // jenjang pendidikan
             $table->string('session')
                 ->nullable()
                 ->comment('sisi, pagi, sore'); // sesi

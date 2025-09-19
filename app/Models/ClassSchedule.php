@@ -15,19 +15,9 @@ class ClassSchedule extends Model
         return $this->belongsTo(AcademicYear::class);
     }
 
-    public function classroom()
-    {
-        return $this->belongsTo(Classroom::class);
-    }
-
     public function education()
     {
         return $this->belongsTo(Education::class);
-    }
-
-    public function classGroup()
-    {
-        return $this->belongsTo(ClassGroup::class);
     }
 
     public function details()
