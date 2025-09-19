@@ -24,13 +24,11 @@ class AcademicYearFactory extends Factory
      */
     public function definition(): array
     {
-        $startYear = $this->faker->year();
-        $endYear = $startYear + 1;
-
+        $year = fake()->year();
         return [
-            'year' => $startYear . '/' . $endYear,
-            'active' => $this->faker->boolean(20), // 20% chance of being active
-            'description' => $this->faker->sentence(),
+            'year' => $year . '/' . ($year + 1),
+            'active' => fake()->boolean(),
+            'description' => fake()->sentence(),
         ];
     }
 }

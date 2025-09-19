@@ -41,6 +41,7 @@ use App\Http\Controllers\Api\Master\ChartOfAccountController;
 use App\Http\Controllers\Api\Master\EducationClassController;
 use App\Http\Controllers\Api\Main\ClassScheduleController;
 use App\Http\Controllers\Api\Master\IntershipSupervisorController;
+use App\Http\Controllers\Api\Main\StudentClassController;
 use App\Models\AcademicYear;
 
 Route::group([
@@ -191,4 +192,10 @@ Route::group(['prefix' => 'main'], function () {
 
     // Class Schedule
     Route::apiResource('class-schedule', ClassScheduleController::class);
+
+    // Student Class
+    Route::apiResource('student-class', StudentClassController::class);
+    Route::post('student-class/bulk-assign', [StudentClassController::class, 'bulkAssign']);
+    Route::post('student-class/{id}/approve', [StudentClassController::class, 'approve']);
+    Route::post('student-class/{id}/reject', [StudentClassController::class, 'reject']);
 });

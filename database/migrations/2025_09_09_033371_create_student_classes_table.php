@@ -13,13 +13,28 @@ return new class extends Migration
     {
         Schema::create('student_classes', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('academic_year_id')
+                ->constrained('academic_years')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
+            $table->foreignId('education_id')
+                ->constrained('educations')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
             $table->foreignId('student_id')
                 ->constrained('students')
                 ->cascadeOnDelete();
             $table->foreignId('class_id')
                 ->constrained('classrooms')
                 ->cascadeOnDelete();
-            $table->unique(['student_id', 'class_id']);
+            $table->enum('approval_status', ['diajukan', 'disetujui', 'ditolak'])->default('diajukan');
+            $table->string('approval_note')
+                ->nullable();
+            $table->foreignId('approved_by')
+                ->nullable()
+                ->constrained('users')
+                ->cascadeOnDelete();
+            $table->unique(['student_id', 'academic_year_id']);
             $table->timestamps();
         });
     }
