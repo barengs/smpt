@@ -85,8 +85,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::post('education-type/{education_type}/restore', [EducationTypeController::class, 'restore']);
     Route::get('academic-year/trashed', [AcademicYearController::class, 'trashed']);
     Route::post('academic-year/{id}/restore', [AcademicYearController::class, 'restore']);
-    Route::apiResource('academic-year', AcademicYearController::class);
     Route::get('academic-year/active', [AcademicYearController::class, 'showActiveAcademic'])->name('academic-year.active');
+    Route::apiResource('academic-year', AcademicYearController::class);
     Route::get('occupation/trashed', [OccupationController::class, 'trashed']);
     Route::post('occupation/{id}/restore', [OccupationController::class, 'restore']);
     Route::apiResource('occupation', OccupationController::class);

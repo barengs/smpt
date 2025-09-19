@@ -31,7 +31,7 @@ class AcademicYearController extends Controller
     public function showActiveAcademic()
     {
         try {
-            $academicYear = AcademicYear::where('active', true)->first();
+            $academicYear = AcademicYear::where('active', '=', 1)->first();
             if (!$academicYear) {
                 return new AcademicYearResource('Tidak ada tahun ajaran yang aktif', null, 404);
             }
