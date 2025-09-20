@@ -21,7 +21,7 @@ class StudentClassController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = StudentClass::with(['academicYears', 'students', 'classrooms']);
+            $query = StudentClass::with(['academicYears', 'educations', 'students', 'classrooms']);
 
             // Filter by academic year if provided
             if ($request->has('academic_year_id')) {
@@ -61,10 +61,12 @@ class StudentClassController extends Controller
     public function store(StudentClassRequest $request)
     {
         try {
+            DB::beginTransaction();
             $studentClass = StudentClass::create($request->validated());
-
+            DB::commit();
             return new StudentClassResource('Data kelas siswa berhasil ditambahkan', $studentClass->load(['academicYears', 'students', 'classrooms']), 201);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Error creating student class: ' . $e->getMessage());
             return response()->json([
                 'message' => 'Terjadi kesalahan saat menambahkan data kelas siswa',
@@ -80,7 +82,7 @@ class StudentClassController extends Controller
     public function show(string $id)
     {
         try {
-            $studentClass = StudentClass::with(['academicYears', 'students', 'classrooms'])
+            $studentClass = StudentClass::with(['academicYears', 'educations', 'students', 'classrooms'])
                 ->findOrFail($id);
 
             return new StudentClassResource('Data kelas siswa berhasil diambil', $studentClass, 200);
