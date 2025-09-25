@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Api\Main;
 
-use App\Http\Controllers\Controller;
-use App\Models\StudentClass;
-use App\Models\AcademicYear;
-use App\Models\Education;
 use App\Models\Classroom;
-use App\Http\Requests\StudentClassRequest;
-use App\Http\Resources\StudentClassResource;
+use App\Models\Education;
+use App\Models\AcademicYear;
+use App\Models\StudentClass;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\StudentClassRequest;
+use App\Http\Resources\StudentClassResource;
 
 class StudentClassController extends Controller
 {
@@ -60,7 +61,28 @@ class StudentClassController extends Controller
      */
     public function store(StudentClassRequest $request)
     {
+        $request->validated([
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'education_id' => 'required|exists:educations,id',
+            'class_id' => 'required|exists:classrooms,id',
+            'student_id' => 'required|exists:students,id',
+            'approval_status' => 'required|in:diajukan,disetujui,ditolak'
+        ]);
+
         try {
+            $checkStudent = StudentClass::where('student_id', $request->student_id)
+                ->where('academic_year_id', $request->academic_year_id)
+                ->where('education_id', $request->education_id)
+                ->where('approval_status', 'diajukan')
+                ->first();
+
+            if ($checkStudent) {
+                return response()->json([
+                    'message' => 'Siswa sudah terdaftar dalam kelas pada tahun akademik dan pendidikan yang sama',
+                    'status' => 400
+                ], 400);
+            }
+
             DB::beginTransaction();
             $studentClass = StudentClass::create($request->validated());
             DB::commit();
@@ -198,13 +220,12 @@ class StudentClassController extends Controller
 
             $validatedData = $request->validate([
                 'approval_note' => 'nullable|string',
-                'approved_by' => 'required|exists:users,id'
             ]);
 
             $studentClass->update([
                 'approval_status' => 'disetujui',
                 'approval_note' => $validatedData['approval_note'] ?? null,
-                'approved_by' => $validatedData['approved_by']
+                'approved_by' => Auth::id(),
             ]);
 
             return new StudentClassResource('Kenaikan kelas siswa berhasil disetujui', $studentClass->fresh()->load(['academicYears', 'students', 'classrooms']), 200);
@@ -228,13 +249,12 @@ class StudentClassController extends Controller
 
             $validatedData = $request->validate([
                 'approval_note' => 'required|string',
-                'approved_by' => 'required|exists:users,id'
             ]);
 
             $studentClass->update([
                 'approval_status' => 'ditolak',
                 'approval_note' => $validatedData['approval_note'],
-                'approved_by' => $validatedData['approved_by']
+                'approved_by' => Auth::id()
             ]);
 
             return new StudentClassResource('Kenaikan kelas siswa berhasil ditolak', $studentClass->fresh()->load(['academicYears', 'students', 'classrooms']), 200);
