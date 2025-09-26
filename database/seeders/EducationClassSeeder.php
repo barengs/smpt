@@ -16,6 +16,7 @@ class EducationClassSeeder extends Seeder
         $data = [
             ["code" => "EC001", "name" => "Formal"],
             ["code" => "EC002", "name" => "Non Formal"],
+            ["code" => "EC003", "name" => "Diniyah Formal"],
         ];
 
         foreach ($data as $value) {
