@@ -25,7 +25,7 @@ class ClassScheduleDetail extends Model
 
     public function lessonHour()
     {
-        return $this->belongsTo(LessonHour::class);
+        return $this->belongsTo(LessonHour::class, 'lesson_hour_id', 'id');
     }
 
     public function teacher()
@@ -36,5 +36,10 @@ class ClassScheduleDetail extends Model
     public function study()
     {
         return $this->belongsTo(Study::class);
+    }
+
+    public function meetingSchedules()
+    {
+        return $this->hasMany(MeetingSchedule::class, 'class_schedule_detail_id');
     }
 }

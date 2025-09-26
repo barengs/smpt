@@ -12,6 +12,7 @@ use App\Models\ClassGroup;
 use App\Models\LessonHour;
 use App\Models\Staff;
 use App\Models\Study;
+use App\Models\MeetingSchedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ClassScheduleTest extends TestCase
@@ -93,6 +94,63 @@ class ClassScheduleTest extends TestCase
     }
 
     /** @test */
+    public function it_can_create_a_class_schedule_with_meeting_schedules()
+    {
+        $data = [
+            'academic_year_id' => $this->academicYear->id,
+            'education_id' => $this->education->id,
+            'session' => 'pagi',
+            'status' => 'active',
+            'details' => [
+                [
+                    'classroom_id' => $this->classroom->id,
+                    'class_group_id' => $this->classGroup->id,
+                    'day' => 'senin',
+                    'lesson_hour_id' => $this->lessonHour->id,
+                    'teacher_id' => $this->teacher->id,
+                    'study_id' => $this->study->id,
+                    'meeting_count' => 5
+                ]
+            ]
+        ];
+
+        $response = $this->actingAs($this->user, 'api')
+            ->postJson('/api/main/class-schedule', $data);
+
+        $response->assertStatus(201)
+            ->assertJson([
+                'message' => 'Jadwal berhasil disimpan',
+                'status' => 201
+            ]);
+
+        // Check that the class schedule was created
+        $this->assertDatabaseHas('class_schedules', [
+            'academic_year_id' => $this->academicYear->id,
+            'education_id' => $this->education->id,
+            'session' => 'pagi',
+            'status' => 'active',
+        ]);
+
+        // Check that the class schedule detail was created
+        $this->assertDatabaseHas('class_schedule_details', [
+            'classroom_id' => $this->classroom->id,
+            'class_group_id' => $this->classGroup->id,
+            'day' => 'senin',
+            'lesson_hour_id' => $this->lessonHour->id,
+            'teacher_id' => $this->teacher->id,
+            'study_id' => $this->study->id,
+        ]);
+
+        // Check that meeting schedules were created
+        $detail = \App\Models\ClassScheduleDetail::first();
+        $this->assertDatabaseCount('meeting_schedules', 5);
+        $this->assertDatabaseHas('meeting_schedules', [
+            'class_schedule_detail_id' => $detail->id,
+            'meeting_sequence' => 1
+        ]);
+    }
+
+    /** @test */
     public function it_can_get_all_class_schedules()
     {
         $schedule = ClassSchedule::factory()->create([
@@ -168,6 +226,7 @@ class ClassScheduleTest extends TestCase
                     'lesson_hour_id' => $this->lessonHour->id,
                     'teacher_id' => $this->teacher->id,
                     'study_id' => $this->study->id,
+                    'meeting_count' => 3
                 ]
             ]
         ];
@@ -191,6 +250,14 @@ class ClassScheduleTest extends TestCase
             'class_group_id' => $newClassGroup->id,
             'day' => 'selasa',
         ]);
+
+        // Check that meeting schedules were created
+        $detail = \App\Models\ClassScheduleDetail::first();
+        $this->assertDatabaseCount('meeting_schedules', 3);
+        $this->assertDatabaseHas('meeting_schedules', [
+            'class_schedule_detail_id' => $detail->id,
+            'meeting_sequence' => 1
+        ]);
     }
 
     /** @test */
@@ -211,6 +278,11 @@ class ClassScheduleTest extends TestCase
             'study_id' => $this->study->id,
         ]);
 
+        // Create meeting schedules for this detail
+        MeetingSchedule::factory()->count(3)->create([
+            'class_schedule_detail_id' => $detail->id
+        ]);
+
         $response = $this->actingAs($this->user, 'api')
             ->deleteJson("/api/main/class-schedule/{$schedule->id}");
 
@@ -227,6 +299,9 @@ class ClassScheduleTest extends TestCase
         $this->assertDatabaseMissing('class_schedule_details', [
             'id' => $detail->id,
         ]);
+
+        // Check that meeting schedules were also deleted
+        $this->assertDatabaseCount('meeting_schedules', 0);
     }
 
     /** @test */

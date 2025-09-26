@@ -73,6 +73,7 @@ class StudentClassController extends Controller
             $checkStudent = StudentClass::where('student_id', $request->student_id)
                 ->where('academic_year_id', $request->academic_year_id)
                 ->where('education_id', $request->education_id)
+                ->where('class_id', $request->class_id)
                 ->where('approval_status', 'diajukan')
                 ->first();
 
