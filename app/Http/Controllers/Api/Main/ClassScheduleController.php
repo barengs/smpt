@@ -6,13 +6,16 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ClassSchedule;
 use App\Models\ClassScheduleDetail;
+use App\Models\MeetingSchedule;
 use App\Http\Requests\ClassScheduleRequest;
 use App\Http\Resources\ClassScheduleResource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class ClassScheduleController extends Controller
 {
@@ -58,6 +61,7 @@ class ClassScheduleController extends Controller
 
             // Create schedule details
             $details = [];
+            $detailModels = [];
             foreach ($request->details as $detail) {
                 // Check for schedule conflicts
                 $conflict = $this->checkDetailScheduleConflicts($detail, $schedule->id);
@@ -66,7 +70,7 @@ class ClassScheduleController extends Controller
                     return new ClassScheduleResource('Jadwal bentrok ditemukan', $conflict, 409);
                 }
 
-                $details[] = [
+                $detailData = [
                     'class_schedule_id' => $schedule->id,
                     'classroom_id' => $detail['classroom_id'],
                     'class_group_id' => $detail['class_group_id'],
@@ -77,9 +81,15 @@ class ClassScheduleController extends Controller
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
-            }
 
-            ClassScheduleDetail::insert($details);
+                $detailModel = ClassScheduleDetail::create($detailData);
+                $detailModels[] = $detailModel;
+
+                // Create meeting schedules if meeting_count is provided
+                if (isset($detail['meeting_count']) && $detail['meeting_count'] > 0) {
+                    $this->createMeetingSchedules($detailModel, $detail['meeting_count'], $detail['day']);
+                }
+            }
 
             // Load relationships
             $schedule->load([
@@ -149,11 +159,17 @@ class ClassScheduleController extends Controller
                 'status'
             ]));
 
-            // Delete existing details
-            ClassScheduleDetail::where('class_schedule_id', $schedule->id)->delete();
+            // Delete existing details and their meeting schedules
+            $existingDetails = ClassScheduleDetail::where('class_schedule_id', $schedule->id)->get();
+            foreach ($existingDetails as $existingDetail) {
+                // Delete meeting schedules first
+                MeetingSchedule::where('class_schedule_detail_id', $existingDetail->id)->delete();
+                // Delete the detail
+                $existingDetail->delete();
+            }
 
             // Create new schedule details
-            $details = [];
+            $detailModels = [];
             foreach ($request->details as $detail) {
                 // Check for schedule conflicts
                 $conflict = $this->checkDetailScheduleConflicts($detail, $schedule->id);
@@ -162,7 +178,7 @@ class ClassScheduleController extends Controller
                     return new ClassScheduleResource('Jadwal bentrok ditemukan', $conflict, 409);
                 }
 
-                $details[] = [
+                $detailData = [
                     'class_schedule_id' => $schedule->id,
                     'classroom_id' => $detail['classroom_id'],
                     'class_group_id' => $detail['class_group_id'],
@@ -173,9 +189,15 @@ class ClassScheduleController extends Controller
                     'created_at' => now(),
                     'updated_at' => now()
                 ];
-            }
 
-            ClassScheduleDetail::insert($details);
+                $detailModel = ClassScheduleDetail::create($detailData);
+                $detailModels[] = $detailModel;
+
+                // Create meeting schedules if meeting_count is provided
+                if (isset($detail['meeting_count']) && $detail['meeting_count'] > 0) {
+                    $this->createMeetingSchedules($detailModel, $detail['meeting_count'], $detail['day']);
+                }
+            }
 
             // Load relationships
             $schedule->load([
@@ -213,7 +235,13 @@ class ClassScheduleController extends Controller
 
             DB::beginTransaction();
 
-            // Delete schedule details first
+            // Delete meeting schedules first
+            $details = ClassScheduleDetail::where('class_schedule_id', $schedule->id)->get();
+            foreach ($details as $detail) {
+                MeetingSchedule::where('class_schedule_detail_id', $detail->id)->delete();
+            }
+
+            // Delete schedule details
             ClassScheduleDetail::where('class_schedule_id', $schedule->id)->delete();
 
             // Delete the schedule
@@ -283,5 +311,75 @@ class ClassScheduleController extends Controller
             // Log error but don't stop the process
             return null;
         }
+    }
+
+    /**
+     * Create meeting schedules for a class schedule detail
+     *
+     * @param ClassScheduleDetail $detail
+     * @param int $meetingCount
+     * @param string $day
+     * @return void
+     */
+    private function createMeetingSchedules($detail, $meetingCount, $day)
+    {
+        try {
+            // Get the next occurrence of the specified day
+            $startDate = Carbon::now();
+            $nextDate = $this->getNextDateForDay($startDate, $day);
+
+            for ($i = 1; $i <= $meetingCount; $i++) {
+                MeetingSchedule::create([
+                    'class_schedule_detail_id' => $detail->id,
+                    'meeting_sequence' => $i,
+                    'meeting_date' => $nextDate->format('Y-m-d'),
+                    'topic' => 'Pertemuan ' . $i,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                // Add 7 days for the next meeting
+                $nextDate->addWeek();
+            }
+        } catch (Exception $e) {
+            // Log error but don't stop the process
+            Log::error('Error creating meeting schedules: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get the next date for a specific day of the week
+     *
+     * @param Carbon $startDate
+     * @param string $day
+     * @return Carbon
+     */
+    private function getNextDateForDay($startDate, $day)
+    {
+        $daysMap = [
+            'senin' => Carbon::MONDAY,
+            'selasa' => Carbon::TUESDAY,
+            'rabu' => Carbon::WEDNESDAY,
+            'kamis' => Carbon::THURSDAY,
+            'jumat' => Carbon::FRIDAY,
+            'sabtu' => Carbon::SATURDAY,
+            'minggu' => Carbon::SUNDAY,
+        ];
+
+        $targetDay = $daysMap[strtolower($day)] ?? Carbon::MONDAY;
+        $currentDay = $startDate->dayOfWeek;
+
+        if ($currentDay == $targetDay) {
+            // Today is the target day, so start from next week
+            $daysToAdd = 7;
+        } elseif ($currentDay < $targetDay) {
+            // Target day is later this week
+            $daysToAdd = $targetDay - $currentDay;
+        } else {
+            // Target day is next week
+            $daysToAdd = (7 - $currentDay) + $targetDay;
+        }
+
+        return $startDate->copy()->addDays($daysToAdd);
     }
 }

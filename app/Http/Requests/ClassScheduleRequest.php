@@ -33,6 +33,7 @@ class ClassScheduleRequest extends FormRequest
             'details.*.lesson_hour_id' => 'required|exists:lesson_hours,id',
             'details.*.teacher_id' => 'required|exists:staff,id',
             'details.*.study_id' => 'required|exists:studies,id',
+            'details.*.meeting_count' => 'sometimes|integer|min:1|max:50',
         ];
     }
 
@@ -60,6 +61,9 @@ class ClassScheduleRequest extends FormRequest
             'details.*.teacher_id.exists' => 'Guru tidak ditemukan',
             'details.*.study_id.required' => 'Mata pelajaran wajib diisi',
             'details.*.study_id.exists' => 'Mata pelajaran tidak ditemukan',
+            'details.*.meeting_count.integer' => 'Jumlah pertemuan harus berupa angka',
+            'details.*.meeting_count.min' => 'Jumlah pertemuan minimal 1',
+            'details.*.meeting_count.max' => 'Jumlah pertemuan maksimal 50',
         ];
     }
 }
