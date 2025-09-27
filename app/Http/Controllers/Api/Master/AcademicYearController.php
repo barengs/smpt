@@ -48,6 +48,11 @@ class AcademicYearController extends Controller
     public function store(AcademicYearRequest $request)
     {
         try {
+            if ($request->type == 'semester'){
+                $request->validated([
+                    'periode' =>  'required|enum:ganjil,genap'
+                ]);
+            }
             $academicYear = AcademicYear::create($request->validated());
             // jika berhasil update data lainnya
             // nonaktifkan tahun ajaran yang lain

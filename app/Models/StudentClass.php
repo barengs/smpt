@@ -31,6 +31,11 @@ class StudentClass extends Model
         return $this->belongsTo(Classroom::class, 'class_id');
     }
 
+    public function classGroup()
+    {
+        return $this->belongsTo(ClassGroup::class, 'class_grup_id');
+    }
+
     public function approveBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
