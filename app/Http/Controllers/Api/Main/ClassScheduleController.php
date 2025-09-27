@@ -130,7 +130,8 @@ class ClassScheduleController extends Controller
                 'details.classGroup',
                 'details.lessonHour',
                 'details.teacher',
-                'details.study'
+                'details.study',
+                'details.meetingSchedules'
             ])->findOrFail($id);
 
             return new ClassScheduleResource('Data jadwal berhasil diambil', $schedule, 200);

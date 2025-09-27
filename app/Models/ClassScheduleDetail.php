@@ -40,6 +40,6 @@ class ClassScheduleDetail extends Model
 
     public function meetingSchedules()
     {
-        return $this->hasMany(MeetingSchedule::class, 'class_schedule_detail_id');
+        return $this->hasMany(MeetingSchedule::class, 'class_schedule_detail_id', 'id');
     }
 }

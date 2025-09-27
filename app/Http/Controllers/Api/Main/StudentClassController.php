@@ -22,7 +22,7 @@ class StudentClassController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = StudentClass::with(['academicYears', 'educations', 'students', 'classrooms']);
+            $query = StudentClass::with(['academicYears', 'educations', 'students', 'classrooms', 'classGroup']);
 
             // Filter by academic year if provided
             if ($request->has('academic_year_id')) {
@@ -65,6 +65,7 @@ class StudentClassController extends Controller
             'academic_year_id' => 'required|exists:academic_years,id',
             'education_id' => 'required|exists:educations,id',
             'class_id' => 'required|exists:classrooms,id',
+            'class_group_id' => 'required|exists:class_groups,id',
             'student_id' => 'required|exists:students,id',
             'approval_status' => 'required|in:diajukan,disetujui,ditolak'
         ]);
@@ -74,6 +75,7 @@ class StudentClassController extends Controller
                 ->where('academic_year_id', $request->academic_year_id)
                 ->where('education_id', $request->education_id)
                 ->where('class_id', $request->class_id)
+                ->where('class_group_id', $request->class_group_id)
                 ->where('approval_status', 'diajukan')
                 ->first();
 
@@ -105,7 +107,7 @@ class StudentClassController extends Controller
     public function show(string $id)
     {
         try {
-            $studentClass = StudentClass::with(['academicYears', 'educations', 'students', 'classrooms'])
+            $studentClass = StudentClass::with(['academicYears', 'educations', 'students', 'classrooms', 'classGroup'])
                 ->findOrFail($id);
 
             return new StudentClassResource('Data kelas siswa berhasil diambil', $studentClass, 200);
@@ -129,7 +131,7 @@ class StudentClassController extends Controller
 
             $studentClass->update($request->validated());
 
-            return new StudentClassResource('Data kelas siswa berhasil diperbarui', $studentClass->fresh()->load(['academicYears', 'students', 'classrooms']), 200);
+            return new StudentClassResource('Data kelas siswa berhasil diperbarui', $studentClass->fresh()->load(['academicYears', 'students', 'classrooms', 'classGroup']), 200);
         } catch (\Exception $e) {
             Log::error('Error updating student class: ' . $e->getMessage());
             return response()->json([

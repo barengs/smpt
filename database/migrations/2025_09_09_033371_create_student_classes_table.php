@@ -27,6 +27,9 @@ return new class extends Migration
             $table->foreignId('class_id')
                 ->constrained('classrooms')
                 ->cascadeOnDelete();
+            $table->foreignId('class_group_id')
+                ->constrained('class_groups')
+                ->cascadeOnDelete();
             $table->enum('approval_status', ['diajukan', 'disetujui', 'ditolak'])->default('diajukan');
             $table->string('approval_note')
                 ->nullable();

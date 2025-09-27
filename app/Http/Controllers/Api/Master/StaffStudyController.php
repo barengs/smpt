@@ -50,7 +50,7 @@ class StaffStudyController extends Controller
             $staff = Staff::findOrFail($request->staff_id);
 
             // Check if the staff member has the 'guru' role
-            if (!$staff->user || !$staff->user->hasRole('guru')) {
+            if (!$staff->user || !$staff->user->hasRole('asatidz')) {
                 return response()->json([
                     'message' => 'Staff member does not have the teacher role',
                     'status' => 400,

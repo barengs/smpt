@@ -13,16 +13,11 @@ class StudySeeder extends Seeder
     public function run(): void
     {
         $studies = [
-            ['name' => 'Studi Ilmu Komputer', 'description' => 'Studi yang fokus pada ilmu komputer dan teknologi informasi'],
-            ['name' => 'Studi Sistem Informasi', 'description' => 'Studi yang fokus pada penerapan teknologi informasi dalam bisnis'],
-            ['name' => 'Studi Teknik Komputer', 'description' => 'Studi yang fokus pada rekayasa perangkat keras komputer'],
-            ['name' => 'Studi Matematika', 'description' => 'Studi yang fokus pada ilmu matematika dan aplikasinya'],
-            ['name' => 'Studi Fisika', 'description' => 'Studi yang fokus pada ilmu fisika dan aplikasinya'],
-            ['name' => 'Studi Kimia', 'description' => 'Studi yang fokus pada ilmu kimia dan aplikasinya'],
-            ['name' => 'Studi Biologi', 'description' => 'Studi yang fokus pada ilmu biologi dan aplikasinya'],
-            ['name' => 'Studi Teknik Sipil', 'description' => 'Studi yang fokus pada rekayasa infrastruktur sipil'],
-            ['name' => 'Studi Teknik Mesin', 'description' => 'Studi yang fokus pada rekayasa mesin dan manufaktur'],
-            ['name' => 'Studi Teknik Elektro', 'description' => 'Studi yang fokus pada rekayasa sistem kelistrikan'],
+            ['name' => 'Ilmu Nahwu', 'description' => 'Ilmu yang mempelajari tentang harokat dan tanda-tanda yang dibaca dalam bahasa arab'],
+            ['name' => 'Ilmu Urooj', 'description' => 'Ilmu yang mempelajari tentang urusan perkahwinan dalam Islam'],
+            ['name' => 'Ilmu Akhlaaq', 'description' => 'Ilmu yang mempelajari tentang peribahasa dan ajaran agama Islam tentang cara-cara bertingkah laku yang baik'],
+            ['name' => 'Ilmu Usool Al-Qur\'an', 'description' => 'Ilmu yang mempelajari tentang asas-asas pengetahuan Al-Qur\'an'],
+            ['name' => 'Ilmu Tafsir Al-Qur\'an', 'description' => 'Ilmu yang mempelajari tentang arti dan makna Al-Qur\'an'],
         ];
 
         foreach ($studies as $study) {
