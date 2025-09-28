@@ -25,8 +25,15 @@ class AcademicYearFactory extends Factory
     public function definition(): array
     {
         $year = fake()->year();
+        $startDate = fake()->date('Y-m-d', '2025-06-01');
+        $endDate = fake()->date('Y-m-d', '2026-05-31');
+
         return [
             'year' => $year . '/' . ($year + 1),
+            'type' => fake()->randomElement(['semester', 'triwulan']),
+            'periode' => fake()->randomElement(['ganjil', 'genap', 'pendek', 'cawu 1', 'cawu 2', 'cawu 3']),
+            'start_date' => $startDate,
+            'end_date' => $endDate,
             'active' => fake()->boolean(),
             'description' => fake()->sentence(),
         ];

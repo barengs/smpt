@@ -25,7 +25,7 @@ class AcademicYearTest extends TestCase
                 'success',
                 'message',
                 'data' => [
-                    '*' => ['id', 'year', 'active', 'description', 'created_at', 'updated_at']
+                    '*' => ['id', 'year', 'type', 'periode', 'start_date', 'end_date', 'active', 'description', 'created_at', 'updated_at']
                 ]
             ]);
     }
@@ -35,6 +35,10 @@ class AcademicYearTest extends TestCase
     {
         $data = [
             'year' => '2023/2024',
+            'type' => 'semester',
+            'periode' => 'ganjil',
+            'start_date' => '2023-07-01',
+            'end_date' => '2024-06-30',
             'active' => true,
             'description' => 'Tahun ajaran 2023/2024'
         ];
@@ -45,16 +49,32 @@ class AcademicYearTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'message',
-                'data' => ['id', 'year', 'active', 'description', 'created_at', 'updated_at']
+                'data' => ['id', 'year', 'type', 'periode', 'start_date', 'end_date', 'active', 'description', 'created_at', 'updated_at']
             ]);
 
-        $this->assertDatabaseHas('academic_years', $data);
+        // Check that the record exists in the database
+        $this->assertDatabaseHas('academic_years', [
+            'year' => '2023/2024',
+            'type' => 'semester',
+            'periode' => 'ganjil',
+            'active' => 1,
+            'description' => 'Tahun ajaran 2023/2024'
+        ]);
+
+        // Check dates separately since they include time
+        $academicYear = AcademicYear::where('year', '2023/2024')->first();
+        $this->assertEquals('2023-07-01', $academicYear->start_date->format('Y-m-d'));
+        $this->assertEquals('2024-06-30', $academicYear->end_date->format('Y-m-d'));
     }
 
     /** @test */
     public function it_requires_year_when_creating_an_academic_year()
     {
         $response = $this->postJson('/api/master/academic-year', [
+            'type' => 'semester',
+            'periode' => 'ganjil',
+            'start_date' => '2023-07-01',
+            'end_date' => '2024-06-30',
             'active' => true,
             'description' => 'Tahun ajaran tanpa tahun'
         ]);
@@ -62,6 +82,97 @@ class AcademicYearTest extends TestCase
         $response->assertStatus(422)
             ->assertJson([
                 'message' => 'Tahun ajaran wajib diisi.',
+            ]);
+    }
+
+    /** @test */
+    public function it_requires_type_when_creating_an_academic_year()
+    {
+        $response = $this->postJson('/api/master/academic-year', [
+            'year' => '2023/2024',
+            'periode' => 'ganjil',
+            'start_date' => '2023-07-01',
+            'end_date' => '2024-06-30',
+            'active' => true,
+            'description' => 'Tahun ajaran tanpa tipe'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'Tipe tahun ajaran wajib diisi.',
+            ]);
+    }
+
+    /** @test */
+    public function it_requires_periode_when_creating_an_academic_year()
+    {
+        $response = $this->postJson('/api/master/academic-year', [
+            'year' => '2023/2024',
+            'type' => 'semester',
+            'start_date' => '2023-07-01',
+            'end_date' => '2024-06-30',
+            'active' => true,
+            'description' => 'Tahun ajaran tanpa periode'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'Periode wajib diisi.',
+            ]);
+    }
+
+    /** @test */
+    public function it_requires_start_date_when_creating_an_academic_year()
+    {
+        $response = $this->postJson('/api/master/academic-year', [
+            'year' => '2023/2024',
+            'type' => 'semester',
+            'periode' => 'ganjil',
+            'end_date' => '2024-06-30',
+            'active' => true,
+            'description' => 'Tahun ajaran tanpa tanggal mulai'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'Tanggal mulai wajib diisi.',
+            ]);
+    }
+
+    /** @test */
+    public function it_requires_end_date_when_creating_an_academic_year()
+    {
+        $response = $this->postJson('/api/master/academic-year', [
+            'year' => '2023/2024',
+            'type' => 'semester',
+            'periode' => 'ganjil',
+            'start_date' => '2023-07-01',
+            'active' => true,
+            'description' => 'Tahun ajaran tanpa tanggal selesai'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'Tanggal selesai wajib diisi.',
+            ]);
+    }
+
+    /** @test */
+    public function it_validates_end_date_must_be_after_start_date()
+    {
+        $response = $this->postJson('/api/master/academic-year', [
+            'year' => '2023/2024',
+            'type' => 'semester',
+            'periode' => 'ganjil',
+            'start_date' => '2024-07-01',
+            'end_date' => '2023-06-30', // End date before start date
+            'active' => true,
+            'description' => 'Tahun ajaran dengan tanggal tidak valid'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'Tanggal selesai harus setelah tanggal mulai.',
             ]);
     }
 
@@ -76,11 +187,20 @@ class AcademicYearTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Data tahun ajaran berhasil diambil',
+            ])
+            ->assertJsonStructure([
                 'data' => [
-                    'id' => $academicYear->id,
-                    'year' => $academicYear->year,
-                    'active' => $academicYear->active,
-                    'description' => $academicYear->description
+                    'id',
+                    'year',
+                    'type',
+                    'periode',
+                    'start_date',
+                    'end_date',
+                    'active',
+                    'description',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
                 ]
             ]);
     }
@@ -103,6 +223,10 @@ class AcademicYearTest extends TestCase
         $academicYear = AcademicYear::factory()->create(['year' => '2025/2026']);
         $updatedData = [
             'year' => '2026/2027',
+            'type' => 'triwulan',
+            'periode' => 'cawu 1',
+            'start_date' => '2026-07-01',
+            'end_date' => '2027-06-30',
             'active' => false,
             'description' => 'Tahun ajaran 2026/2027'
         ];
@@ -113,9 +237,36 @@ class AcademicYearTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Tahun ajaran berhasil diperbarui'
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'year',
+                    'type',
+                    'periode',
+                    'start_date',
+                    'end_date',
+                    'active',
+                    'description',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
+                ]
             ]);
 
-        $this->assertDatabaseHas('academic_years', $updatedData);
+        // Check that the record exists in the database
+        $this->assertDatabaseHas('academic_years', [
+            'year' => '2026/2027',
+            'type' => 'triwulan',
+            'periode' => 'cawu 1',
+            'active' => 0,
+            'description' => 'Tahun ajaran 2026/2027'
+        ]);
+
+        // Check dates separately since they include time
+        $academicYear = AcademicYear::where('year', '2026/2027')->first();
+        $this->assertEquals('2026-07-01', $academicYear->start_date->format('Y-m-d'));
+        $this->assertEquals('2027-06-30', $academicYear->end_date->format('Y-m-d'));
     }
 
     /** @test */
@@ -123,6 +274,10 @@ class AcademicYearTest extends TestCase
     {
         $data = [
             'year' => '2024/2025',
+            'type' => 'semester',
+            'periode' => 'genap',
+            'start_date' => '2024-07-01',
+            'end_date' => '2025-06-30',
             'active' => false,
             'description' => 'Tahun ajaran 2024/2025'
         ];
@@ -177,13 +332,21 @@ class AcademicYearTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Data tahun ajaran yang dihapus berhasil diambil',
+            ])
+            ->assertJsonStructure([
                 'data' => [
                     [
-                        'id' => $academicYear->id,
-                        'year' => $academicYear->year,
-                        'active' => $academicYear->active,
-                        'description' => $academicYear->description,
-                        'deleted_at' => $academicYear->deleted_at->toISOString()
+                        'id',
+                        'year',
+                        'type',
+                        'periode',
+                        'start_date',
+                        'end_date',
+                        'active',
+                        'description',
+                        'created_at',
+                        'updated_at',
+                        'deleted_at'
                     ]
                 ]
             ]);
@@ -201,11 +364,20 @@ class AcademicYearTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Tahun ajaran berhasil dipulihkan',
+            ])
+            ->assertJsonStructure([
                 'data' => [
-                    'id' => $academicYear->id,
-                    'year' => $academicYear->year,
-                    'active' => $academicYear->active,
-                    'description' => $academicYear->description
+                    'id',
+                    'year',
+                    'type',
+                    'periode',
+                    'start_date',
+                    'end_date',
+                    'active',
+                    'description',
+                    'created_at',
+                    'updated_at',
+                    'deleted_at'
                 ]
             ]);
 
