@@ -17,7 +17,7 @@ class ClassSchedule extends Model
 
     public function education()
     {
-        return $this->belongsTo(Education::class);
+        return $this->belongsTo(EducationalInstitution::class, 'educational_institution_id');
     }
 
     public function details()

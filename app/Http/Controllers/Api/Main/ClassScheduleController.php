@@ -54,7 +54,7 @@ class ClassScheduleController extends Controller
             // Create the schedule header
             $schedule = ClassSchedule::create($request->only([
                 'academic_year_id',
-                'education_id',
+                'educational_institutions_id',
                 'session',
                 'status'
             ]));
@@ -155,7 +155,7 @@ class ClassScheduleController extends Controller
             // Update the schedule header
             $schedule->update($request->only([
                 'academic_year_id',
-                'education_id',
+                'educational_institutions_id',
                 'session',
                 'status'
             ]));

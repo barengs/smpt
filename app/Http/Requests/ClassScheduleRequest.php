@@ -23,7 +23,7 @@ class ClassScheduleRequest extends FormRequest
     {
         return [
             'academic_year_id' => 'required|exists:academic_years,id',
-            'education_id' => 'required|exists:educations,id',
+            'education_id' => 'required|exists:educational_institutions,id',
             'session' => 'required|in:pagi,sore,siang,malam',
             'status' => 'sometimes|in:active,inactive',
             'details' => 'required|array|min:1',
