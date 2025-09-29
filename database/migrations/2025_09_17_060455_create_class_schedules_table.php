@@ -16,9 +16,9 @@ return new class extends Migration
             $table->foreignId('academic_year_id')
                 ->constrained('academic_years')
                 ->cascadeOnDelete(); // tahun akademik
-            $table->foreignId('education_id')
-                ->constrained('educations')
-                ->onDelete('cascade'); // jenjang pendidikan
+            $table->foreignId('educational_institutions_id')
+                ->constrained('educational_institutions')
+                ->onDelete('cascade'); // jenjang pendidikan pesantren
             $table->string('session')
                 ->nullable()
                 ->comment('sisi, pagi, sore'); // sesi

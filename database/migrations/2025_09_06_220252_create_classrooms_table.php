@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('classrooms', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->unsignedBigInteger('educational_institution_id')->nullable();
             $table->string('description')->nullable();
             $table->softDeletes();
             $table->timestamps();
