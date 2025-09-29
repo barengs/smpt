@@ -34,7 +34,7 @@ class EducationalInstitutionRequest extends FormRequest
             'institution_banner' => 'nullable|string|max:255',
             'institution_status' => 'nullable|in:active,inactive',
             'institution_description' => 'required|string',
-            'headmaster_id' => 'required|exists:staffs,id',
+            'headmaster_id' => 'required|exists:staff,id',
         ];
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {

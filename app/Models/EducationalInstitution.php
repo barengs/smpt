@@ -27,7 +27,7 @@ class EducationalInstitution extends Model
      */
     public function educationClass()
     {
-        return $this->belongsTo(EducationClass::class, 'education_class_id');
+        return $this->belongsTo(EducationClass::class, 'education_class_id', 'id');
     }
 
     /**
@@ -35,6 +35,6 @@ class EducationalInstitution extends Model
      */
     public function headmaster()
     {
-        return $this->belongsTo(Staff::class, 'headmaster_id');
+        return $this->belongsTo(Staff::class, 'headmaster_id', 'id');
     }
 }
