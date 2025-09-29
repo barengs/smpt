@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Api\Master;
 
-use App\Http\Controllers\Controller;
+use Exception;
 use App\Models\Education;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Exception;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class EducationController extends Controller
@@ -55,8 +56,15 @@ class EducationController extends Controller
                 ], 422);
             }
 
+            DB::beginTransaction();
+
             $education = Education::create($request->all());
 
+            DB::table('education_has_education_classes')->insert(
+                ['education_id' => $education->id, 'education_class_id' => $request->education_class_id]
+            );
+
+            DB::commit();
             return response()->json([
                 'success' => true,
                 'message' => 'Pendidikan berhasil ditambahkan',
@@ -69,12 +77,14 @@ class EducationController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (QueryException $e) {
+            DB::rollback();
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menambahkan pendidikan',
                 'error' => $e->getMessage()
             ], 500);
         } catch (Exception $e) {
+            DB::rollback();
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat menambahkan pendidikan',
@@ -89,7 +99,7 @@ class EducationController extends Controller
     public function show(string $id)
     {
         try {
-            $education = Education::find($id);
+            $education = Education::with('education_classes')->find($id);
 
             if (!$education) {
                 return response()->json([

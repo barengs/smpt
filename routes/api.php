@@ -1,48 +1,65 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\Main\NewsController;
-use App\Http\Controllers\Api\Main\RoleController;
-use App\Http\Controllers\Api\Main\StaffController;
-use App\Http\Controllers\Api\Main\ParentController;
-use App\Http\Controllers\Api\Master\CityController;
-use App\Http\Controllers\Api\Master\MenuController;
-use App\Http\Controllers\Api\Master\RoomController;
 use App\Http\Controllers\Api\AuthRegisterController;
-use App\Http\Controllers\Api\Main\AccountController;
-use App\Http\Controllers\Api\Main\ProductController;
-use App\Http\Controllers\Api\Main\StudentController;
-use App\Http\Controllers\Api\Master\StudyController;
-use App\Http\Controllers\Api\Main\ActivityController;
-use App\Http\Controllers\Api\Master\HostelController;
-use App\Http\Controllers\Api\Main\DashboardController;
-use App\Http\Controllers\Api\Master\ProgramController;
-use App\Http\Controllers\Api\Master\VillageController;
-use App\Http\Controllers\Api\Main\PermissionController;
-use App\Http\Controllers\Api\Master\DistrictController;
-use App\Http\Controllers\Api\Master\ProvinceController;
-use App\Http\Controllers\Api\Main\TransactionController;
-use App\Http\Controllers\Api\Master\ClassroomController;
-use App\Http\Controllers\Api\Master\EducationController;
-use App\Http\Controllers\Api\Main\RegistrationController;
-use App\Http\Controllers\Api\Master\ClassGroupController;
-use App\Http\Controllers\Api\Master\EmploymentController;
-use App\Http\Controllers\Api\Master\LessonHourController;
-use App\Http\Controllers\Api\Master\OccupationController;
-use App\Http\Controllers\Api\Master\ProfessionController;
-use App\Http\Controllers\Api\Master\StaffStudyController;
-use App\Http\Controllers\Api\Master\ConrolPanelController;
 use App\Http\Controllers\Api\Master\AcademicYearController;
-use App\Http\Controllers\Api\Main\TransactionTypeController;
-use App\Http\Controllers\Api\Master\EducationTypeController;
-use App\Http\Controllers\Api\Master\ChartOfAccountController;
+use App\Http\Controllers\Api\Master\ClassGroupController;
 use App\Http\Controllers\Api\Master\EducationClassController;
-use App\Http\Controllers\Api\Main\ClassScheduleController;
+use App\Http\Controllers\Api\Master\EducationController;
+use App\Http\Controllers\Api\Master\EducationTypeController;
+use App\Http\Controllers\Api\Master\LessonHourController;
+use App\Http\Controllers\Api\Master\ProvinceController;
+use App\Http\Controllers\Api\Master\CityController;
+use App\Http\Controllers\Api\Master\DistrictController;
+use App\Http\Controllers\Api\Master\VillageController;
+use App\Http\Controllers\Api\Master\ProfessionController;
+use App\Http\Controllers\Api\Master\ProgramController;
+use App\Http\Controllers\Api\Master\StudyController;
+use App\Http\Controllers\Api\Master\ChartOfAccountController;
+use App\Http\Controllers\Api\Master\RoomController;
 use App\Http\Controllers\Api\Master\IntershipSupervisorController;
+use App\Http\Controllers\Api\Master\HostelController;
+use App\Http\Controllers\Api\Master\ClassroomController;
+use App\Http\Controllers\Api\Master\ConrolPanelController;
+use App\Http\Controllers\Api\Master\MenuController;
+use App\Http\Controllers\Api\Main\ProductController;
+use App\Http\Controllers\Api\Master\StaffStudyController;
+use App\Http\Controllers\Api\Master\OccupationController;
+use App\Http\Controllers\Api\Master\EmploymentController;
+use App\Http\Controllers\Api\Main\DashboardController;
+use App\Http\Controllers\Api\Main\RegistrationController;
+use App\Http\Controllers\Api\Main\TransactionController;
+use App\Http\Controllers\Api\Main\AccountController;
+use App\Http\Controllers\Api\Main\NewsController;
+use App\Http\Controllers\Api\Main\ActivityController;
+use App\Http\Controllers\Api\Main\RoleController;
+use App\Http\Controllers\Api\Main\PermissionController;
+use App\Http\Controllers\Api\Main\StaffController;
+use App\Http\Controllers\Api\Main\StudentController;
+use App\Http\Controllers\Api\Main\ParentController;
+use App\Http\Controllers\Api\Main\ClassScheduleController;
 use App\Http\Controllers\Api\Main\StudentClassController;
+use App\Http\Controllers\Api\Main\EducationalInstitutionController;
+use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Models\AcademicYear;
+use App\Models\ClassGroup;
+use App\Models\Education;
+use App\Models\EducationClass;
+use App\Models\Program;
+use App\Models\Study;
+use App\Models\User;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
 
 Route::group([
 
@@ -198,4 +215,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('student-class/bulk-assign', [StudentClassController::class, 'bulkAssign']);
     Route::post('student-class/{id}/approve', [StudentClassController::class, 'approve']);
     Route::post('student-class/{id}/reject', [StudentClassController::class, 'reject']);
+
+    // Educational Institution
+    Route::apiResource('educational-institution', EducationalInstitutionController::class);
 });
