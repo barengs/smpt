@@ -23,7 +23,7 @@ class ClassScheduleRequest extends FormRequest
     {
         return [
             'academic_year_id' => 'required|exists:academic_years,id',
-            'education_id' => 'required|exists:educational_institutions,id',
+            'educational_institution_id' => 'required|exists:educational_institutions,id',
             'session' => 'required|in:pagi,sore,siang,malam',
             'status' => 'sometimes|in:active,inactive',
             'details' => 'required|array|min:1',
@@ -42,8 +42,8 @@ class ClassScheduleRequest extends FormRequest
         return [
             'academic_year_id.required' => 'Tahun akademik wajib diisi',
             'academic_year_id.exists' => 'Tahun akademik tidak ditemukan',
-            'education_id.required' => 'Jenjang pendidikan wajib diisi',
-            'education_id.exists' => 'Jenjang pendidikan tidak ditemukan',
+            'educational_institution_id.required' => 'Jenjang pendidikan wajib diisi',
+            'educational_institution_id.exists' => 'Jenjang pendidikan tidak ditemukan',
             'session.required' => 'Sesi wajib diisi',
             'session.in' => 'Sesi tidak valid',
             'details.required' => 'Detail jadwal wajib diisi',
