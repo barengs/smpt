@@ -39,7 +39,15 @@ class AuthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return $this->respondWithToken($token, auth()->user());
+        $user = auth()->user();
+        if ($user->getRoleNames()[0] == 'orangtua')
+        {
+            $user->profile = $user->parent();
+        } else {
+            $user->profile = $user->staff();
+        }
+
+        return $this->respondWithToken($token, $user);
     }
 
     /**
