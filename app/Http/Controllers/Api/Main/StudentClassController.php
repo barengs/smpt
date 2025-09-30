@@ -30,8 +30,8 @@ class StudentClassController extends Controller
             }
 
             // Filter by education if provided
-            if ($request->has('education_id')) {
-                $query->where('education_id', $request->education_id);
+            if ($request->has('educational_institution_id')) {
+                $query->where('educational_institution_id', $request->educational_institution_id);
             }
 
             // Filter by approval status if provided
@@ -63,7 +63,7 @@ class StudentClassController extends Controller
     {
         $request->validated([
             'academic_year_id' => 'required|exists:academic_years,id',
-            'education_id' => 'required|exists:educations,id',
+            'educational_institution_id' => 'required|exists:educational_institutions,id',
             'class_id' => 'required|exists:classrooms,id',
             'class_group_id' => 'required|exists:class_groups,id',
             'student_id' => 'required|exists:students,id',
@@ -73,7 +73,7 @@ class StudentClassController extends Controller
         try {
             $checkStudent = StudentClass::where('student_id', $request->student_id)
                 ->where('academic_year_id', $request->academic_year_id)
-                ->where('education_id', $request->education_id)
+                ->where('educational_institution_id', $request->educational_institution_id)
                 ->where('class_id', $request->class_id)
                 ->where('class_group_id', $request->class_group_id)
                 ->where('approval_status', 'diajukan')
