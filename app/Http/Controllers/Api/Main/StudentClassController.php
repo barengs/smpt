@@ -22,7 +22,7 @@ class StudentClassController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = StudentClass::with(['academicYears:year', 'educations:id,institution_name', 'students:id,first_name,last_name', 'classrooms', 'classGroup:name']);
+            $query = StudentClass::with(['academicYears:id,year', 'educations:id,institution_name', 'students:id,first_name,last_name', 'classrooms:id,name', 'classGroup:id,name']);
 
             // Filter by academic year if provided
             if ($request->has('academic_year_id')) {
