@@ -64,7 +64,7 @@ class StudentClassController extends Controller
         $request->validated([
             'academic_year_id' => 'required|exists:academic_years,id',
             'educational_institution_id' => 'required|exists:educational_institutions,id',
-            'class_id' => 'required|exists:classrooms,id',
+            'classroom_id' => 'required|exists:classrooms,id',
             'class_group_id' => 'required|exists:class_groups,id',
             'student_id' => 'required|exists:students,id',
             'approval_status' => 'required|in:diajukan,disetujui,ditolak'
