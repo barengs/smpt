@@ -17,7 +17,7 @@ class ClassroomController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $classrooms = Classroom::with('classGroups')->orderByDesc('id')->get();
+            $classrooms = Classroom::with('classGroups', 'school')->orderByDesc('id')->get();
             return response()->json(new ClassroomResource('Data kelas berhasil diambil', $classrooms, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new ClassroomResource('Gagal mengambil data kelas', null, 500), 500);
@@ -43,7 +43,7 @@ class ClassroomController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $classroom = Classroom::with('classGroups')->findOrFail($id);
+            $classroom = Classroom::with('classGroups', 'school')->findOrFail($id);
             return response()->json(new ClassroomResource('Data kelas berhasil diambil', $classroom, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new ClassroomResource('Kelas tidak ditemukan', null, 404), 404);
