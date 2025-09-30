@@ -23,7 +23,7 @@ class StudentClass extends Model
 
     public function educations()
     {
-        return $this->belongsTo(Education::class, 'education_id');
+        return $this->belongsTo(EducationalInstitution::class, 'educational_institution_id');
     }
 
     public function classrooms()

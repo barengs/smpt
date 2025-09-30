@@ -17,8 +17,8 @@ return new class extends Migration
                 ->constrained('academic_years')
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
-            $table->foreignId('education_id')
-                ->constrained('educations')
+            $table->foreignId('educational_institution_id')
+                ->constrained('educational_institutions')
                 ->cascadeOnUpdate()
                 ->cascadeOnDelete();
             $table->foreignId('student_id')
