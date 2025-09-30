@@ -28,12 +28,12 @@ class StudentClass extends Model
 
     public function classrooms()
     {
-        return $this->belongsTo(Classroom::class, 'class_id');
+        return $this->belongsTo(Classroom::class, 'classroom_id');
     }
 
     public function classGroup()
     {
-        return $this->belongsTo(ClassGroup::class, 'class_grup_id');
+        return $this->belongsTo(ClassGroup::class, 'class_group_id');
     }
 
     public function approveBy()
