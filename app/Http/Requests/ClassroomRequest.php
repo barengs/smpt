@@ -23,13 +23,13 @@ class ClassroomRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string|max:255|unique:classrooms,name',
-            'parent_id' => 'nullable|exists:classrooms,id',
+            'educational_institution_id' => 'nullable|exists:educational_institutions,id',
             'description' => 'nullable|string',
         ];
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
             $rules['name'] = 'sometimes|required|string|max:255|unique:classrooms,name,' . $this->route('classroom');
-            $rules['parent_id'] = 'sometimes|nullable|exists:classrooms,id';
+            $rules['educational_institution_id'] = 'sometimes|nullable|exists:educational_institutions,id';
             $rules['description'] = 'sometimes|nullable|string';
         }
 
@@ -48,7 +48,7 @@ class ClassroomRequest extends FormRequest
             'name.string' => 'Nama kelas harus berupa teks.',
             'name.max' => 'Nama kelas maksimal 255 karakter.',
             'name.unique' => 'Nama kelas sudah ada.',
-            'parent_id.exists' => 'Kelas induk tidak valid.',
+            'educational_institution_id.exists' => 'Nama Sekolah tidak valid.',
             'description.string' => 'Deskripsi harus berupa teks.',
         ];
     }
