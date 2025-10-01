@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\ClassSchedule;
 use App\Models\ClassScheduleDetail;
 use App\Models\MeetingSchedule;
+use App\Models\StudentClass;
 use App\Http\Requests\ClassScheduleRequest;
 use App\Http\Resources\ClassScheduleResource;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,9 @@ class ClassScheduleController extends Controller
                 'details.teacher',
                 'details.study'
             ])->get();
+
+            // Add student data to each schedule
+            $schedules = $this->addStudentDataToSchedules($schedules);
 
             return new ClassScheduleResource('Data jadwal berhasil diambil', $schedules, 200);
         } catch (QueryException $e) {
@@ -134,12 +138,58 @@ class ClassScheduleController extends Controller
                 'details.meetingSchedules'
             ])->findOrFail($id);
 
+            // Add student data to the schedule
+            $schedule = $this->addStudentDataToSchedule($schedule);
+
             return new ClassScheduleResource('Data jadwal berhasil diambil', $schedule, 200);
         } catch (QueryException $e) {
             return new ClassScheduleResource('Terjadi kesalahan database saat mengambil data jadwal', ['error' => $e->getMessage()], 500);
         } catch (Exception $e) {
             return new ClassScheduleResource('Terjadi kesalahan saat mengambil data jadwal', ['error' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Add student data to schedule details
+     *
+     * @param ClassSchedule $schedule
+     * @return ClassSchedule
+     */
+    private function addStudentDataToSchedule($schedule)
+    {
+        // For each detail in the schedule, add the related students
+        $schedule->details->each(function ($detail) use ($schedule) {
+            // Get students based on the same educational institution, academic year, classroom, and class group
+            $students = StudentClass::with('students')
+                ->where('educational_institution_id', $schedule->educational_institution_id)
+                ->where('academic_year_id', $schedule->academic_year_id)
+                ->where('classroom_id', $detail->classroom_id)
+                ->where('class_group_id', $detail->class_group_id)
+                ->where('approval_status', 'disetujui') // Only approved student classes
+                ->get()
+                ->pluck('students'); // Get only the student data
+
+            // Add students to the detail
+            $detail->students = $students;
+        });
+
+        return $schedule;
+    }
+
+    /**
+     * Add student data to multiple schedules
+     *
+     * @param $schedules
+     * @return mixed
+     */
+    private function addStudentDataToSchedules($schedules)
+    {
+        // For each schedule, add student data
+        $schedules->each(function ($schedule) {
+            $this->addStudentDataToSchedule($schedule);
+        });
+
+        return $schedules;
     }
 
     /**

@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Models\ClassSchedule;
 use App\Models\AcademicYear;
-use App\Models\Education;
+use App\Models\EducationalInstitution;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ClassScheduleFactory extends Factory
@@ -25,7 +25,7 @@ class ClassScheduleFactory extends Factory
     {
         return [
             'academic_year_id' => AcademicYear::factory(),
-            'education_id' => Education::factory(),
+            'educational_institution_id' => EducationalInstitution::factory(),
             'session' => $this->faker->randomElement(['pagi', 'sore', 'siang', 'malam']),
             'status' => $this->faker->randomElement(['active', 'inactive']),
         ];
