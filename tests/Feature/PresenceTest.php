@@ -47,8 +47,6 @@ class PresenceTest extends TestCase
             'meeting_schedule_id' => $this->meetingSchedule->id,
             'status' => 'hadir',
             'description' => 'Hadir tepat waktu',
-            'date' => '2025-10-01',
-            'user_id' => $this->user->id,
         ];
 
         $response = $this->actingAs($this->user, 'api')
@@ -64,6 +62,8 @@ class PresenceTest extends TestCase
             'student_id' => $this->student->id,
             'meeting_schedule_id' => $this->meetingSchedule->id,
             'status' => 'hadir',
+            'user_id' => $this->user->id,
+            'date' => now()->toDateString(),
         ]);
     }
 

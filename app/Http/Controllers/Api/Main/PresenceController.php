@@ -12,6 +12,7 @@ use App\Models\StudentClass;
 use App\Http\Requests\PresenceRequest;
 use App\Http\Resources\PresenceResource;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
@@ -72,6 +73,119 @@ class PresenceController extends Controller
         } catch (Exception $e) {
             Log::error('Error while fetching presences: ' . $e->getMessage());
             return new PresenceResource('Terjadi kesalahan saat mengambil data presensi', null, 500);
+        }
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        try {
+            // Validate the request
+            $validatedData = $request->validate([
+                'student_id' => 'required|exists:students,id',
+                'meeting_schedule_id' => 'required|exists:meeting_schedules,id',
+                'status' => 'required|in:hadir,izin,sakit,alpha',
+                'description' => 'nullable|string|max:255',
+            ]);
+
+            // Add user_id from currently authenticated user
+            $validatedData['user_id'] = Auth::id();
+
+            // Add current date
+            $validatedData['date'] = now()->toDateString();
+
+            $presence = Presence::create($validatedData);
+
+            // Load relationships
+            $presence->load(['student', 'meetingSchedule', 'user']);
+
+            return new PresenceResource('Data presensi berhasil disimpan', $presence, 201);
+        } catch (ValidationException $e) {
+            return new PresenceResource('Validasi gagal', $e->errors(), 422);
+        } catch (QueryException $e) {
+            Log::error('Database error while creating presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan database saat menyimpan data presensi', null, 500);
+        } catch (Exception $e) {
+            Log::error('Error while creating presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan saat menyimpan data presensi', null, 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        try {
+            $presence = Presence::with(['student', 'meetingSchedule.schedule.classroom', 'meetingSchedule.schedule.classGroup', 'user'])->findOrFail($id);
+
+            return new PresenceResource('Data presensi berhasil diambil', $presence, 200);
+        } catch (ModelNotFoundException $e) {
+            return new PresenceResource('Data presensi tidak ditemukan', null, 404);
+        } catch (QueryException $e) {
+            Log::error('Database error while fetching presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan database saat mengambil data presensi', null, 500);
+        } catch (Exception $e) {
+            Log::error('Error while fetching presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan saat mengambil data presensi', null, 500);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        try {
+            $presence = Presence::findOrFail($id);
+
+            // Validate the request
+            $validatedData = $request->validate([
+                'student_id' => 'sometimes|required|exists:students,id',
+                'meeting_schedule_id' => 'sometimes|required|exists:meeting_schedules,id',
+                'status' => 'sometimes|required|in:hadir,izin,sakit,alpha',
+                'description' => 'sometimes|nullable|string|max:255',
+            ]);
+
+            $presence->update($validatedData);
+
+            // Load relationships
+            $presence->load(['student', 'meetingSchedule', 'user']);
+
+            return new PresenceResource('Data presensi berhasil diperbarui', $presence, 200);
+        } catch (ModelNotFoundException $e) {
+            return new PresenceResource('Data presensi tidak ditemukan', null, 404);
+        } catch (ValidationException $e) {
+            return new PresenceResource('Validasi gagal', $e->errors(), 422);
+        } catch (QueryException $e) {
+            Log::error('Database error while updating presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan database saat memperbarui data presensi', null, 500);
+        } catch (Exception $e) {
+            Log::error('Error while updating presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan saat memperbarui data presensi', null, 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        try {
+            $presence = Presence::findOrFail($id);
+            $presence->delete();
+
+            return new PresenceResource('Data presensi berhasil dihapus', null, 200);
+        } catch (ModelNotFoundException $e) {
+            return new PresenceResource('Data presensi tidak ditemukan', null, 404);
+        } catch (QueryException $e) {
+            Log::error('Database error while deleting presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan database saat menghapus data presensi', null, 500);
+        } catch (Exception $e) {
+            Log::error('Error while deleting presence: ' . $e->getMessage());
+            return new PresenceResource('Terjadi kesalahan saat menghapus data presensi', null, 500);
         }
     }
 
@@ -209,97 +323,6 @@ class PresenceController extends Controller
             ->get();
 
         return new PresenceResource('Data presensi berdasarkan jadwal pertemuan berhasil diambil', $meetingSchedule, 200);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(PresenceRequest $request)
-    {
-        try {
-            $presence = Presence::create($request->validated());
-
-            // Load relationships
-            $presence->load(['student', 'meetingSchedule', 'user']);
-
-            return new PresenceResource('Data presensi berhasil disimpan', $presence, 201);
-        } catch (ValidationException $e) {
-            return new PresenceResource('Validasi gagal', $e->errors(), 422);
-        } catch (QueryException $e) {
-            Log::error('Database error while creating presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan database saat menyimpan data presensi', null, 500);
-        } catch (Exception $e) {
-            Log::error('Error while creating presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan saat menyimpan data presensi', null, 500);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        try {
-            $presence = Presence::with(['student', 'meetingSchedule.schedule.classroom', 'meetingSchedule.schedule.classGroup', 'user'])->findOrFail($id);
-
-            return new PresenceResource('Data presensi berhasil diambil', $presence, 200);
-        } catch (ModelNotFoundException $e) {
-            return new PresenceResource('Data presensi tidak ditemukan', null, 404);
-        } catch (QueryException $e) {
-            Log::error('Database error while fetching presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan database saat mengambil data presensi', null, 500);
-        } catch (Exception $e) {
-            Log::error('Error while fetching presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan saat mengambil data presensi', null, 500);
-        }
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(PresenceRequest $request, string $id)
-    {
-        try {
-            $presence = Presence::findOrFail($id);
-
-            $presence->update($request->validated());
-
-            // Load relationships
-            $presence->load(['student', 'meetingSchedule', 'user']);
-
-            return new PresenceResource('Data presensi berhasil diperbarui', $presence, 200);
-        } catch (ModelNotFoundException $e) {
-            return new PresenceResource('Data presensi tidak ditemukan', null, 404);
-        } catch (ValidationException $e) {
-            return new PresenceResource('Validasi gagal', $e->errors(), 422);
-        } catch (QueryException $e) {
-            Log::error('Database error while updating presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan database saat memperbarui data presensi', null, 500);
-        } catch (Exception $e) {
-            Log::error('Error while updating presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan saat memperbarui data presensi', null, 500);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        try {
-            $presence = Presence::findOrFail($id);
-            $presence->delete();
-
-            return new PresenceResource('Data presensi berhasil dihapus', null, 200);
-        } catch (ModelNotFoundException $e) {
-            return new PresenceResource('Data presensi tidak ditemukan', null, 404);
-        } catch (QueryException $e) {
-            Log::error('Database error while deleting presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan database saat menghapus data presensi', null, 500);
-        } catch (Exception $e) {
-            Log::error('Error while deleting presence: ' . $e->getMessage());
-            return new PresenceResource('Terjadi kesalahan saat menghapus data presensi', null, 500);
-        }
     }
 
     /**
