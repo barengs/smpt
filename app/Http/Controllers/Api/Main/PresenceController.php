@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Api\Main;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Presence;
+use App\Models\MeetingSchedule;
+use App\Models\ClassScheduleDetail;
+use App\Models\ClassSchedule;
+use App\Models\StudentClass;
 use App\Http\Requests\PresenceRequest;
 use App\Http\Resources\PresenceResource;
 use Illuminate\Support\Facades\Log;
@@ -21,16 +25,27 @@ class PresenceController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Presence::with(['student', 'meetingSchedule', 'user']);
+            // Check if we're filtering by class schedule
+            if ($request->has('class_schedule_id')) {
+                return $this->getPresenceByClassSchedule($request);
+            }
+
+            // Check if we're filtering by class schedule detail
+            if ($request->has('class_schedule_detail_id')) {
+                return $this->getPresenceByClassScheduleDetail($request);
+            }
+
+            // Check if we're filtering by meeting schedule
+            if ($request->has('meeting_schedule_id')) {
+                return $this->getPresenceByMeetingSchedule($request);
+            }
+
+            // Default presence listing
+            $query = Presence::with(['student', 'meetingSchedule.schedule.classroom', 'meetingSchedule.schedule.classGroup', 'user']);
 
             // Filter by student if provided
             if ($request->has('student_id')) {
                 $query->where('student_id', $request->student_id);
-            }
-
-            // Filter by meeting schedule if provided
-            if ($request->has('meeting_schedule_id')) {
-                $query->where('meeting_schedule_id', $request->meeting_schedule_id);
             }
 
             // Filter by status if provided
@@ -58,6 +73,142 @@ class PresenceController extends Controller
             Log::error('Error while fetching presences: ' . $e->getMessage());
             return new PresenceResource('Terjadi kesalahan saat mengambil data presensi', null, 500);
         }
+    }
+
+    /**
+     * Get presence data by class schedule
+     */
+    private function getPresenceByClassSchedule(Request $request)
+    {
+        $classScheduleId = $request->class_schedule_id;
+
+        // Get the class schedule with details
+        $classSchedule = ClassSchedule::with([
+            'academicYear',
+            'education',
+            'details.classroom',
+            'details.classGroup',
+            'details.lessonHour',
+            'details.teacher',
+            'details.study'
+        ])->findOrFail($classScheduleId);
+
+        // Add student data to each schedule detail
+        $classSchedule->details->each(function ($detail) use ($classSchedule) {
+            // Get students based on the same educational institution, academic year, classroom, and class group
+            $students = StudentClass::with('students')
+                ->where('educational_institution_id', $classSchedule->educational_institution_id)
+                ->where('academic_year_id', $classSchedule->academic_year_id)
+                ->where('classroom_id', $detail->classroom_id)
+                ->where('class_group_id', $detail->class_group_id)
+                ->where('approval_status', 'disetujui') // Only approved student classes
+                ->get()
+                ->pluck('students'); // Get only the student data
+
+            // Add students to the detail
+            $detail->students = $students;
+
+            // Get meeting schedules for this detail
+            $meetingSchedules = MeetingSchedule::where('class_schedule_detail_id', $detail->id)->get();
+
+            // Add presence data for each meeting schedule
+            $meetingSchedules->each(function ($meetingSchedule) {
+                $meetingSchedule->presences = Presence::with(['student', 'user'])
+                    ->where('meeting_schedule_id', $meetingSchedule->id)
+                    ->get();
+            });
+
+            // Attach meeting schedules to the detail
+            $detail->meeting_schedules = $meetingSchedules;
+        });
+
+        return new PresenceResource('Data presensi berdasarkan jadwal kelas berhasil diambil', $classSchedule, 200);
+    }
+
+    /**
+     * Get presence data by class schedule detail
+     */
+    private function getPresenceByClassScheduleDetail(Request $request)
+    {
+        $classScheduleDetailId = $request->class_schedule_detail_id;
+
+        // Get the class schedule detail with relationships
+        $classScheduleDetail = ClassScheduleDetail::with([
+            'classSchedule.academicYear',
+            'classSchedule.education',
+            'classroom',
+            'classGroup',
+            'lessonHour',
+            'teacher',
+            'study'
+        ])->findOrFail($classScheduleDetailId);
+
+        // Get students for this class schedule detail
+        $students = StudentClass::with('students')
+            ->where('educational_institution_id', $classScheduleDetail->classSchedule->educational_institution_id)
+            ->where('academic_year_id', $classScheduleDetail->classSchedule->academic_year_id)
+            ->where('classroom_id', $classScheduleDetail->classroom_id)
+            ->where('class_group_id', $classScheduleDetail->class_group_id)
+            ->where('approval_status', 'disetujui') // Only approved student classes
+            ->get()
+            ->pluck('students');
+
+        // Add students to the detail
+        $classScheduleDetail->students = $students;
+
+        // Get meeting schedules for this detail
+        $meetingSchedules = MeetingSchedule::where('class_schedule_detail_id', $classScheduleDetail->id)->get();
+
+        // Add presence data for each meeting schedule
+        $meetingSchedules->each(function ($meetingSchedule) {
+            $meetingSchedule->presences = Presence::with(['student', 'user'])
+                ->where('meeting_schedule_id', $meetingSchedule->id)
+                ->get();
+        });
+
+        // Attach meeting schedules to the detail
+        $classScheduleDetail->meeting_schedules = $meetingSchedules;
+
+        return new PresenceResource('Data presensi berdasarkan detail jadwal kelas berhasil diambil', $classScheduleDetail, 200);
+    }
+
+    /**
+     * Get presence data by meeting schedule
+     */
+    private function getPresenceByMeetingSchedule(Request $request)
+    {
+        $meetingScheduleId = $request->meeting_schedule_id;
+
+        // Get the meeting schedule with relationships
+        $meetingSchedule = MeetingSchedule::with([
+            'schedule.classSchedule.academicYear',
+            'schedule.classSchedule.education',
+            'schedule.classroom',
+            'schedule.classGroup',
+            'schedule.lessonHour',
+            'schedule.teacher',
+            'schedule.study'
+        ])->findOrFail($meetingScheduleId);
+
+        // Get students for this meeting schedule's class
+        $students = StudentClass::with('students')
+            ->where('educational_institution_id', $meetingSchedule->schedule->classSchedule->educational_institution_id)
+            ->where('academic_year_id', $meetingSchedule->schedule->classSchedule->academic_year_id)
+            ->where('classroom_id', $meetingSchedule->schedule->classroom_id)
+            ->where('class_group_id', $meetingSchedule->schedule->class_group_id)
+            ->where('approval_status', 'disetujui') // Only approved student classes
+            ->get()
+            ->pluck('students');
+
+        // Add students to the meeting schedule
+        $meetingSchedule->students = $students;
+
+        // Get presences for this meeting schedule
+        $meetingSchedule->presences = Presence::with(['student', 'user'])
+            ->where('meeting_schedule_id', $meetingSchedule->id)
+            ->get();
+
+        return new PresenceResource('Data presensi berdasarkan jadwal pertemuan berhasil diambil', $meetingSchedule, 200);
     }
 
     /**
@@ -89,7 +240,7 @@ class PresenceController extends Controller
     public function show(string $id)
     {
         try {
-            $presence = Presence::with(['student', 'meetingSchedule', 'user'])->findOrFail($id);
+            $presence = Presence::with(['student', 'meetingSchedule.schedule.classroom', 'meetingSchedule.schedule.classGroup', 'user'])->findOrFail($id);
 
             return new PresenceResource('Data presensi berhasil diambil', $presence, 200);
         } catch (ModelNotFoundException $e) {

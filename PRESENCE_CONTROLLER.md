@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document explains the implementation of the PresenceController with full CRUD functionality, statistics features, try-catch mechanisms, and Indonesian language responses.
+This document explains the implementation of the PresenceController with full CRUD functionality, statistics features, try-catch mechanisms, and Indonesian language responses. The controller has been enhanced to integrate class schedule data with presence data through MeetingSchedule.
 
 ## Implementation Details
 
@@ -16,17 +16,24 @@ This document explains the implementation of the PresenceController with full CR
     - `update()`: Update an existing presence record
     - `destroy()`: Delete a presence record
 
-2. **Statistics Feature**:
+2. **Enhanced Index Method**:
+
+    - Default: Returns all presences with basic filtering
+    - By Class Schedule: Returns complete class schedule data with students and presences
+    - By Class Schedule Detail: Returns class schedule detail with students and presences
+    - By Meeting Schedule: Returns meeting schedule with students and presences
+
+3. **Statistics Feature**:
 
     - `statistics()`: Get count of presences grouped by status (hadir, izin, sakit, alpha) with percentages
 
-3. **Error Handling**:
+4. **Error Handling**:
 
     - All methods are wrapped in try-catch blocks
     - Specific handling for ValidationException, QueryException, ModelNotFoundException, and general Exception
     - Proper logging of errors using Laravel's Log facade
 
-4. **Response Format**:
+5. **Response Format**:
     - All responses use Indonesian language for messages
     - Consistent JSON structure with success flag, message, and data fields
     - Appropriate HTTP status codes
@@ -65,12 +72,34 @@ The following routes are available:
 
 The index method supports filtering by:
 
+-   Class Schedule ID (enhanced view with full schedule data)
+-   Class Schedule Detail ID (enhanced view with detail data)
+-   Meeting Schedule ID (enhanced view with meeting data)
 -   Student ID
--   Meeting Schedule ID
 -   Status
 -   Date
 -   User ID
--   Pagination (per_page parameter)
+
+### Enhanced Index Method
+
+The index method now provides three levels of data integration:
+
+1. **Default View**: Returns all presence records with basic relationships
+2. **Class Schedule View**: When `class_schedule_id` is provided, returns:
+    - Complete class schedule information
+    - All schedule details with classrooms, groups, etc.
+    - Students enrolled in each class schedule detail
+    - Meeting schedules for each detail
+    - Presences for each meeting schedule
+3. **Class Schedule Detail View**: When `class_schedule_detail_id` is provided, returns:
+    - Class schedule detail information
+    - Students enrolled in the class
+    - Meeting schedules for the detail
+    - Presences for each meeting schedule
+4. **Meeting Schedule View**: When `meeting_schedule_id` is provided, returns:
+    - Meeting schedule information
+    - Students enrolled in the related class
+    - Presences for the meeting schedule
 
 ### Statistics Feature
 
@@ -86,7 +115,7 @@ The statistics method provides:
 A comprehensive test suite is included in `PresenceTest.php` that covers:
 
 -   Creating presences
--   Retrieving presences
+-   Retrieving presences (default and enhanced views)
 -   Updating presences
 -   Deleting presences
 -   Getting statistics
