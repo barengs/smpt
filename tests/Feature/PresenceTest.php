@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\Presence;
 use App\Models\Student;
 use App\Models\MeetingSchedule;
+use App\Models\ClassScheduleDetail;
+use App\Models\ClassSchedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PresenceTest extends TestCase
@@ -16,6 +18,8 @@ class PresenceTest extends TestCase
     protected $user;
     protected $student;
     protected $meetingSchedule;
+    protected $classScheduleDetail;
+    protected $classSchedule;
 
     protected function setUp(): void
     {
@@ -26,7 +30,13 @@ class PresenceTest extends TestCase
 
         // Create related data
         $this->student = Student::factory()->create();
-        $this->meetingSchedule = MeetingSchedule::factory()->create();
+        $this->classSchedule = ClassSchedule::factory()->create();
+        $this->classScheduleDetail = ClassScheduleDetail::factory()->create([
+            'class_schedule_id' => $this->classSchedule->id
+        ]);
+        $this->meetingSchedule = MeetingSchedule::factory()->create([
+            'class_schedule_detail_id' => $this->classScheduleDetail->id
+        ]);
     }
 
     /** @test */
@@ -86,6 +96,51 @@ class PresenceTest extends TestCase
                         'user_id',
                         'created_at',
                         'updated_at',
+                    ]
+                ]
+            ]);
+    }
+
+    /** @test */
+    public function it_can_get_presence_by_class_schedule()
+    {
+        // Create student class mapping
+        \App\Models\StudentClass::factory()->create([
+            'student_id' => $this->student->id,
+            'academic_year_id' => $this->classSchedule->academic_year_id,
+            'educational_institution_id' => $this->classSchedule->educational_institution_id,
+            'classroom_id' => $this->classScheduleDetail->classroom_id,
+            'class_group_id' => $this->classScheduleDetail->class_group_id,
+            'approval_status' => 'disetujui'
+        ]);
+
+        // Create presence
+        $presence = Presence::factory()->create([
+            'student_id' => $this->student->id,
+            'meeting_schedule_id' => $this->meetingSchedule->id,
+            'user_id' => $this->user->id,
+            'status' => 'hadir'
+        ]);
+
+        $response = $this->actingAs($this->user, 'api')
+            ->getJson("/api/main/presence?class_schedule_id={$this->classSchedule->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Data presensi berdasarkan jadwal kelas berhasil diambil',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'details' => [
+                        '*' => [
+                            'students',
+                            'meeting_schedules' => [
+                                '*' => [
+                                    'presences'
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             ]);
