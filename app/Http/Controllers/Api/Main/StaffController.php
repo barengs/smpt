@@ -47,7 +47,6 @@ class StaffController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
             'email' => 'required|email|unique:staff,email',
             'first_name' => 'required|string|max:255',
@@ -59,27 +58,27 @@ class StaffController extends Controller
             'zip_code' => 'nullable|string|max:10',
             'photo' => 'nullable|string|max:255',
             'status' => 'required|in:Aktif,Tidak Aktif',
-            'role' => 'required',
+            'roles' => 'required',
         ]);
 
         try {
 
             // Check if user already has a staff record
-            $existingStaff = Staff::where('user_id', $request->user_id)->first();
-            if ($existingStaff) {
-                return new StaffResource('User already has a staff record', null, 409);
-            }
+            // $existingStaff = Staff::where('user_id', $request->user_id)->first();
+            // if ($existingStaff) {
+            //     return new StaffResource('User already has a staff record', null, 409);
+            // }
 
             DB::beginTransaction();
 
             // create user
             $user = User::create([
-                'name' => $request->name,
+                'name' => $request->username,
                 'email' => $request->email,
                 'password' => $request->password ? Hash::make($request->password) : Hash::make('password'),
             ]);
 
-            $user->syncRoles($request->role);
+            $user->syncRoles($request->roles);
 
             if ($request->hasFile('photo')) {
                 $image = new ImageManager(new Driver());
