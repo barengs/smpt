@@ -42,6 +42,8 @@ use App\Http\Controllers\Api\Main\ClassScheduleController;
 use App\Http\Controllers\Api\Main\StudentClassController;
 use App\Http\Controllers\Api\Main\EducationalInstitutionController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
+use App\Http\Controllers\Api\Main\InternshipController;
+use App\Http\Controllers\Api\Main\PresenceController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -218,4 +220,11 @@ Route::group(['prefix' => 'main'], function () {
 
     // Educational Institution
     Route::apiResource('educational-institution', EducationalInstitutionController::class);
+
+    // Internship
+    Route::apiResource('internship', InternshipController::class);
+
+    // Presence
+    Route::apiResource('presence', PresenceController::class);
+    Route::get('presence/statistics', [PresenceController::class, 'statistics'])->name('presence.statistics');
 });
