@@ -57,7 +57,6 @@ class StaffController extends Controller
             'address' => 'nullable|string|max:500',
             'zip_code' => 'nullable|string|max:10',
             'photo' => 'nullable|string|max:255',
-            'status' => 'required|in:Aktif,Tidak Aktif',
             'roles' => 'required',
         ]);
 
@@ -105,7 +104,7 @@ class StaffController extends Controller
                 'village_id' => $request->village_id,
                 'zip_code' => $request->zip_code,
                 'marital_status' => $request->marital_status,
-                'status' => $request->status,
+                'status' => $request->status ?? 'Aktif',
                 'job_id' => $request->job_id,
             ]);
 
