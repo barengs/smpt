@@ -73,6 +73,21 @@ class PresenceTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Data presensi berhasil diambil',
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'student_id',
+                        'meeting_schedule_id',
+                        'status',
+                        'description',
+                        'date',
+                        'user_id',
+                        'created_at',
+                        'updated_at',
+                    ]
+                ]
             ]);
     }
 

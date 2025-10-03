@@ -48,7 +48,7 @@ class PresenceController extends Controller
                 $query->where('user_id', $request->user_id);
             }
 
-            $presences = $query->paginate($request->get('per_page', 15));
+            $presences = $query->get();
 
             return new PresenceResource('Data presensi berhasil diambil', $presences, 200);
         } catch (QueryException $e) {
