@@ -33,7 +33,8 @@ class ClassScheduleController extends Controller
                 'details.classGroup',
                 'details.lessonHour',
                 'details.teacher',
-                'details.study'
+                'details.study',
+                'details.meetingSchedules'
             ])->get();
 
             // Add student data to each schedule

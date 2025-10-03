@@ -3,19 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Presence extends Model
 {
+    use HasFactory;
+
     protected $guarded = ['id'];
 
-    public function students()
+    public function student()
     {
-        return $this->belongsToMany(Student::class);
+        return $this->belongsTo(Student::class);
     }
 
-    public function meetingSchedules()
+    public function meetingSchedule()
     {
-        return $this->belongsToMany(MeetingSchedule::class, 'meeting_schedule_id', 'id');
+        return $this->belongsTo(MeetingSchedule::class);
     }
 
     public function user()

@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
+            $table->string('photo')->nullable();
+            $table->unsignedBigInteger('city_id');
+            $table->unsignedBigInteger('district_id');
             $table->softDeletes();
             $table->timestamps();
         });
