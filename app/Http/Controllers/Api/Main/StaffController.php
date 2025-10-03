@@ -103,7 +103,7 @@ class StaffController extends Controller
                 'gender' => $request->gender,
                 'village_id' => $request->village_id,
                 'zip_code' => $request->zip_code,
-                'marital_status' => $request->marital_status,
+                'marital_status' => $request->marital_status ?? 'Belum Menikah',
                 'status' => $request->status ?? 'Aktif',
                 'job_id' => $request->job_id,
             ]);
