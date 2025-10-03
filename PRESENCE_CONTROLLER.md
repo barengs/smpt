@@ -11,7 +11,7 @@ This document explains the implementation of the PresenceController with full CR
 1. **Full CRUD Operations**:
 
     - `index()`: Retrieve all presences with filtering capabilities
-    - `store()`: Create a new presence record
+    - `store()`: Create a new presence record (automatically sets user_id and date)
     - `show()`: Retrieve a specific presence by ID
     - `update()`: Update an existing presence record
     - `destroy()`: Delete a presence record
@@ -46,16 +46,30 @@ The Presence model includes the following relationships:
 -   `meetingSchedule()`: Belongs to MeetingSchedule
 -   `user()`: Belongs to User
 
+### Store Method Enhancement
+
+The store method has been enhanced to automatically:
+
+-   Set `user_id` from the currently authenticated user (Auth::id())
+-   Set `date` to the current date (now()->toDateString())
+-   Only require `student_id`, `meeting_schedule_id`, and `status` from the request
+-   Optionally accept `description` from the request
+
 ### Request Validation
 
-The PresenceRequest class provides validation for:
+The store method validates:
 
 -   Student ID (required, exists in students table)
 -   Meeting Schedule ID (required, exists in meeting_schedules table)
 -   Status (required, must be hadir/izin/sakit/alpha)
 -   Description (optional, string, max 255 characters)
--   Date (optional, date format)
--   User ID (required, exists in users table)
+
+The update method validates:
+
+-   Student ID (sometimes required, exists in students table)
+-   Meeting Schedule ID (sometimes required, exists in meeting_schedules table)
+-   Status (sometimes required, must be hadir/izin/sakit/alpha)
+-   Description (sometimes optional, string, max 255 characters)
 
 ### API Endpoints
 
@@ -114,7 +128,7 @@ The statistics method provides:
 
 A comprehensive test suite is included in `PresenceTest.php` that covers:
 
--   Creating presences
+-   Creating presences (with automatic user_id and date)
 -   Retrieving presences (default and enhanced views)
 -   Updating presences
 -   Deleting presences
