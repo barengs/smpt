@@ -26,8 +26,8 @@ return new class extends Migration
             $table->unsignedBigInteger('village_id')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
-            $table->string('occupation')->nullable();
-            $table->string('education_id')->nullable();
+            $table->foreignId('occupation_id')->constrained('occupations')->cascadeOnDelete();
+            $table->foreignId('education_id')->constrained('educations')->cascadeOnDelete();
             $table->text('photo')->nullable();
             $table->string('photo_path')->nullable();
             $table->softDeletes();
