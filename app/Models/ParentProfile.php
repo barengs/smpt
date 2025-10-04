@@ -20,4 +20,9 @@ class ParentProfile extends Model
     {
         return $this->hasMany(Student::class, 'parent_id', 'nik');
     }
+
+    public function occupation()
+    {
+        return $this->belongsTo(Occupation::class);
+    }
 }
