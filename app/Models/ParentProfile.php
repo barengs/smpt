@@ -25,4 +25,9 @@ class ParentProfile extends Model
     {
         return $this->belongsTo(Occupation::class);
     }
+
+    public function education()
+    {
+        return $this->belongsTo(Education::class);
+    }
 }
