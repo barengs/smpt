@@ -161,8 +161,8 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('control-panel', ConrolPanelController::class);
     // Registration routes
     Route::get('registration/curent-year', [RegistrationController::class, 'getByCurrentYear'])->name('registration.current-year');
-    Route::post('registration/create-transaction', [TransactionController::class, 'createRegistrationTransaction'])->name('registration.transaction');
     Route::apiResource('registration', RegistrationController::class);
+    Route::post('registration/request-transaction', [TransactionController::class, 'createRequestTransaction'])->name('request.transaction');
 
     // Transaction routes
     Route::apiResource('transaction', TransactionController::class);
