@@ -354,7 +354,7 @@ class RegistrationController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function createRegistrationTransaction(Request $request)
+    public function createRequestTransaction(Request $request)
     {
         $request->validate([
             'registration_id' => 'required|exists:registrations,id',
