@@ -16,6 +16,7 @@ use App\Models\TransactionLedger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
@@ -360,7 +361,6 @@ class RegistrationController extends Controller
             'registration_id' => 'required|exists:registrations,id',
             'product_id' => 'required|exists:products,id',
             'hijri_year' => 'required|digits:4',
-            'amount' => 'required|numeric',
             'transaction_type_id' => 'required|exists:transaction_types,id',
             'channel' => 'required|string',
         ]);
@@ -386,7 +386,7 @@ class RegistrationController extends Controller
                 'village_id' => $registration->village_id,
                 'photo' => $registration->photo,
                 'program_id' => $registration->program_id,
-                'user_id' => auth()->user()->id,
+                'user_id' => Auth::id(),
                 'education_type_id' => $registration->education_level_id,
                 'status' => 'Tidak Aktif', // Default status
             ]);
@@ -454,11 +454,6 @@ class RegistrationController extends Controller
                 'payment_status' => 'pending',
                 'payment_amount' => $product->opening_fee
             ]);
-
-            // if (!$transaction) {
-            //     DB::rollBack();
-            //     return response()->json(['message' => 'Failed to create transaction', 'errors' => $transaction], 500);
-            // }
 
             DB::commit();
 
