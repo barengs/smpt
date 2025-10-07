@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('nis')->unique();
             $table->string('period')->nullable();
             $table->string('nik')->unique()->nullable();
-            $table->string('kk')->unique()->nullable();
+            $table->string('kk')->nullable();
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();
             $table->enum('gender', ['L', 'P'])->default('L');
