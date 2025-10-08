@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    protected $table = 'transactions';
+    use HasUuids;
 
-    protected $guarded = ['id'];
+    public $incrementing = false;
+    protected $keyType = 'string';
+    protected $table = 'transactions';
 
     public function sourceAccount()
     {
