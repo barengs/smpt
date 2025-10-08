@@ -22,8 +22,6 @@ class Transaction extends Model
         'description',
         'status',
         'channel',
-        'created_at',
-        'updated_at',
     ];
 
     public function sourceAccount()
