@@ -12,6 +12,19 @@ class Transaction extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $table = 'transactions';
+    protected $fillable = [
+        'id',
+        'transaction_type_id',
+        'source_account',
+        'destination_account',
+        'reference_number',
+        'amount',
+        'description',
+        'status',
+        'channel',
+        'created_at',
+        'updated_at',
+    ];
 
     public function sourceAccount()
     {
