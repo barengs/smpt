@@ -18,6 +18,7 @@ return new class extends Migration
             $table->enum('entry_type', ['DEBIT', 'CREDIT']);
             $table->decimal('amount', 18, 2);
             $table->timestamp('entry_time')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('coa_code')->references('coa_code')->on('chart_of_accounts')->onDelete('restrict');
         });
