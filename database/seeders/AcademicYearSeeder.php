@@ -20,7 +20,7 @@ class AcademicYearSeeder extends Seeder
             'periode' => 'ganjil',
             'start_date' => '2025-09-01',
             'end_date' => '2026-01-31',
-            'status' => true,
+            'active' => true,
         ]);
     }
 }
