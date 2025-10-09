@@ -22,7 +22,8 @@ class EducationalInstitutionSeeder extends Seeder
             'institution_phone' => '08123456789',
             'institution_email' => 'info@mi-panyeppen.sch.id',
             'institution_website' => 'www.mi-panyeppen.sch.id',
-            'institution_status' => 'Aktif',
+            'institution_status' => 'active',
+            'institution_description' => 'Madrasah Ibtidaiyah',
             'headmaster_id' => 3,
         ]);
     }
