@@ -163,6 +163,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('registration', RegistrationController::class);
     Route::get('registration/curent-year', [RegistrationController::class, 'getByCurrentYear'])->name('registration.current-year');
     Route::post('registration/transaction', [RegistrationController::class, 'createRequestTransaction'])->name('registration.transaction');
+    Route::get('registration/student/{nik}/check', [RegistrationController::class, 'checkTtl'])->name('registration.student.check');
 
     // Transaction routes
     Route::apiResource('transaction', TransactionController::class);
@@ -207,7 +208,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('student', StudentController::class);
     Route::apiResource('parent', ParentController::class);
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
-    ->name('parent.getByNik');
+        ->name('parent.getByNik');
 
     // Class Schedule
     Route::apiResource('class-schedule', ClassScheduleController::class);

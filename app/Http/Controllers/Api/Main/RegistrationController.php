@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Laravolt\Indonesia\Models\City;
 
 class RegistrationController extends Controller
 {
@@ -481,5 +482,73 @@ class RegistrationController extends Controller
         }
 
         return $prefix . str_pad($nextSequence, 3, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * ambil data tanggal lahir dan tempat lahir berdasarkan nik
+     * @param mixed $nik
+     * @return array
+     */
+    public function checkTtl($nik)
+    {
+        // Validasi NIK harus 16 digit
+        if (strlen($nik) !== 16 || !is_numeric($nik)) {
+            return [
+                'success' => false,
+                'message' => 'NIK harus terdiri dari 16 digit angka'
+            ];
+        }
+
+        try {
+            // Ekstrak komponen NIK
+            $kodeKota = substr($nik, 0, 4); // 4 digit pertama: kode kota/kabupaten
+            $tanggalLahir = substr($nik, 6, 6); // digit 7-12: tanggal lahir (ddmmyy)
+            $digitTanggal = substr($nik, 6, 2); // digit 7-8: tanggal lahir
+
+            // Tentukan jenis kelamin berdasarkan digit tanggal
+            $jenisKelamin = 'Laki-laki'; // default
+            if ((int) $digitTanggal > 40) {
+                $jenisKelamin = 'Perempuan';
+            }
+
+            // Ekstrak tanggal lahir
+            $tanggal = substr($tanggalLahir, 0, 2); // dd
+            $bulan = substr($tanggalLahir, 2, 2); // mm
+            $tahun = substr($tanggalLahir, 4, 2); // yy
+
+            // Konversi tahun ke format lengkap (asumsi tahun 2000-an jika yy < 30, 1900-an jika lebih besar)
+            $tahunLengkap = (int) $tahun < 30 ? '20' . $tahun : '19' . $tahun;
+
+            // Format tanggal lahir lengkap
+            $tanggalLahirFormatted = $tahunLengkap . '-' . $bulan . '-' . $tanggal;
+
+            // Validasi tanggal lahir yang valid
+            $tanggalCheck = \DateTime::createFromFormat('Y-m-d', $tanggalLahirFormatted);
+            if (!$tanggalCheck || $tanggalCheck->format('Y-m-d') !== $tanggalLahirFormatted) {
+                return [
+                    'success' => false,
+                    'message' => 'Format tanggal lahir tidak valid dari NIK'
+                ];
+            }
+
+            // Cari data kota berdasarkan kode kota menggunakan model City dari Laravolt
+            $city = City::where('code', $kodeKota)->first();
+            $tempatLahir = $city ? $city->name : 'Kota tidak ditemukan (kode: ' . $kodeKota . ')';
+
+            return [
+                'success' => true,
+                'jenis_kelamin' => $jenisKelamin,
+                'tanggal_lahir' => $tanggalLahirFormatted,
+                'kode_kota' => $kodeKota,
+                'tempat_lahir' => $tempatLahir,
+                'nik' => $nik
+            ];
+
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Error memproses NIK: ' . $e->getMessage()
+            ];
+        }
     }
 }
