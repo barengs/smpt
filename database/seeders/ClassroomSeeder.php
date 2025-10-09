@@ -14,9 +14,18 @@ class ClassroomSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            ['name' => 'X'],
-            ['name' => 'XI'],
-            ['name' => 'XII'],
+            ['name' => 'I'], // kelas 1 (satu sd)
+            ['name' => 'II'],
+            ['name' => 'III'],
+            ['name' => 'IV'],
+            ['name' => 'V'], // kelas 5 (lima sd)
+            ['name' => 'VI'], // kelas 6 (enam sd)
+            ['name' => 'VII'], // kelas 7 (satu smp)
+            ['name' => 'VIII'], // kelas 8 (dua smp)
+            ['name' => 'IX'], // kelas 9 (tiga smp)
+            ['name' => 'X'], // kelas 10 (satu sma)
+            ['name' => 'XI'], // kelas 11 (dua sma)
+            ['name' => 'XII'], // kelas 12 (tiga sma)
         ];
 
         foreach ($data as $item) {
