@@ -15,31 +15,31 @@ class ClassGroupSeeder extends Seeder
     {
         $data = [
             [
-                'name' => 'XA',
+                'name' => 'IA',
                 'classroom_id' => 1,
             ],
             [
-                'name' => 'XB',
+                'name' => 'IB',
                 'classroom_id' => 1,
             ],
             [
-                'name' => 'XC',
+                'name' => 'IC',
                 'classroom_id' => 1,
             ],
             [
-                'name' => 'XIA',
+                'name' => 'IIA',
                 'classroom_id' => 2,
             ],
             [
-                'name' => 'XIB',
+                'name' => 'IIB',
                 'classroom_id' => 2,
             ],
             [
-                'name' => 'XIC',
+                'name' => 'IIC',
                 'classroom_id' => 2,
             ],
             [
-                'name' => 'XIIA',
+                'name' => 'IIIA',
                 'classroom_id' => 3,
             ],
         ];

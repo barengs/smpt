@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Classroom;
-use App\Models\EducationClass;
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Laravolt\Indonesia\Seeds\CitiesSeeder;
@@ -42,7 +39,9 @@ class DatabaseSeeder extends Seeder
             StudySeeder::class,
             LessonHourSeeder::class,
             ProductSeeder::class,
-            ProgramSeeder::class
+            ProgramSeeder::class,
+            AcademicYearSeeder::class,
+            EducationalInstitutionSeeder::class,
         ]);
     }
 }
