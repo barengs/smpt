@@ -63,7 +63,7 @@ class AccountController extends Controller
     public function show(string $id)
     {
         try {
-            $account = Account::with(['customer', 'product', 'movements'])->findOrFail($id);
+            $account = Account::with(['customer', 'product', 'movements'])->where('account_number', $id)->firstOrFail();
             return response()->json($account);
         } catch (ModelNotFoundException $e) {
             return response()->json(['message' => 'Account not found'], 404);
