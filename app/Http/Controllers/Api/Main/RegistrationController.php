@@ -22,6 +22,7 @@ use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Laravolt\Indonesia\Models\City;
+use Laravolt\Indonesia\Models\Village;
 
 class RegistrationController extends Controller
 {
@@ -502,6 +503,7 @@ class RegistrationController extends Controller
         try {
             // Ekstrak komponen NIK
             $kodeKota = substr($nik, 0, 4); // 4 digit pertama: kode kota/kabupaten
+            $districtCode = substr($nik, 0, 6); // 6 digit pertama: kode kecamatan
             $tanggalLahir = substr($nik, 6, 6); // digit 7-12: tanggal lahir (ddmmyy)
             $digitTanggal = substr($nik, 6, 2); // digit 7-8: tanggal lahir
 
@@ -535,12 +537,30 @@ class RegistrationController extends Controller
             $city = City::where('code', $kodeKota)->first();
             $tempatLahir = $city ? $city->name : 'Kota tidak ditemukan (kode: ' . $kodeKota . ')';
 
+            // Cari data desa berdasarkan district_code menggunakan model Village dari Laravolt
+            $villages = Village::where('district_code', $districtCode)->get();
+            $desaData = [];
+            if ($villages->isNotEmpty()) {
+                foreach ($villages as $village) {
+                    $desaData[] = [
+                        'id' => $village->id,
+                        'code' => $village->code,
+                        'name' => $village->name,
+                        'district_name' => $village->district ? $village->district->name : '',
+                        'city_name' => $village->district && $village->district->city ? $village->district->city->name : '',
+                        'province_name' => $village->district && $village->district->city && $village->district->city->province ? $village->district->city->province->name : ''
+                    ];
+                }
+            }
+
             return [
                 'success' => true,
                 'jenis_kelamin' => $jenisKelamin,
                 'tanggal_lahir' => $tanggalLahirFormatted,
                 'kode_kota' => $kodeKota,
                 'tempat_lahir' => $tempatLahir,
+                'district_code' => $districtCode,
+                'desa' => $desaData,
                 'nik' => $nik
             ];
 
