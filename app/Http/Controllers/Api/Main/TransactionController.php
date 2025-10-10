@@ -64,7 +64,7 @@ class TransactionController extends Controller
     {
         try {
             // Fetch all transactions with related data
-            $transactions = Transaction::with(['sourceAccount', 'destinationAccount', 'ledgerEntries'])->get();
+            $transactions = Transaction::with(['sourceAccount', 'destinationAccount', 'ledgerEntries', 'transactionType'])->get();
 
             return new TransactionResource('data ditemukan', $transactions, 200);
         } catch (\Exception $e) {
@@ -543,6 +543,49 @@ class TransactionController extends Controller
                 return response()->json([
                     'status' => 'error',
                     'message' => 'No transactions found for this account',
+                ], 404);
+            }
+
+            return new TransactionResource('data ditemukan', $transactions, 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch transactions: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengambil transaksi 7 hari terakhir berdasarkan nomor akun
+     *
+     * Method ini digunakan untuk melihat riwayat transaksi dari suatu rekening
+     * dalam periode 7 hari terakhir.
+     * Method ini akan menampilkan semua transaksi yang melibatkan rekening tersebut,
+     * baik sebagai rekening sumber maupun rekening tujuan.
+     *
+     * @param string $accountNumber Nomor rekening yang akan dicari transaksinya
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception Jika terjadi kesalahan saat mengambil data
+     */
+    public function getLast7DaysTransactions(string $accountNumber)
+    {
+        try {
+            // Calculate the date 7 days ago
+            $sevenDaysAgo = now()->subDays(7)->startOfDay();
+
+            $transactions = Transaction::where(function ($query) use ($accountNumber) {
+                $query->where('source_account', $accountNumber)
+                    ->orWhere('destination_account', $accountNumber);
+            })
+            ->where('created_at', '>=', $sevenDaysAgo)
+            ->with(['sourceAccount', 'destinationAccount'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+            if ($transactions->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No transactions found for this account in the last 7 days',
                 ], 404);
             }
 
