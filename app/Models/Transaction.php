@@ -31,7 +31,7 @@ class Transaction extends Model
 
     public function destinationAccount()
     {
-        return $this->hasMany(Account::class, 'destination_account', 'account_number');
+        return $this->belongsTo(Account::class, 'destination_account', 'account_number');
     }
 
     public function transactionType()
