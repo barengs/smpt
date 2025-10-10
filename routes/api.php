@@ -167,6 +167,7 @@ Route::group(['prefix' => 'main'], function () {
 
     // Transaction routes
     Route::apiResource('transaction', TransactionController::class);
+    Route::put('transaction/{id}/activate', [TransactionController::class, 'activateTransaction'])->name('transaction.activate');
     Route::apiResource('transaction-type', TransactionTypeController::class);
 
     // Account routes
