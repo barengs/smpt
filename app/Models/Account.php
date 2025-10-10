@@ -7,4 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class Account extends Model
 {
     protected $guarded = ['id'];
+
+    public function customer()
+    {
+        return $this->belongsTo(Student::class, 'customer_id', 'id');
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
 }
