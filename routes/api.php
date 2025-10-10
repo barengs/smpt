@@ -166,8 +166,8 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('registration/student/{nik}/check', [RegistrationController::class, 'checkTtl'])->name('registration.student.check');
 
     // Transaction routes
-    Route::apiResource('transaction', TransactionController::class);
     Route::put('transaction/{id}/activate', [TransactionController::class, 'activateTransaction'])->name('transaction.activate');
+    Route::apiResource('transaction', TransactionController::class);
     Route::apiResource('transaction-type', TransactionTypeController::class);
 
     // Account routes
