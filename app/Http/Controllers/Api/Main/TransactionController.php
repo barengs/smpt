@@ -867,8 +867,7 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Transaction not found'], 404);
             }
 
-            $transaction->status = 'SUCCESS';
-            $transaction->save();
+            $transaction->update(['status' => 'SUCCESS']);
 
             $account = Account::where('account_number', $transaction->source_account)->first();
 
@@ -876,8 +875,7 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Account not found'], 404);
             }
 
-            $account->status = 'AKTIF';
-            $account->save();
+            $account->update(['status' => 'AKTIF']);
             // customer_id merupakan id siswa
             $student = Student::where('id', $account->customer_id)->first();
 
@@ -885,8 +883,7 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Student not found'], 404);
             }
 
-            $student->status = 'AKTIF';
-            $student->save();
+            $student->update(['status' => 'AKTIF']);
 
             $registration = Registration::where('registration_number', $transaction->reference_number)->first();
 

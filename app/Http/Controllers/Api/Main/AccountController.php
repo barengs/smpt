@@ -85,7 +85,7 @@ class AccountController extends Controller
         }
 
         try {
-            $account = Account::findOrFail($id);
+            $account = Account::where('account_number', $id)->firstOrFail();
             $account->update($request->only(['product_id', 'status']));
             return response()->json($account);
         } catch (ModelNotFoundException $e) {
