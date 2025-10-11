@@ -173,7 +173,7 @@ Route::apiResource('transaction-type', TransactionTypeController::class);
 
 // Account routes
 Route::apiResource('account', AccountController::class);
-Route::get('account/{accountNumber}/transaction?days=7', [
+Route::get('transaction/account/{accountNumber}/last-7-days', [
 TransactionController::class, 'getLast7DaysTransactions'])->name('transaction.last-7-days');
 
     // News routes
