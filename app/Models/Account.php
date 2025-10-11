@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Account extends Model
 {
+    protected $primaryKey = 'account_number';
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $guarded = ['account_number'];
 
     public function customer()
