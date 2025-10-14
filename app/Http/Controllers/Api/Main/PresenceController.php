@@ -82,26 +82,59 @@ class PresenceController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate the request
-            $validatedData = $request->validate([
-                'student_id' => 'required|exists:students,id',
-                'meeting_schedule_id' => 'required|exists:meeting_schedules,id',
-                'status' => 'required|in:hadir,izin,sakit,alpha',
-                'description' => 'nullable|string|max:255',
-            ]);
+            // Check if we're receiving an array of presences
+            if ($request->has('presences') && is_array($request->presences)) {
+                // Validate the array of presences
+                $validatedData = $request->validate([
+                    'presences' => 'required|array|min:1',
+                    'presences.*.student_id' => 'required|exists:students,id',
+                    'presences.*.meeting_schedule_id' => 'required|exists:meeting_schedules,id',
+                    'presences.*.status' => 'required|in:hadir,izin,sakit,alpha',
+                    'presences.*.description' => 'nullable|string|max:255',
+                ]);
 
-            // Add user_id from currently authenticated user
-            $validatedData['user_id'] = Auth::id();
+                $createdPresences = [];
 
-            // Add current date
-            $validatedData['date'] = now()->toDateString();
+                // Process each presence in the array
+                foreach ($validatedData['presences'] as $presenceData) {
+                    // Add user_id from currently authenticated user
+                    $presenceData['user_id'] = Auth::id();
 
-            $presence = Presence::create($validatedData);
+                    // Add current date
+                    $presenceData['date'] = now()->toDateString();
 
-            // Load relationships
-            $presence->load(['student', 'meetingSchedule', 'user']);
+                    // Create the presence record
+                    $presence = Presence::create($presenceData);
 
-            return new PresenceResource('Data presensi berhasil disimpan', $presence, 201);
+                    // Load relationships
+                    $presence->load(['student', 'meetingSchedule', 'user']);
+
+                    $createdPresences[] = $presence;
+                }
+
+                return new PresenceResource('Data presensi berhasil disimpan', $createdPresences, 201);
+            } else {
+                // Handle single presence creation (backward compatibility)
+                $validatedData = $request->validate([
+                    'student_id' => 'required|exists:students,id',
+                    'meeting_schedule_id' => 'required|exists:meeting_schedules,id',
+                    'status' => 'required|in:hadir,izin,sakit,alpha',
+                    'description' => 'nullable|string|max:255',
+                ]);
+
+                // Add user_id from currently authenticated user
+                $validatedData['user_id'] = Auth::id();
+
+                // Add current date
+                $validatedData['date'] = now()->toDateString();
+
+                $presence = Presence::create($validatedData);
+
+                // Load relationships
+                $presence->load(['student', 'meetingSchedule', 'user']);
+
+                return new PresenceResource('Data presensi berhasil disimpan', $presence, 201);
+            }
         } catch (ValidationException $e) {
             return new PresenceResource('Validasi gagal', $e->errors(), 422);
         } catch (QueryException $e) {
