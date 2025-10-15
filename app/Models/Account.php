@@ -10,6 +10,15 @@ class Account extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     // protected $guarded = ['account_number'];
+    protected $fillable = [
+        'account_number',
+        'customer_id',
+        'product_id',
+        'balance',
+        'status',
+        'open_date',
+        'close_date',
+    ];
 
     public function customer()
     {
