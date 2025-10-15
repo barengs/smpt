@@ -148,7 +148,7 @@ class TransactionController extends Controller
     public function show(string $id)
     {
         try {
-            $transaction = Transaction::with(['sourceAccount', 'destinationAccount', 'ledgerEntries'])->findOrFail($id);
+            $transaction = Transaction::with(['sourceAccount', 'destinationAccount', 'ledgerEntries', 'transactionType'])->findOrFail($id);
             return new TransactionResource('data ditemukan', $transaction, 200);
         } catch (\Throwable $th) {
             return response()->json([
