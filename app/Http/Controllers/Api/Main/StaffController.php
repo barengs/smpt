@@ -56,7 +56,7 @@ class StaffController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
             'zip_code' => 'nullable|string|max:10',
-            'photo' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'roles' => 'required',
         ]);
 
