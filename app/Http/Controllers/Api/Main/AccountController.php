@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Http\Resources\AccountResource;
 
 class AccountController extends Controller
 {
@@ -17,7 +18,7 @@ class AccountController extends Controller
     public function index()
     {
         $accounts = Account::with(['customer', 'product'])->get();
-        return response()->json($accounts);
+        return new AccountResource('Data akun berhasil diambil', $accounts, 200);
     }
 
     /**
@@ -38,7 +39,7 @@ class AccountController extends Controller
             $student = Student::findOrFail($request->student_id);
             // Check if the student already has an account
             if (Account::where('customer_id', $student->id)->exists()) {
-                return response()->json(['message' => 'Student already has an account'], 409);
+                return new AccountResource('Siswa sudah memiliki akun', null, 409);
             }
 
             // Create a new account for the student
@@ -51,9 +52,9 @@ class AccountController extends Controller
                 'open_date' => now(),
             ]);
 
-            return response()->json($account, 201);
+            return new AccountResource('Akun berhasil dibuat', $account, 201);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to create account', 'error' => $e->getMessage()], 500);
+            return new AccountResource('Gagal membuat akun: ' . $e->getMessage(), null, 500);
         }
     }
 
@@ -64,9 +65,9 @@ class AccountController extends Controller
     {
         try {
             $account = Account::with(['customer', 'product', 'movements'])->where('account_number', $id)->firstOrFail();
-            return response()->json($account);
+            return new AccountResource('Data akun berhasil diambil', $account, 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Account not found'], 404);
+            return new AccountResource('Akun tidak ditemukan', null, 404);
         }
     }
 
@@ -87,9 +88,9 @@ class AccountController extends Controller
         try {
             $account = Account::where('account_number', $id)->firstOrFail();
             $account->update($request->only(['product_id', 'status']));
-            return response()->json($account);
+            return new AccountResource('Akun berhasil diperbarui', $account, 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Account not found'], 404);
+            return new AccountResource('Akun tidak ditemukan', null, 404);
         }
     }
 
@@ -103,17 +104,17 @@ class AccountController extends Controller
 
             // Check if account can be deleted
             if ($account->balance > 0) {
-                return response()->json(['message' => 'Cannot delete account with active balance'], 409);
+                return new AccountResource('Tidak dapat menghapus akun dengan saldo aktif', null, 409);
             }
 
             if ($account->movements()->exists()) {
-                return response()->json(['message' => 'Cannot delete account with transaction history'], 409);
+                return new AccountResource('Tidak dapat menghapus akun dengan riwayat transaksi', null, 409);
             }
 
             $account->delete();
-            return response()->json(null, 204);
+            return new AccountResource('Akun berhasil dihapus', null, 204);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Account not found'], 404);
+            return new AccountResource('Akun tidak ditemukan', null, 404);
         }
     }
 
@@ -132,7 +133,7 @@ class AccountController extends Controller
 
             // Additional validation for status changes
             if ($request->status === 'TUTUP' && $account->balance > 0) {
-                return response()->json(['message' => 'Cannot change status to CLOSED with active balance'], 409);
+                return new AccountResource('Tidak dapat mengubah status menjadi TUTUP dengan saldo aktif', null, 409);
             }
 
             $account->status = $request->status;
@@ -145,9 +146,9 @@ class AccountController extends Controller
             }
 
             $account->save();
-            return response()->json($account);
+            return new AccountResource('Status akun berhasil diperbarui', $account, 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Account not found'], 404);
+            return new AccountResource('Akun tidak ditemukan', null, 404);
         }
     }
 }
