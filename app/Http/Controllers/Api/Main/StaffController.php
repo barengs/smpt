@@ -106,6 +106,7 @@ class StaffController extends Controller
                 'marital_status' => $request->marital_status ?? 'Belum Menikah',
                 'status' => $request->status ?? 'Aktif',
                 'job_id' => $request->job_id,
+                'photo' => $fileName ?? null,
             ]);
 
             DB::commit();
