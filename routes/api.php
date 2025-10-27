@@ -167,14 +167,14 @@ Route::group(['prefix' => 'main'], function () {
 
     // Transaction routes
     Route::put('transaction/{id}/activate', [
-TransactionController::class, 'activateTransaction'])->name('transaction.activate');
-Route::apiResource('transaction', TransactionController::class);
-Route::apiResource('transaction-type', TransactionTypeController::class);
+    TransactionController::class, 'activateTransaction'])->name('transaction.activate');
+    Route::apiResource('transaction', TransactionController::class);
+    Route::apiResource('transaction-type', TransactionTypeController::class);
 
-// Account routes
-Route::apiResource('account', AccountController::class);
-Route::get('transaction/account/{accountNumber}/last-7-days', [
-TransactionController::class, 'getLast7DaysTransactions'])->name('transaction.last-7-days');
+    // Account routes
+    Route::apiResource('account', AccountController::class);
+    Route::get('transaction/account/{accountNumber}/last-7-days', [
+    TransactionController::class, 'getLast7DaysTransactions'])->name('transaction.last-7-days');
 
     // News routes
     Route::apiResource('news', NewsController::class);
