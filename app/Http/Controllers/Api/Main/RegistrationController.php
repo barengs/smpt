@@ -393,19 +393,15 @@ class RegistrationController extends Controller
                 'status' => 'Tidak Aktif', // Default status
             ]);
 
-            // Create account
-            $accountController = new AccountController();
-            $accountRequest = new Request([
-                'student_id' => $student->id,
+            // Create account using direct model creation instead of calling controller method
+            $account = \App\Models\Account::create([
+                'account_number' => $student->nis,
+                'customer_id' => $student->id,
                 'product_id' => $request->product_id,
+                'balance' => 0,
+                'status' => 'TIDAK AKTIF',
+                'open_date' => now(),
             ]);
-            $accountResponse = $accountController->store($accountRequest);
-            $account = json_decode($accountResponse->getContent(), true);
-
-            if ($accountResponse->getStatusCode() != 201) {
-                DB::rollBack();
-                return response()->json(['message' => 'Failed to create account', 'errors' => $account], 500);
-            }
 
             // get product | front-end harus mengirim id product
             $product = Product::findOrFail($request->product_id);
@@ -423,7 +419,7 @@ class RegistrationController extends Controller
                 'status' => 'PENDING',
                 'reference_number' => $registration->registration_number,
                 'channel' => $request->channel,
-                'source_account' => $account['account_number'],
+                'source_account' => $account->account_number,
                 'destination_account' => null,
             ]);
 
