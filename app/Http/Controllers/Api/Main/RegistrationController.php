@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Main;
 
 use App\Models\User;
+use App\Models\Account;
 use App\Models\Product;
 use App\Models\Program;
 use App\Models\Student;
@@ -15,14 +16,14 @@ use App\Models\TransactionType;
 use App\Models\TransactionLedger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Laravolt\Indonesia\Models\City;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Laravolt\Indonesia\Models\Village;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Laravolt\Indonesia\Models\City;
-use Laravolt\Indonesia\Models\Village;
 
 class RegistrationController extends Controller
 {
@@ -394,7 +395,7 @@ class RegistrationController extends Controller
             ]);
 
             // Create account using direct model creation instead of calling controller method
-            $account = \App\Models\Account::create([
+            $account = Account::create([
                 'account_number' => $student->nis,
                 'customer_id' => $student->id,
                 'product_id' => $request->product_id,
