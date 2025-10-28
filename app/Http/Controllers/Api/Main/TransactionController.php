@@ -926,7 +926,7 @@ class TransactionController extends Controller
                 return response()->json(['message' => 'Student not found'], 404);
             }
 
-            $student->update(['status' => 'AKTIF']);
+            $student->update(['status' => 'Aktif']);
 
             $registration = Registration::where('registration_number', $transaction->reference_number)->first();
 
