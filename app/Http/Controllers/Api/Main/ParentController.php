@@ -156,8 +156,8 @@ class ParentController extends Controller
             'domicile_address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
             'email' => 'nullable|max:255',
-            'occupation_id' => 'nullable|string|max:255',
-            'education_id' => 'nullable|string|max:255',
+            'occupation_id' => 'nullable',
+            'education_id' => 'nullable',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
