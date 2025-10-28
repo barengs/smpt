@@ -21,7 +21,7 @@ class ParentController extends Controller
     public function index()
     {
         try {
-            $user = User::whereHas('parent')->with(['parent', 'roles'])->get();
+            $user = User::whereHas('parent')->with(['parent.education', 'parent.occupation', 'roles'])->get();
             return new ParentResource('data ditemukan', $user, 200);
         } catch (ModelNotFoundException $e) {
             return response()->json('data tidak ada', 404);
