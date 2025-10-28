@@ -21,7 +21,7 @@ class ParentController extends Controller
     public function index()
     {
         try {
-            $user = User::whereHas('parent')->with(['parent.education', 'parent.occupation', 'roles'])->get();
+            $user = User::whereHas('parent')->with(['parent', 'roles'])->get();
             return new ParentResource('data ditemukan', $user, 200);
         } catch (ModelNotFoundException $e) {
             return response()->json('data tidak ada', 404);
@@ -155,9 +155,9 @@ class ParentController extends Controller
             'card_address' => 'nullable|string|max:255',
             'domicile_address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
-            'email' => 'nullable|max:255',
-            'occupation' => 'nullable|string|max:255',
-            'education' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'occupation_id' => 'nullable|string|max:255',
+            'education_id' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
@@ -213,8 +213,8 @@ class ParentController extends Controller
                 'domicile_address' => $request->domicile_address,
                 'phone' => $request->phone,
                 'email' => $request->email,
-                'occupation_id' => $request->occupation,
-                'education_id' => $request->education,
+                'occupation_id' => $request->occupation_id,
+                'education_id' => $request->education_id,
                 'photo' => $photoPath,
             ]);
 
