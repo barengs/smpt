@@ -155,7 +155,7 @@ class ParentController extends Controller
             'card_address' => 'nullable|string|max:255',
             'domicile_address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:15',
-            'email' => 'nullable|email|max:255',
+            'email' => 'nullable|max:255',
             'occupation' => 'nullable|string|max:255',
             'education' => 'nullable|string|max:255',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
