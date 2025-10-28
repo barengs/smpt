@@ -17,7 +17,7 @@ class StudentController extends Controller
     {
         try {
             // Fetch all students from the database
-            $students = Student::with(['program', 'parents'])->get();
+            $students = Student::with(['program', 'parents'])->orderBy('created_at', 'desc')->get();
 
             return new StudentResource('data ditemukan', $students, 200);
         } catch (\Exception $e) {
