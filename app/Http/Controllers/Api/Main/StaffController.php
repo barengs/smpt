@@ -79,6 +79,7 @@ class StaffController extends Controller
 
             $user->syncRoles($request->roles);
 
+            $fileName = null;
             if ($request->hasFile('photo')) {
                 $image = new ImageManager(new Driver());
                 $timestamp = now()->timestamp;
@@ -170,17 +171,16 @@ class StaffController extends Controller
             // Validate the request data
             $validator = Validator::make($request->all(), [
                 'user_id' => 'sometimes|required|exists:users,id',
-                'code' => 'sometimes|required|unique:staff,code,',
                 'first_name' => 'sometimes|required|string|max:255',
                 'last_name' => 'sometimes|required|string|max:255',
-                'nip' => 'nullable|string|max:20|unique:staff,nip,',
-                'nik' => 'nullable|string|max:20|unique:staff,nik,',
-                'email' => 'sometimes|required|email|unique:staff,email',
+                'nip' => 'nullable|string|max:20|unique:staff,nip,' . $id,
+                'nik' => 'nullable|string|max:20|unique:staff,nik,' . $id,
+                'email' => 'sometimes|required|email|unique:staff,email,' . $id,
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:500',
                 'zip_code' => 'nullable|string|max:10',
-                'photo' => 'nullable|string|max:255',
-                'marital_status' => 'sometimes|required|in:Single,Married,Divorced,Widowed',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'marital_status' => 'sometimes|required|in:Single,Married,Divorced,Widowed,Belum Menikah,Menikah,Cerai,Duda/Janda',
                 'status' => 'sometimes|required|in:Aktif,Tidak Aktif',
             ]);
 
@@ -197,8 +197,49 @@ class StaffController extends Controller
                 }
             }
 
+            // Handle photo upload
+            $photoPath = $staff->photo; // Keep existing photo by default
+            if ($request->hasFile('photo')) {
+                // Delete old photo if it exists
+                if ($staff->photo && Storage::disk('public')->exists('uploads/logos/large/' . $staff->photo)) {
+                    Storage::disk('public')->delete('uploads/logos/large/' . $staff->photo);
+                }
+
+                // Upload new photo
+                $image = new ImageManager(new Driver());
+                $timestamp = now()->timestamp;
+                $fileName = $timestamp . '_' . $request->file('photo')->getClientOriginalName();
+
+                $largeImage = $image->read($request->file('photo')->getRealPath());
+                $largeImage->cover(512, 512);
+                Storage::disk('public')->put('uploads/logos/large/' . $fileName, (string) $largeImage->encode());
+
+                $photoPath = $fileName;
+            }
+
             // Update the staff
-            $staff->update($request->all());
+            $staff->update([
+                'user_id' => $request->input('user_id', $staff->user_id),
+                'first_name' => $request->input('first_name', $staff->first_name),
+                'last_name' => $request->input('last_name', $staff->last_name),
+                'nip' => $request->input('nip', $staff->nip),
+                'nik' => $request->input('nik', $staff->nik),
+                'email' => $request->input('email', $staff->email),
+                'phone' => $request->input('phone', $staff->phone),
+                'address' => $request->input('address', $staff->address),
+                'zip_code' => $request->input('zip_code', $staff->zip_code),
+                'gender' => $request->input('gender', $staff->gender),
+                'village_id' => $request->input('village_id', $staff->village_id),
+                'marital_status' => $request->input('marital_status', $staff->marital_status),
+                'status' => $request->input('status', $staff->status),
+                'job_id' => $request->input('job_id', $staff->job_id),
+                'photo' => $photoPath,
+            ]);
+
+            // Update user if needed
+            if ($request->has('email')) {
+                $staff->user->update(['email' => $request->email]);
+            }
 
             // Load the user relationship
             $staff->load('user');

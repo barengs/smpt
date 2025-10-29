@@ -21,6 +21,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Laravolt\Indonesia\Models\Village;
 use Illuminate\Support\Facades\Storage;
+use App\Models\AcademicYear;
 use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -373,11 +374,15 @@ class RegistrationController extends Controller
         try {
             $registration = Registration::findOrFail($request->registration_id);
 
+            // Get the active academic year
+            $activeAcademicYear = AcademicYear::where('active', true)->first();
+            $academicYear = $activeAcademicYear ? $activeAcademicYear->year : $request->hijri_year;
+
             // Create student
             $student = Student::create([
                 'parent_id' => $registration->parent_id,
                 'nis' => $this->generateNis($request->hijri_year),
-                'period' => $request->hijri_year,
+                'period' => $academicYear, // Use active academic year instead of hijri year
                 'first_name' => $registration->first_name,
                 'last_name' => $registration->last_name,
                 'gender' => $registration->gender,
