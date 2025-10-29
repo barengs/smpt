@@ -21,23 +21,66 @@ class ParentProfileSeeder extends Seeder
         $file = __DIR__ . '/../../public/csv/orangtua_siswa_ayah.csv';
         $header = ['kk', 'nik', 'first_name', 'card_address', 'user_id'];
         $data = $Csv->csv_to_array($file, $header);
-        $data = array_map(function ($arr) use ($now) {
-            return $arr + ['created_at' => $now, 'updated_at' => $now];
-        }, $data);
 
+        // Prepare users data for batch insertion
+        $users = [];
         foreach ($data as $item) {
-            $user = User::create([
+            $users[] = [
                 'name' => $item['first_name'],
                 'email' => $item['nik'],
                 'password' => Hash::make('password'),
-            ]);
-
-            $user->assignRole('orangtua');
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
         }
 
-        $collection = collect($data);
-        foreach ($collection->chunk(50) as $chunk) {
+        // Batch insert users for better performance
+        $userIds = [];
+        $collection = collect($users);
+        foreach ($collection->chunk(500) as $chunk) {
+            DB::table('users')->insert($chunk->toArray());
+        }
+
+        // Get all inserted user IDs
+        $allUsers = DB::table('users')
+            ->orderBy('id', 'desc')
+            ->limit(count($users))
+            ->get(['id']);
+
+        // Extract user IDs in the correct order
+        $userIds = $allUsers->pluck('id')->reverse()->values()->toArray();
+
+        // Prepare parent profiles data with user IDs
+        $parentProfiles = [];
+        foreach ($data as $index => $item) {
+            $parentProfiles[] = [
+                'kk' => $item['kk'],
+                'nik' => $item['nik'],
+                'first_name' => $item['first_name'],
+                'card_address' => $item['card_address'],
+                'user_id' => $userIds[$index] ?? null,
+                'parent_as' => 'ayah', // Add default parent_as value
+                'gender' => 'L', // Add default gender value
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        // Batch insert parent profiles
+        $collection = collect($parentProfiles);
+        foreach ($collection->chunk(500) as $chunk) {
             DB::table('parent_profiles')->insertOrIgnore($chunk->toArray());
+        }
+
+        // Get all parent profile user IDs and assign roles
+        $parentUsers = DB::table('parent_profiles')->pluck('user_id');
+        $userCollection = collect($parentUsers);
+
+        foreach ($userCollection->chunk(500) as $chunk) {
+            $users = User::whereIn('id', $chunk->toArray())->get();
+            foreach ($users as $user) {
+                $user->assignRole('orangtua');
+            }
         }
     }
 }
