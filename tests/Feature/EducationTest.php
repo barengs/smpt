@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Education;
+use App\Models\EducationClass;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -34,11 +35,16 @@ class EducationTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_a_education()
+    public function it_can_create_a_education_with_multiple_classes()
     {
+        // Create some education classes
+        $educationClasses = EducationClass::factory()->count(3)->create();
+        $educationClassIds = $educationClasses->pluck('id')->toArray();
+
         $data = [
             'name' => 'Sekolah Dasar',
-            'description' => 'Jenjang pendidikan dasar'
+            'description' => 'Jenjang pendidikan dasar',
+            'education_class_ids' => $educationClassIds
         ];
 
         $response = $this->postJson('/api/master/education', $data);
@@ -47,17 +53,56 @@ class EducationTest extends TestCase
             ->assertJson([
                 'success' => true,
                 'message' => 'Pendidikan berhasil ditambahkan'
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'education_class'
+                ]
             ]);
 
-        $this->assertDatabaseHas('education', $data);
+        // Check that the education was created
+        $this->assertDatabaseHas('educations', [
+            'name' => 'Sekolah Dasar',
+            'description' => 'Jenjang pendidikan dasar'
+        ]);
+
+        // Check that the relationships were created
+        foreach ($educationClassIds as $classId) {
+            $this->assertDatabaseHas('education_has_education_classes', [
+                'education_id' => $response->json('data.id'),
+                'education_class_id' => $classId
+            ]);
+        }
     }
 
     /** @test */
-    public function it_requires_name_when_creating_a_education()
+    public function it_requires_education_class_ids_when_creating_a_education()
     {
-        $response = $this->postJson('/api/master/education', [
-            'description' => 'No name provided'
-        ]);
+        $data = [
+            'name' => 'Sekolah Dasar',
+            'description' => 'Jenjang pendidikan dasar'
+            // Missing education_class_ids
+        ];
+
+        $response = $this->postJson('/api/master/education', $data);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'message' => 'Validasi gagal'
+            ]);
+    }
+
+    /** @test */
+    public function it_requires_valid_education_class_ids_when_creating_a_education()
+    {
+        $data = [
+            'name' => 'Sekolah Dasar',
+            'description' => 'Jenjang pendidikan dasar',
+            'education_class_ids' => [999999] // Non-existent ID
+        ];
+
+        $response = $this->postJson('/api/master/education', $data);
 
         $response->assertStatus(422)
             ->assertJson([
@@ -91,11 +136,54 @@ class EducationTest extends TestCase
     }
 
     /** @test */
-    public function it_can_update_a_education()
+    public function it_can_update_a_education_with_multiple_classes()
+    {
+        // Create some education classes
+        $educationClasses = EducationClass::factory()->count(2)->create();
+        $educationClassIds = $educationClasses->pluck('id')->toArray();
+
+        $data = [
+            'name' => 'Sekolah Menengah Pertama',
+            'description' => 'Jenjang pendidikan menengah pertama',
+            'education_class_ids' => $educationClassIds
+        ];
+
+        $response = $this->putJson("/api/master/education/{$this->education->id}", $data);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Pendidikan berhasil diperbarui'
+            ])
+            ->assertJsonStructure([
+                'data' => [
+                    'education_class'
+                ]
+            ]);
+
+        // Check that the education was updated
+        $this->assertDatabaseHas('educations', [
+            'id' => $this->education->id,
+            'name' => 'Sekolah Menengah Pertama',
+            'description' => 'Jenjang pendidikan menengah pertama'
+        ]);
+
+        // Check that the relationships were updated
+        foreach ($educationClassIds as $classId) {
+            $this->assertDatabaseHas('education_has_education_classes', [
+                'education_id' => $this->education->id,
+                'education_class_id' => $classId
+            ]);
+        }
+    }
+
+    /** @test */
+    public function it_can_update_a_education_without_changing_classes()
     {
         $data = [
             'name' => 'Sekolah Menengah Pertama',
             'description' => 'Jenjang pendidikan menengah pertama'
+            // No education_class_ids provided
         ];
 
         $response = $this->putJson("/api/master/education/{$this->education->id}", $data);
@@ -106,7 +194,12 @@ class EducationTest extends TestCase
                 'message' => 'Pendidikan berhasil diperbarui'
             ]);
 
-        $this->assertDatabaseHas('education', $data);
+        // Check that the education was updated
+        $this->assertDatabaseHas('educations', [
+            'id' => $this->education->id,
+            'name' => 'Sekolah Menengah Pertama',
+            'description' => 'Jenjang pendidikan menengah pertama'
+        ]);
     }
 
     /** @test */
@@ -137,7 +230,7 @@ class EducationTest extends TestCase
                 'message' => 'Pendidikan berhasil dihapus'
             ]);
 
-        $this->assertSoftDeleted('education', ['id' => $this->education->id]);
+        $this->assertSoftDeleted('educations', ['id' => $this->education->id]);
     }
 
     /** @test */
@@ -165,7 +258,7 @@ class EducationTest extends TestCase
                 'message' => 'Pendidikan berhasil dipulihkan'
             ]);
 
-        $this->assertDatabaseHas('education', [
+        $this->assertDatabaseHas('educations', [
             'id' => $this->education->id,
             'deleted_at' => null
         ]);

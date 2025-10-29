@@ -45,7 +45,9 @@ class EducationController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string'
+                'description' => 'nullable|string',
+                'education_class_ids' => 'required|array',
+                'education_class_ids.*' => 'exists:education_classes,id'
             ]);
 
             if ($validator->fails()) {
@@ -58,17 +60,19 @@ class EducationController extends Controller
 
             DB::beginTransaction();
 
-            $education = Education::create($request->all());
+            $education = Education::create([
+                'name' => $request->name,
+                'description' => $request->description
+            ]);
 
-            DB::table('education_has_education_classes')->insert(
-                ['education_id' => $education->id, 'education_class_id' => $request->education_class_id]
-            );
+            // Attach multiple education classes
+            $education->education_class()->attach($request->education_class_ids);
 
             DB::commit();
             return response()->json([
                 'success' => true,
                 'message' => 'Pendidikan berhasil ditambahkan',
-                'data' => $education
+                'data' => $education->load('education_class')
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
@@ -99,7 +103,7 @@ class EducationController extends Controller
     public function show(string $id)
     {
         try {
-            $education = Education::with('education_classes')->find($id);
+            $education = Education::with('education_class')->find($id);
 
             if (!$education) {
                 return response()->json([
@@ -139,7 +143,9 @@ class EducationController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'description' => 'nullable|string'
+                'description' => 'nullable|string',
+                'education_class_ids' => 'nullable|array',
+                'education_class_ids.*' => 'exists:education_classes,id'
             ]);
 
             if ($validator->fails()) {
@@ -150,12 +156,20 @@ class EducationController extends Controller
                 ], 422);
             }
 
-            $education->update($request->all());
+            $education->update([
+                'name' => $request->name,
+                'description' => $request->description
+            ]);
+
+            // Sync education classes if provided
+            if ($request->has('education_class_ids')) {
+                $education->education_class()->sync($request->education_class_ids);
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pendidikan berhasil diperbarui',
-                'data' => $education
+                'data' => $education->load('education_class')
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
