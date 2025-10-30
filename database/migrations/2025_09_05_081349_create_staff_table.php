@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('code');
             $table->string('first_name');
             $table->string('last_name');
-            $table->enum('gender', ['Pria', 'Wanita'])->default('Pria');
+            $table->enum('gender', ['Pria', 'Wanita', 'L', 'P'])->default('Pria');
             $table->string('nik')->nullable();
             $table->string('nip')->nullable();
             $table->string('email')->unique();
@@ -29,6 +29,8 @@ return new class extends Migration
             $table->enum('marital_status', ['Belum Menikah', 'Menikah', 'Duda', 'Janda'])->default('Belum Menikah');
             $table->unsignedBigInteger('job_id')->nullable();
             $table->enum('status', ['Aktif', 'Tidak Aktif'])->default('Aktif');
+            $table->date('birth_date')->nullable();
+            $table->string('birth_place')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

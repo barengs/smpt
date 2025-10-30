@@ -42,6 +42,8 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             AcademicYearSeeder::class,
             EducationalInstitutionSeeder::class,
+            OrganizationStructureSeeder::class,
+            ClassGroupAdvisorSeeder::class,
         ]);
     }
 }

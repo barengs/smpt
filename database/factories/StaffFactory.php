@@ -24,12 +24,17 @@ class StaffFactory extends Factory
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
             'nik' => $this->faker->unique()->numerify('####################'),
+            'nip' => $this->faker->unique()->numerify('####################'),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'address' => $this->faker->address(),
             'zip_code' => $this->faker->postcode(),
             'photo' => $this->faker->imageUrl(),
+            'marital_status' => $this->faker->randomElement(['Belum Menikah', 'Menikah', 'Duda', 'Janda']),
             'status' => $this->faker->randomElement(['Aktif', 'Tidak Aktif']),
+            'birth_date' => $this->faker->date(),
+            'birth_place' => $this->faker->city(),
+            'gender' => $this->faker->randomElement(['Pria', 'Wanita', 'L', 'P']),
         ];
     }
 }

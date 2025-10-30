@@ -32,6 +32,9 @@ class Staff extends Model
         'village_id',
         'job_id',
         'status',
+        'birth_date',
+        'birth_place',
+        'gender',
     ];
 
     /**
@@ -43,6 +46,7 @@ class Staff extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'birth_date' => 'date',
     ];
 
     /**
@@ -66,5 +70,21 @@ class Staff extends Model
     public function studies()
     {
         return $this->belongsToMany(Study::class, 'staff_studies', 'staff_id', 'study_id');
+    }
+
+    /**
+     * Get the position assignments for the staff.
+     */
+    public function assignments()
+    {
+        return $this->hasMany(PositionAssignment::class, 'staff_id');
+    }
+
+    /**
+     * Get the current position assignment for the staff.
+     */
+    public function currentPosition()
+    {
+        return $this->hasOne(PositionAssignment::class, 'staff_id')->where('is_active', true);
     }
 }
