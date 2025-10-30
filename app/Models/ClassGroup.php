@@ -16,4 +16,12 @@ class ClassGroup extends Model
     {
         return $this->belongsTo(Classroom::class);
     }
+
+    /**
+     * Get the staff member who is the class advisor (wali kelas) for this class group.
+     */
+    public function advisor()
+    {
+        return $this->belongsTo(Staff::class, 'advisor_id');
+    }
 }

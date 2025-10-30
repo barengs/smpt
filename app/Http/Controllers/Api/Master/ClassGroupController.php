@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Master;
 use App\Http\Controllers\Controller;
 use App\Models\ClassGroup;
 use App\Models\Classroom;
+use App\Models\Staff;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Exception;
@@ -19,7 +20,7 @@ class ClassGroupController extends Controller
     public function index()
     {
         try {
-            $classGroups = ClassGroup::with('classroom')->orderByDesc('id')->get();
+            $classGroups = ClassGroup::with(['classroom', 'advisor.user'])->orderByDesc('id')->get();
 
             return response()->json([
                 'success' => true,
@@ -43,7 +44,8 @@ class ClassGroupController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'classroom_id' => 'required|exists:classrooms,id'
+                'classroom_id' => 'required|exists:classrooms,id',
+                'advisor_id' => 'nullable|exists:staff,id'
             ]);
 
             if ($validator->fails()) {
@@ -54,12 +56,23 @@ class ClassGroupController extends Controller
                 ], 422);
             }
 
+            // Check if the staff member has the 'walikelas' role
+            if ($request->advisor_id) {
+                $staff = Staff::with('user')->find($request->advisor_id);
+                if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Staff yang dipilih bukan memiliki role walikelas'
+                    ], 422);
+                }
+            }
+
             $classGroup = ClassGroup::create($request->all());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Kelompok kelas berhasil ditambahkan',
-                'data' => $classGroup
+                'data' => $classGroup->load(['classroom', 'advisor.user'])
             ], 201);
         } catch (ValidationException $e) {
             return response()->json([
@@ -88,7 +101,7 @@ class ClassGroupController extends Controller
     public function show(string $id)
     {
         try {
-            $classGroup = ClassGroup::with('classroom')->find($id);
+            $classGroup = ClassGroup::with(['classroom', 'advisor.user'])->find($id);
 
             if (!$classGroup) {
                 return response()->json([
@@ -128,7 +141,8 @@ class ClassGroupController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'classroom_id' => 'required|exists:classrooms,id'
+                'classroom_id' => 'required|exists:classrooms,id',
+                'advisor_id' => 'nullable|exists:staff,id'
             ]);
 
             if ($validator->fails()) {
@@ -139,12 +153,23 @@ class ClassGroupController extends Controller
                 ], 422);
             }
 
+            // Check if the staff member has the 'walikelas' role
+            if ($request->advisor_id) {
+                $staff = Staff::with('user')->find($request->advisor_id);
+                if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Staff yang dipilih bukan memiliki role walikelas'
+                    ], 422);
+                }
+            }
+
             $classGroup->update($request->all());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Kelompok kelas berhasil diperbarui',
-                'data' => $classGroup
+                'data' => $classGroup->load(['classroom', 'advisor.user'])
             ], 200);
         } catch (ValidationException $e) {
             return response()->json([
@@ -224,7 +249,7 @@ class ClassGroupController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Kelompok kelas berhasil dipulihkan',
-                'data' => $classGroup
+                'data' => $classGroup->load(['classroom', 'advisor.user'])
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -241,7 +266,7 @@ class ClassGroupController extends Controller
     public function trashed()
     {
         try {
-            $classGroups = ClassGroup::with('classroom')->onlyTrashed()->latest()->paginate(10);
+            $classGroups = ClassGroup::with(['classroom', 'advisor.user'])->onlyTrashed()->latest()->paginate(10);
 
             return response()->json([
                 'success' => true,
@@ -252,6 +277,119 @@ class ClassGroupController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data kelompok kelas terhapus',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all staff members with 'walikelas' role
+     */
+    public function getAdvisors()
+    {
+        try {
+            $advisors = Staff::whereHas('user', function ($query) {
+                $query->role('walikelas');
+            })->with('user')->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data wali kelas berhasil diambil',
+                'data' => $advisors
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data wali kelas',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Assign or change advisor for a class group
+     */
+    public function assignAdvisor(Request $request, string $id)
+    {
+        try {
+            $classGroup = ClassGroup::find($id);
+
+            if (!$classGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kelompok kelas tidak ditemukan'
+                ], 404);
+            }
+
+            $validator = Validator::make($request->all(), [
+                'advisor_id' => 'required|exists:staff,id'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Check if the staff member has the 'walikelas' role
+            $staff = Staff::with('user')->find($request->advisor_id);
+            if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Staff yang dipilih bukan memiliki role walikelas'
+                ], 422);
+            }
+
+            $classGroup->update(['advisor_id' => $request->advisor_id]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Wali kelas berhasil ditetapkan',
+                'data' => $classGroup->load(['classroom', 'advisor.user'])
+            ], 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menetapkan wali kelas',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove advisor from a class group
+     */
+    public function removeAdvisor(string $id)
+    {
+        try {
+            $classGroup = ClassGroup::find($id);
+
+            if (!$classGroup) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kelompok kelas tidak ditemukan'
+                ], 404);
+            }
+
+            $classGroup->update(['advisor_id' => null]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Wali kelas berhasil dihapus',
+                'data' => $classGroup->load(['classroom', 'advisor.user'])
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus wali kelas',
                 'error' => $e->getMessage()
             ], 500);
         }

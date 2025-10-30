@@ -23,6 +23,9 @@ use App\Http\Controllers\Api\Master\HostelController;
 use App\Http\Controllers\Api\Master\ClassroomController;
 use App\Http\Controllers\Api\Master\ConrolPanelController;
 use App\Http\Controllers\Api\Master\MenuController;
+use App\Http\Controllers\Api\Master\OrganizationController;
+use App\Http\Controllers\Api\Master\PositionController;
+use App\Http\Controllers\Api\Master\PositionAssignmentController;
 use App\Http\Controllers\Api\Main\ProductController;
 use App\Http\Controllers\Api\Master\StaffStudyController;
 use App\Http\Controllers\Api\Master\OccupationController;
@@ -96,6 +99,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('study', StudyController::class);
     Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
     Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);
+    Route::get('class-group/advisors', [ClassGroupController::class, 'getAdvisors']);
+    Route::post('class-group/{id}/assign-advisor', [ClassGroupController::class, 'assignAdvisor']);
+    Route::post('class-group/{id}/remove-advisor', [ClassGroupController::class, 'removeAdvisor']);
     Route::apiResource('class-group', ClassGroupController::class);
     Route::get('education/trashed', [EducationController::class, 'trashed']);
     Route::post('education/{id}/restore', [EducationController::class, 'restore']);
@@ -150,6 +156,21 @@ Route::group(['prefix' => 'master'], function () {
 
     Route::apiResource('staff-study', StaffStudyController::class);
     Route::get('staff-study/teachers/all', [StaffStudyController::class, 'getAllTeachers'])->name('staff-study.teachers.all');
+
+    // Organization routes
+    Route::apiResource('organization', OrganizationController::class);
+    Route::get('organization/root', [OrganizationController::class, 'getRootOrganizations']);
+    Route::get('organization/hierarchy', [OrganizationController::class, 'getHierarchy']);
+
+    // Position routes
+    Route::apiResource('position', PositionController::class);
+    Route::get('position/organization/{organizationId}', [PositionController::class, 'getByOrganization']);
+
+    // Position Assignment routes
+    Route::apiResource('position-assignment', PositionAssignmentController::class);
+    Route::get('position-assignment/current', [PositionAssignmentController::class, 'getCurrent']);
+    Route::get('position-assignment/staff/{staffId}', [PositionAssignmentController::class, 'getByStaff']);
+    Route::get('position-assignment/position/{positionId}', [PositionAssignmentController::class, 'getByPosition']);
 });
 
 // Main routes
