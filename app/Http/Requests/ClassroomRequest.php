@@ -22,13 +22,13 @@ class ClassroomRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'name' => 'required|string|max:255|unique:classrooms,name',
+            'name' => 'required|string|max:255',
             'educational_institution_id' => 'nullable|exists:educational_institutions,id',
             'description' => 'nullable|string',
         ];
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
-            $rules['name'] = 'sometimes|required|string|max:255|unique:classrooms,name,' . $this->route('classroom');
+            $rules['name'] = 'sometimes|required|string|max:255' . $this->route('classroom');
             $rules['educational_institution_id'] = 'sometimes|nullable|exists:educational_institutions,id';
             $rules['description'] = 'sometimes|nullable|string';
         }
