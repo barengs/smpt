@@ -13,9 +13,18 @@ class Student extends Model
 
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'born_at' => 'date',
+    ];
+
     public function program()
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function hostel()
+    {
+        return $this->belongsTo(Hostel::class);
     }
 
     public function parents()
