@@ -27,6 +27,6 @@ class ClassGroup extends Model
 
     public function educational_institution()
     {
-        return $this->belongsTo(EducationalInstitution::class);
+        return $this->belongsTo(EducationalInstitution::class, 'educational_institution_id', 'id');
     }
 }
