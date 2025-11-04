@@ -20,7 +20,7 @@ class ClassGroupController extends Controller
     public function index()
     {
         try {
-            $classGroups = ClassGroup::with(['classroom', 'advisor.user'])->orderByDesc('id')->get();
+            $classGroups = ClassGroup::with(['classroom', 'advisor.user', 'educational_institution:name'])->orderByDesc('id')->get();
 
             return response()->json([
                 'success' => true,
@@ -101,7 +101,7 @@ class ClassGroupController extends Controller
     public function show(string $id)
     {
         try {
-            $classGroup = ClassGroup::with(['classroom', 'advisor.user'])->find($id);
+            $classGroup = ClassGroup::with(['classroom', 'advisor.user', 'educational_institution:name'])->find($id);
 
             if (!$classGroup) {
                 return response()->json([
