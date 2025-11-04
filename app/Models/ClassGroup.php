@@ -24,4 +24,9 @@ class ClassGroup extends Model
     {
         return $this->belongsTo(Staff::class, 'advisor_id');
     }
+
+    public function educational_institution()
+    {
+        return $this->belongsTo(EducationalInstitution::class);
+    }
 }
