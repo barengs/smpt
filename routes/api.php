@@ -240,10 +240,11 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('class-schedule', ClassScheduleController::class);
 
     // Student Class
-    Route::apiResource('student-class', StudentClassController::class);
+    Route::get('student-class/class-group/{classGroupId}/students', [StudentClassController::class, 'getStudentsMappedToClassGroups']);
     Route::post('student-class/bulk-assign', [StudentClassController::class, 'bulkAssign']);
     Route::post('student-class/{id}/approve', [StudentClassController::class, 'approve']);
     Route::post('student-class/{id}/reject', [StudentClassController::class, 'reject']);
+    Route::apiResource('student-class', StudentClassController::class);
 
     // Educational Institution
     Route::apiResource('educational-institution', EducationalInstitutionController::class);
