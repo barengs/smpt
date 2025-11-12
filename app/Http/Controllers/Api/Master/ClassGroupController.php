@@ -394,4 +394,67 @@ class ClassGroupController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get class groups with classroom, educational institution, and student count
+     */
+    public function getClassGroupsWithDetails(Request $request)
+    {
+        try {
+            $query = ClassGroup::with([
+                'classroom:id,name',
+                'educational_institution:id,institution_name',
+                'advisor.user:id,name'
+            ])
+            ->withCount(['studentClasses as total_students']);
+
+            // Filter by academic year if provided
+            if ($request->has('academic_year_id')) {
+                $query->whereHas('studentClasses', function ($q) use ($request) {
+                    $q->where('academic_year_id', $request->academic_year_id);
+                });
+            }
+
+            // Filter by educational institution if provided
+            if ($request->has('educational_institution_id')) {
+                $query->where('educational_institution_id', $request->educational_institution_id);
+            }
+
+            // Filter by classroom if provided
+            if ($request->has('classroom_id')) {
+                $query->where('classroom_id', $request->classroom_id);
+            }
+
+            $classGroups = $query->orderByDesc('id')->get();
+
+            // Transform the data to include student count
+            $data = $classGroups->map(function ($classGroup) {
+                return [
+                    'id' => $classGroup->id,
+                    'name' => $classGroup->name,
+                    'classroom' => $classGroup->classroom,
+                    'educational_institution' => $classGroup->educational_institution,
+                    'advisor' => $classGroup->advisor ? [
+                        'id' => $classGroup->advisor->id,
+                        'user' => $classGroup->advisor->user
+                    ] : null,
+                    'total_students' => $classGroup->total_students ?? 0,
+                    'created_at' => $classGroup->created_at,
+                    'updated_at' => $classGroup->updated_at
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data rombongan belajar berhasil diambil',
+                'data' => $data
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data rombongan belajar',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

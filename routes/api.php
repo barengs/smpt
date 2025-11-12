@@ -100,6 +100,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
     Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);
     Route::get('class-group/advisors', [ClassGroupController::class, 'getAdvisors']);
+    Route::get('class-group/details', [ClassGroupController::class, 'getClassGroupsWithDetails']);
     Route::post('class-group/{id}/assign-advisor', [ClassGroupController::class, 'assignAdvisor']);
     Route::post('class-group/{id}/remove-advisor', [ClassGroupController::class, 'removeAdvisor']);
     Route::apiResource('class-group', ClassGroupController::class);
