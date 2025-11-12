@@ -270,4 +270,57 @@ class StudentClassController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get all students mapped to a specific class group
+     *
+     * @param  string  $classGroupId  The ID of the class group
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getStudentsMappedToClassGroups(string $classGroupId)
+    {
+        /** @var string $classGroupId */
+        try {
+            $studentClasses = StudentClass::with([
+                'students:id,first_name,last_name,nik,gender',
+                'classGroup:id,name',
+                'classrooms:id,name',
+                'educations:id,institution_name',
+                'academicYears:id,year'
+            ])
+            ->where('class_group_id', $classGroupId)
+            ->orderBy('classroom_id')
+            ->get();
+
+            // Transform the data
+            $data = $studentClasses->map(function ($studentClass) {
+                return [
+                    'id' => $studentClass->id,
+                    'student' => $studentClass->students,
+                    'class_group' => $studentClass->classGroup,
+                    'classroom' => $studentClass->classrooms,
+                    'educational_institution' => $studentClass->educations,
+                    'academic_year' => $studentClass->academicYears,
+                    'approval_status' => $studentClass->approval_status,
+                    'approval_note' => $studentClass->approval_note,
+                    'created_at' => $studentClass->created_at,
+                    'updated_at' => $studentClass->updated_at
+                ];
+            });
+
+            return response()->json([
+                'message' => 'Data siswa yang sudah dipetakan ke rombel berhasil diambil',
+                'status' => 200,
+                'data' => $data,
+                'total' => $data->count()
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Error fetching students mapped to class groups: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Terjadi kesalahan saat mengambil data siswa',
+                'status' => 500,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
