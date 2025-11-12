@@ -282,7 +282,7 @@ class StudentClassController extends Controller
         /** @var string $classGroupId */
         try {
             $studentClasses = StudentClass::with([
-                'students:id,first_name,last_name,nik,gender',
+                'students:id,first_name,last_name,nik,nis,gender',
                 'classGroup:id,name',
                 'classrooms:id,name',
                 'educations:id,institution_name',
