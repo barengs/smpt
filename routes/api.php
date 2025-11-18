@@ -133,6 +133,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('supervisor/trashed', [IntershipSupervisorController::class, 'trashed']);
     Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
     Route::apiResource('supervisor', IntershipSupervisorController::class);
+    Route::post('hostel/{id}/assign-head', [HostelController::class, 'assignHead']);
+    Route::get('hostel/{id}/head/current', [HostelController::class, 'currentHead']);
+    Route::get('hostel/{id}/head/history', [HostelController::class, 'headHistory']);
     Route::apiResource('hostel', HostelController::class);
     Route::apiResource('classroom', ClassroomController::class);
     Route::apiResource('class-group', ClassGroupController::class);
@@ -231,6 +234,8 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('staff-study', StaffStudyController::class);
 
     // Student
+    Route::post('student/{id}/room/assign', [StudentController::class, 'assignRoom']);
+    Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
     Route::apiResource('student', StudentController::class);
     Route::apiResource('parent', ParentController::class);
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
