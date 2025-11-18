@@ -23,6 +23,16 @@ class HostelController extends Controller
     {
         try {
             $hostels = Hostel::with('program')->paginate(10);
+
+            $hostels->getCollection()->transform(function ($hostel) {
+                $currentHead = PositionAssignment::with(['position', 'staff'])
+                    ->where('hostel_id', $hostel->id)
+                    ->where('is_active', true)
+                    ->first();
+                $hostel->setRelation('current_head', $currentHead);
+                return $hostel;
+            });
+
             return response()->json(new HostelResource('Data asrama berhasil diambil', $hostels, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new HostelResource('Gagal mengambil data asrama', null, 500), 500);
@@ -48,7 +58,15 @@ class HostelController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $hostel = Hostel::findOrFail($id);
+            $hostel = Hostel::with('program')->findOrFail($id);
+
+            $currentHead = PositionAssignment::with(['position', 'staff'])
+                ->where('hostel_id', $hostel->id)
+                ->where('is_active', true)
+                ->first();
+
+            $hostel->setRelation('current_head', $currentHead);
+
             return response()->json(new HostelResource('Data asrama berhasil diambil', $hostel, 200), 200);
         } catch (\Exception $e) {
             return response()->json(new HostelResource('Asrama tidak ditemukan', null, 404), 404);
