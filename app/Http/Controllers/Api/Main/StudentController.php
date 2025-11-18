@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api\Main;
 
 use App\Models\Student;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StudentResource;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Exception;
@@ -171,5 +173,139 @@ class StudentController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    /**
+     * Assign or move student to a room (tracks history)
+     */
+    public function assignRoom(Request $request, string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'room_id' => 'required|exists:rooms,id',
+                'academic_year_id' => 'nullable|exists:academic_years,id',
+                'start_date' => 'required|date',
+                'notes' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $room = Room::findOrFail($request->room_id);
+
+            DB::beginTransaction();
+
+            // Deactivate previous active assignment
+            DB::table('student_room_assignments')
+                ->where('student_id', $student->id)
+                ->where('is_active', true)
+                ->update([
+                    'is_active' => false,
+                    'end_date' => $request->start_date,
+                ]);
+
+            // Create new assignment
+            $assignmentId = DB::table('student_room_assignments')->insertGetId([
+                'student_id' => $student->id,
+                'room_id' => $room->id,
+                'academic_year_id' => $request->academic_year_id,
+                'start_date' => $request->start_date,
+                'end_date' => null,
+                'is_active' => true,
+                'notes' => $request->notes,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Update student's hostel based on room
+            $student->update([
+                'hostel_id' => $room->hostel_id,
+            ]);
+
+            DB::commit();
+
+            $assignment = DB::table('student_room_assignments')->where('id', $assignmentId)->first();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Penempatan kamar berhasil',
+                'data' => $assignment
+            ], 201);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa atau kamar tidak ditemukan'
+            ], 404);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyimpan penempatan kamar',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Riwayat penempatan kamar siswa
+     */
+    public function roomHistory(string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+
+            $history = DB::table('student_room_assignments as sra')
+                ->join('rooms as r', 'r.id', '=', 'sra.room_id')
+                ->join('hostels as h', 'h.id', '=', 'r.hostel_id')
+                ->leftJoin('academic_years as ay', 'ay.id', '=', 'sra.academic_year_id')
+                ->where('sra.student_id', $student->id)
+                ->orderByDesc('sra.start_date')
+                ->select([
+                    'sra.id', 'sra.start_date', 'sra.end_date', 'sra.is_active', 'sra.notes',
+                    'r.id as room_id', 'r.name as room_name',
+                    'h.id as hostel_id', 'h.name as hostel_name',
+                    'ay.id as academic_year_id', 'ay.year as academic_year',
+                ])
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Riwayat kamar siswa berhasil diambil',
+                'data' => $history
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa tidak ditemukan'
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
