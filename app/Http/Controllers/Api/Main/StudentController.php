@@ -28,6 +28,24 @@ class StudentController extends Controller
             // Fetch all students from the database
             $students = Student::with(['program', 'hostel', 'parents'])->orderBy('created_at', 'desc')->get();
 
+            // Attach current room for each student
+            $students->each(function ($student) {
+                $currentRoom = DB::table('student_room_assignments as sra')
+                    ->join('rooms as r', 'r.id', '=', 'sra.room_id')
+                    ->join('hostels as h', 'h.id', '=', 'r.hostel_id')
+                    ->leftJoin('academic_years as ay', 'ay.id', '=', 'sra.academic_year_id')
+                    ->where('sra.student_id', $student->id)
+                    ->where('sra.is_active', true)
+                    ->select([
+                        'sra.id', 'sra.start_date', 'sra.end_date', 'sra.notes',
+                        'r.id as room_id', 'r.name as room_name', 'r.capacity as room_capacity',
+                        'h.id as hostel_id', 'h.name as hostel_name',
+                        'ay.id as academic_year_id', 'ay.year as academic_year',
+                    ])
+                    ->first();
+                $student->current_room = $currentRoom;
+            });
+
             return new StudentResource('data ditemukan', $students, 200);
         } catch (Exception $e) {
             return response()->json([
@@ -58,6 +76,23 @@ class StudentController extends Controller
     {
         try {
             $student = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);
+
+            // Attach current room
+            $currentRoom = DB::table('student_room_assignments as sra')
+                ->join('rooms as r', 'r.id', '=', 'sra.room_id')
+                ->join('hostels as h', 'h.id', '=', 'r.hostel_id')
+                ->leftJoin('academic_years as ay', 'ay.id', '=', 'sra.academic_year_id')
+                ->where('sra.student_id', $student->id)
+                ->where('sra.is_active', true)
+                ->select([
+                    'sra.id', 'sra.start_date', 'sra.end_date', 'sra.notes',
+                    'r.id as room_id', 'r.name as room_name', 'r.capacity as room_capacity',
+                    'h.id as hostel_id', 'h.name as hostel_name',
+                    'ay.id as academic_year_id', 'ay.year as academic_year',
+                ])
+                ->first();
+            $student->current_room = $currentRoom;
+
             return new StudentResource('data ditemukan', $student, 200);
         } catch (\Throwable $th) {
             return response()->json([
