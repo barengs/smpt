@@ -47,6 +47,10 @@ use App\Http\Controllers\Api\Main\EducationalInstitutionController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Http\Controllers\Api\Main\InternshipController;
 use App\Http\Controllers\Api\Main\PresenceController;
+use App\Http\Controllers\Api\Master\ViolationCategoryController;
+use App\Http\Controllers\Api\Master\ViolationController;
+use App\Http\Controllers\Api\Master\SanctionController;
+use App\Http\Controllers\Api\Main\StudentViolationController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -175,6 +179,15 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('position-assignment/current', [PositionAssignmentController::class, 'getCurrent']);
     Route::get('position-assignment/staff/{staffId}', [PositionAssignmentController::class, 'getByStaff']);
     Route::get('position-assignment/position/{positionId}', [PositionAssignmentController::class, 'getByPosition']);
+
+    // Tata Tertib - Violation Categories
+    Route::apiResource('violation-category', ViolationCategoryController::class);
+
+    // Tata Tertib - Violations
+    Route::apiResource('violation', ViolationController::class);
+
+    // Tata Tertib - Sanctions
+    Route::apiResource('sanction', SanctionController::class);
 });
 
 // Main routes
@@ -260,4 +273,10 @@ Route::group(['prefix' => 'main'], function () {
     // Presence
     Route::apiResource('presence', PresenceController::class);
     Route::get('presence/statistics', [PresenceController::class, 'statistics'])->name('presence.statistics');
+
+    // Tata Tertib - Student Violations
+    Route::get('student-violation/statistics', [StudentViolationController::class, 'statistics']);
+    Route::get('student-violation/student/{studentId}/report', [StudentViolationController::class, 'reportByStudent']);
+    Route::post('student-violation/{id}/assign-sanction', [StudentViolationController::class, 'assignSanction']);
+    Route::apiResource('student-violation', StudentViolationController::class);
 });
