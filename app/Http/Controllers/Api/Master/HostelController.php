@@ -25,7 +25,7 @@ class HostelController extends Controller
             $hostels = Hostel::with('program')->paginate(10);
 
             $hostels->getCollection()->transform(function ($hostel) {
-                $currentHead = PositionAssignment::with(['position', 'staff'])
+                $currentHead = PositionAssignment::with(['staff.user'])
                     ->where('hostel_id', $hostel->id)
                     ->where('is_active', true)
                     ->first();
@@ -60,7 +60,7 @@ class HostelController extends Controller
         try {
             $hostel = Hostel::with('program')->findOrFail($id);
 
-            $currentHead = PositionAssignment::with(['position', 'staff'])
+            $currentHead = PositionAssignment::with(['staff.user'])
                 ->where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->first();
@@ -114,17 +114,27 @@ class HostelController extends Controller
     {
         $validated = $request->validate([
             'staff_id' => 'required|exists:staff,id',
-            'position_id' => 'required|exists:positions,id',
             'academic_year_id' => 'required|exists:academic_years,id',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after:start_date',
             'notes' => 'nullable|string',
         ]);
 
-        $hostel = Hostel::findOrFail($id);
-
-        DB::beginTransaction();
         try {
+            $hostel = Hostel::findOrFail($id);
+            $staff = Staff::with('user')->findOrFail($validated['staff_id']);
+
+            // Validasi: Cek apakah staff memiliki role 'Kepala Asrama'
+            if (!$staff->user || !$staff->user->hasRole('Kepala Asrama')) {
+                return response()->json([
+                    'message' => 'Staff tidak memiliki role Kepala Asrama',
+                    'status' => 422
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            // Nonaktifkan kepala asrama aktif sebelumnya
             PositionAssignment::where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->update([
@@ -132,8 +142,9 @@ class HostelController extends Controller
                     'end_date' => $validated['start_date'],
                 ]);
 
+            // Buat assignment baru tanpa position_id
             $assignment = PositionAssignment::create([
-                'position_id' => $validated['position_id'],
+                'position_id' => null,
                 'staff_id' => $validated['staff_id'],
                 'hostel_id' => $hostel->id,
                 'academic_year_id' => $validated['academic_year_id'],
@@ -145,7 +156,7 @@ class HostelController extends Controller
 
             DB::commit();
 
-            return response()->json(new HostelResource('Kepala Asrama berhasil ditetapkan', $assignment->load(['position', 'staff']), 201), 201);
+            return response()->json(new HostelResource('Kepala Asrama berhasil ditetapkan', $assignment->load('staff.user'), 201), 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(new HostelResource('Gagal menetapkan Kepala Asrama', $e->getMessage(), 500), 500);
@@ -160,7 +171,7 @@ class HostelController extends Controller
         $hostel = Hostel::findOrFail($id);
         $academicYearId = $request->query('academic_year_id');
 
-        $query = PositionAssignment::with(['position', 'staff'])
+        $query = PositionAssignment::with(['staff.user'])
             ->where('hostel_id', $hostel->id)
             ->where('is_active', true);
 
@@ -180,7 +191,7 @@ class HostelController extends Controller
     {
         $hostel = Hostel::findOrFail($id);
 
-        $history = PositionAssignment::with(['position', 'staff'])
+        $history = PositionAssignment::with(['staff.user', 'academicYear'])
             ->where('hostel_id', $hostel->id)
             ->orderByDesc('start_date')
             ->get();

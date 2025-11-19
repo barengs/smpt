@@ -24,7 +24,7 @@ class PositionAssignment extends Model
 
     public function position()
     {
-        return $this->belongsTo(Position::class);
+        return $this->belongsTo(Position::class)->nullable();
     }
 
     public function staff()
@@ -36,5 +36,15 @@ class PositionAssignment extends Model
     public function official()
     {
         return $this->staff();
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function hostel()
+    {
+        return $this->belongsTo(Hostel::class);
     }
 }
