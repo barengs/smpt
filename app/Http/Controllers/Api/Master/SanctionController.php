@@ -10,6 +10,9 @@ use Exception;
 
 class SanctionController extends Controller
 {
+    /**
+     * List sanctions
+     */
     public function index()
     {
         try {
@@ -29,6 +32,16 @@ class SanctionController extends Controller
         }
     }
 
+    /**
+     * Create a sanction
+     *
+     * Body:
+     * - name: string (required)
+     * - description: string (optional)
+     * - type: enum(peringatan,skorsing,pembinaan,denda,lainnya) (required)
+     * - duration_days: integer (optional)
+     * - is_active: boolean (optional)
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -64,6 +77,12 @@ class SanctionController extends Controller
         }
     }
 
+    /**
+     * Get a sanction by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function show(string $id)
     {
         try {
@@ -83,6 +102,18 @@ class SanctionController extends Controller
         }
     }
 
+    /**
+     * Update a sanction
+     *
+     * Path:
+     * - id: integer (required)
+     * Body:
+     * - name: string (required)
+     * - description: string (optional)
+     * - type: enum(peringatan,skorsing,pembinaan,denda,lainnya) (required)
+     * - duration_days: integer (optional)
+     * - is_active: boolean (optional)
+     */
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
@@ -119,6 +150,12 @@ class SanctionController extends Controller
         }
     }
 
+    /**
+     * Delete a sanction by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function destroy(string $id)
     {
         try {

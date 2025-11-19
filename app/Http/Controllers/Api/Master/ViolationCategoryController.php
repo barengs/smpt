@@ -10,6 +10,11 @@ use Exception;
 
 class ViolationCategoryController extends Controller
 {
+    /**
+     * List violation categories
+     *
+     * Returns all violation categories with violation counts.
+     */
     public function index()
     {
         try {
@@ -31,6 +36,15 @@ class ViolationCategoryController extends Controller
         }
     }
 
+    /**
+     * Create a violation category
+     *
+     * Body:
+     * - name: string (required)
+     * - description: string (optional)
+     * - severity_level: integer 1..3 (required)
+     * - is_active: boolean (optional)
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -65,6 +79,12 @@ class ViolationCategoryController extends Controller
         }
     }
 
+    /**
+     * Get a violation category by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function show(string $id)
     {
         try {
@@ -84,6 +104,17 @@ class ViolationCategoryController extends Controller
         }
     }
 
+    /**
+     * Update a violation category
+     *
+     * Path:
+     * - id: integer (required)
+     * Body:
+     * - name: string (required)
+     * - description: string (optional)
+     * - severity_level: integer 1..3 (required)
+     * - is_active: boolean (optional)
+     */
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
@@ -119,6 +150,12 @@ class ViolationCategoryController extends Controller
         }
     }
 
+    /**
+     * Delete a violation category by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function destroy(string $id)
     {
         try {
