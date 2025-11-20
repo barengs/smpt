@@ -182,6 +182,7 @@ class StaffController extends Controller
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
                 'marital_status' => 'sometimes|required|in:Single,Married,Divorced,Widowed,Belum Menikah,Menikah,Cerai,Duda/Janda',
                 'status' => 'sometimes|required|in:Aktif,Tidak Aktif',
+                'roles' => 'sometimes|required',
             ]);
 
             // Return validation errors if any
@@ -235,6 +236,11 @@ class StaffController extends Controller
                 'job_id' => $request->input('job_id', $staff->job_id),
                 'photo' => $photoPath,
             ]);
+
+            // Update roles if provided
+            if ($request->has('roles')) {
+                $staff->user->syncRoles($request->roles);
+            }
 
             // Update user if needed
             if ($request->has('email')) {
@@ -337,8 +343,8 @@ class StaffController extends Controller
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('first_name', 'like', "%{$search}%")
-                      ->orWhere('last_name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             }
 
@@ -660,7 +666,7 @@ class StaffController extends Controller
             $year = substr($birthDate, 4, 2);
 
             // Adjust day for gender (for females, 40 is added to the day)
-            $adjustedDay = (int)$day;
+            $adjustedDay = (int) $day;
             if ($adjustedDay > 40) {
                 $adjustedDay = $adjustedDay - 40;
                 $gender = 'Perempuan';
@@ -669,21 +675,21 @@ class StaffController extends Controller
             }
 
             // Adjust year (assuming 00-30 is 2000-2030 and 31-99 is 1931-1999)
-            $fullYear = (int)$year <= 30 ? "20{$year}" : "19{$year}";
+            $fullYear = (int) $year <= 30 ? "20{$year}" : "19{$year}";
 
             // Format birth date
             $formattedBirthDate = sprintf("%s-%s-%02d", $fullYear, $month, $adjustedDay);
 
             // Get region information
-            $province = DB::table(config('laravolt.indonesia.table_prefix').'provinces')
+            $province = DB::table(config('laravolt.indonesia.table_prefix') . 'provinces')
                 ->where('code', $provinceCode)
                 ->first();
 
-            $city = DB::table(config('laravolt.indonesia.table_prefix').'cities')
+            $city = DB::table(config('laravolt.indonesia.table_prefix') . 'cities')
                 ->where('code', $cityCode)
                 ->first();
 
-            $district = DB::table(config('laravolt.indonesia.table_prefix').'districts')
+            $district = DB::table(config('laravolt.indonesia.table_prefix') . 'districts')
                 ->where('code', $districtCode)
                 ->first();
 
