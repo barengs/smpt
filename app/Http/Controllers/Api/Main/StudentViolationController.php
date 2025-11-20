@@ -13,6 +13,16 @@ use Exception;
 
 class StudentViolationController extends Controller
 {
+    /**
+     * List student violations
+     *
+     * Query params:
+     * - student_id: integer (optional)
+     * - status: enum(pending,verified,processed,cancelled) (optional)
+     * - academic_year_id: integer (optional)
+     * - date_from: date (optional)
+     * - date_to: date (optional)
+     */
     public function index(Request $request)
     {
         try {
@@ -44,7 +54,7 @@ class StudentViolationController extends Controller
                 $query->where('violation_date', '<=', $request->date_to);
             }
 
-            $violations = $query->orderByDesc('violation_date')->paginate(15);
+            $violations = $query->orderByDesc('violation_date')->paginate(10);
 
             return response()->json([
                 'success' => true,
@@ -60,6 +70,20 @@ class StudentViolationController extends Controller
         }
     }
 
+    /**
+     * Record a student violation
+     *
+     * Body:
+     * - student_id: integer (required)
+     * - violation_id: integer (required)
+     * - academic_year_id: integer (optional)
+     * - violation_date: date (required)
+     * - violation_time: time H:i (optional)
+     * - location: string (optional)
+     * - description: string (optional)
+     * - reported_by: integer (optional)
+     * - notes: string (optional)
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -104,6 +128,12 @@ class StudentViolationController extends Controller
         }
     }
 
+    /**
+     * Get a student violation by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function show(string $id)
     {
         try {
@@ -131,6 +161,23 @@ class StudentViolationController extends Controller
         }
     }
 
+    /**
+     * Update a student violation
+     *
+     * Path:
+     * - id: integer (required)
+     * Body:
+     * - student_id: integer (required)
+     * - violation_id: integer (required)
+     * - academic_year_id: integer (optional)
+     * - violation_date: date (required)
+     * - violation_time: time H:i (optional)
+     * - location: string (optional)
+     * - description: string (optional)
+     * - reported_by: integer (optional)
+     * - status: enum(pending,verified,processed,cancelled) (required)
+     * - notes: string (optional)
+     */
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
@@ -172,6 +219,12 @@ class StudentViolationController extends Controller
         }
     }
 
+    /**
+     * Delete a student violation by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function destroy(string $id)
     {
         try {
@@ -192,7 +245,15 @@ class StudentViolationController extends Controller
     }
 
     /**
-     * Berikan sanksi untuk pelanggaran
+     * Assign a sanction to a student violation
+     *
+     * Path:
+     * - id: integer - student violation ID (required)
+     * Body:
+     * - sanction_id: integer (required)
+     * - start_date: date (required)
+     * - end_date: date (optional)
+     * - notes: string (optional)
      */
     public function assignSanction(Request $request, string $id)
     {
@@ -247,7 +308,12 @@ class StudentViolationController extends Controller
     }
 
     /**
-     * Laporan pelanggaran per siswa
+     * Get violation report for a student
+     *
+     * Path:
+     * - studentId: integer (required)
+     * Query:
+     * - academic_year_id: integer (optional)
      */
     public function reportByStudent(Request $request, string $studentId)
     {
@@ -291,7 +357,12 @@ class StudentViolationController extends Controller
     }
 
     /**
-     * Laporan statistik pelanggaran
+     * Get violation statistics
+     *
+     * Query:
+     * - academic_year_id: integer (optional)
+     * - date_from: date (optional)
+     * - date_to: date (optional)
      */
     public function statistics(Request $request)
     {

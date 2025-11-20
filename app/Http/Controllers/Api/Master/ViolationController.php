@@ -10,6 +10,12 @@ use Exception;
 
 class ViolationController extends Controller
 {
+    /**
+     * List violations
+     *
+     * Query:
+     * - category_id: integer (optional)
+     */
     public function index(Request $request)
     {
         try {
@@ -35,6 +41,16 @@ class ViolationController extends Controller
         }
     }
 
+    /**
+     * Create a violation
+     *
+     * Body:
+     * - category_id: integer (required)
+     * - name: string (required)
+     * - description: string (optional)
+     * - point: integer (required)
+     * - is_active: boolean (optional)
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -70,6 +86,12 @@ class ViolationController extends Controller
         }
     }
 
+    /**
+     * Get a violation by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function show(string $id)
     {
         try {
@@ -89,6 +111,18 @@ class ViolationController extends Controller
         }
     }
 
+    /**
+     * Update a violation
+     *
+     * Path:
+     * - id: integer (required)
+     * Body:
+     * - category_id: integer (required)
+     * - name: string (required)
+     * - description: string (optional)
+     * - point: integer (required)
+     * - is_active: boolean (optional)
+     */
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
@@ -125,6 +159,12 @@ class ViolationController extends Controller
         }
     }
 
+    /**
+     * Delete a violation by ID
+     *
+     * Path:
+     * - id: integer (required)
+     */
     public function destroy(string $id)
     {
         try {
