@@ -51,6 +51,8 @@ use App\Http\Controllers\Api\Master\ViolationCategoryController;
 use App\Http\Controllers\Api\Master\ViolationController;
 use App\Http\Controllers\Api\Master\SanctionController;
 use App\Http\Controllers\Api\Main\StudentViolationController;
+use App\Http\Controllers\Api\Master\LeaveTypeController;
+use App\Http\Controllers\Api\Main\StudentLeaveController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -188,6 +190,9 @@ Route::group(['prefix' => 'master'], function () {
 
     // Tata Tertib - Sanctions
     Route::apiResource('sanction', SanctionController::class);
+
+    // Leave Types (Jenis Izin)
+    Route::apiResource('leave-type', LeaveTypeController::class);
 });
 
 // Main routes
@@ -279,4 +284,14 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('student-violation/student/{studentId}/report', [StudentViolationController::class, 'reportByStudent']);
     Route::post('student-violation/{id}/assign-sanction', [StudentViolationController::class, 'assignSanction']);
     Route::apiResource('student-violation', StudentViolationController::class);
+
+    // Student Leaves (Perizinan Santri)
+    Route::get('student-leave/statistics', [StudentLeaveController::class, 'statistics']);
+    Route::get('student-leave/student/{studentId}/report', [StudentLeaveController::class, 'reportByStudent']);
+    Route::post('student-leave/{id}/approve', [StudentLeaveController::class, 'approve']);
+    Route::post('student-leave/{id}/reject', [StudentLeaveController::class, 'reject']);
+    Route::post('student-leave/{id}/submit-report', [StudentLeaveController::class, 'submitReport']);
+    Route::post('student-leave/{id}/assign-penalty', [StudentLeaveController::class, 'assignPenalty']);
+    Route::post('student-leave/check-overdue', [StudentLeaveController::class, 'checkOverdueLeaves']);
+    Route::apiResource('student-leave', StudentLeaveController::class);
 });
