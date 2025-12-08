@@ -36,4 +36,14 @@ class Student extends Model
     {
         return $this->hasMany(Registration::class);
     }
+
+    public function leaves()
+    {
+        return $this->hasMany(StudentLeave::class);
+    }
+
+    public function violations()
+    {
+        return $this->hasMany(StudentViolation::class);
+    }
 }
