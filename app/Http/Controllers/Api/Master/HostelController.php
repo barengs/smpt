@@ -201,4 +201,26 @@ class HostelController extends Controller
 
         return response()->json(new HostelResource('Riwayat Kepala Asrama', $history, 200), 200);
     }
+
+    /**
+     * Get all staff with 'Kepala Asrama' role
+     */
+    public function getHeadStaff(): JsonResponse
+    {
+        try {
+            $headStaff = Staff::with(['user' => function ($query) {
+                $query->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->where('name', 'kepala asrama');
+                });
+            }])
+            ->whereHas('user.roles', function ($query) {
+                $query->where('name', 'kepala asrama');
+            })
+            ->get();
+
+            return response()->json(new HostelResource('Data staff Kepala Asrama berhasil diambil', $headStaff, 200), 200);
+        } catch (\Exception $e) {
+            return response()->json(new HostelResource('Gagal mengambil data staff Kepala Asrama', null, 500), 500);
+        }
+    }
 }

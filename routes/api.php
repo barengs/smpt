@@ -139,6 +139,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('supervisor/trashed', [IntershipSupervisorController::class, 'trashed']);
     Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
     Route::apiResource('supervisor', IntershipSupervisorController::class);
+    Route::get('hostel/staff/heads', [HostelController::class, 'getHeadStaff']);
     Route::post('hostel/{id}/assign-head', [HostelController::class, 'assignHead']);
     Route::get('hostel/{id}/head/current', [HostelController::class, 'currentHead']);
     Route::get('hostel/{id}/head/history', [HostelController::class, 'headHistory']);
