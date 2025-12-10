@@ -11,6 +11,7 @@ class StudentLeaveResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'leave_number' => $this->leave_number,
             'student' => [
                 'id' => $this->student->id,
                 'name' => $this->student->first_name . ' ' . $this->student->last_name,

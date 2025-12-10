@@ -23,6 +23,7 @@ class StudentLeaveController extends Controller
      * List student leaves with filters
      *
      * Query params:
+     * - leave_number: string (optional)
      * - student_id: integer (optional)
      * - leave_type_id: integer (optional)
      * - status: enum(pending,approved,rejected,active,completed,overdue,cancelled) (optional)
@@ -42,6 +43,10 @@ class StudentLeaveController extends Controller
                 'report',
                 'penalties'
             ]);
+
+            if ($request->has('leave_number')) {
+                $query->where('leave_number', 'LIKE', '%' . $request->leave_number . '%');
+            }
 
             if ($request->has('student_id')) {
                 $query->where('student_id', $request->student_id);
@@ -83,6 +88,15 @@ class StudentLeaveController extends Controller
     /**
      * Create a new leave request
      *
+     * Automatically generates a unique leave number in Hijri format: SIZYYYYYMMDDXXX
+     * Example: SIZ14470619001 (Hijri date: 19 Jumadal Akhir 1447)
+     * Format breakdown:
+     * - SIZ: Surat Izin (Leave Letter)
+     * - YYYY: Hijri Year (4 digits) - e.g., 1447
+     * - MM: Hijri Month (2 digits) - e.g., 06
+     * - DD: Hijri Day (2 digits) - e.g., 19
+     * - XXX: Sequential number (3 digits, resets monthly) - e.g., 001
+     *
      * Body:
      * - student_id: integer (required)
      * - leave_type_id: integer (required)
@@ -111,7 +125,11 @@ class StudentLeaveController extends Controller
                 $academicYearId = $currentAcademicYear?->id;
             }
 
+            // Generate unique leave number
+            $leaveNumber = StudentLeave::generateLeaveNumber();
+
             $leave = StudentLeave::create([
+                'leave_number' => $leaveNumber,
                 'student_id' => $request->student_id,
                 'leave_type_id' => $request->leave_type_id,
                 'academic_year_id' => $academicYearId,
