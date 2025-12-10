@@ -22,9 +22,9 @@ class HostelController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $hostels = Hostel::with('program')->paginate(10);
+            $hostels = Hostel::with('program')->get();
 
-            $hostels->getCollection()->transform(function ($hostel) {
+            $hostels->transform(function ($hostel) {
                 $currentHead = PositionAssignment::with(['staff.user'])
                     ->where('hostel_id', $hostel->id)
                     ->where('is_active', true)
