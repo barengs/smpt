@@ -289,9 +289,14 @@ Route::group(['prefix' => 'main'], function () {
     // Student Leaves (Perizinan Santri)
     Route::get('student-leave/statistics', [StudentLeaveController::class, 'statistics']);
     Route::get('student-leave/student/{studentId}/report', [StudentLeaveController::class, 'reportByStudent']);
+    Route::get('student-leave/{id}/approval-history', [StudentLeaveController::class, 'approvalHistory']);
+    Route::get('student-leave/{id}/activity-history', [StudentLeaveController::class, 'activityHistory']);
     Route::post('student-leave/{id}/approve', [StudentLeaveController::class, 'approve']);
     Route::post('student-leave/{id}/reject', [StudentLeaveController::class, 'reject']);
+    Route::post('student-leave/{id}/approve-by-role', [StudentLeaveController::class, 'approveByRole']);
+    Route::post('student-leave/{id}/reject-by-role', [StudentLeaveController::class, 'rejectByRole']);
     Route::post('student-leave/{id}/submit-report', [StudentLeaveController::class, 'submitReport']);
+    Route::post('student-leave/{id}/verify-report', [StudentLeaveController::class, 'verifyReport']);
     Route::post('student-leave/{id}/assign-penalty', [StudentLeaveController::class, 'assignPenalty']);
     Route::post('student-leave/check-overdue', [StudentLeaveController::class, 'checkOverdueLeaves']);
     Route::apiResource('student-leave', StudentLeaveController::class);
