@@ -22,7 +22,10 @@ class HostelController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $hostels = Hostel::with('program')->get();
+            // Get all hostels including soft deleted if needed, with program relation
+            $hostels = Hostel::query()
+                ->with('program')
+                ->get();
 
             $hostels->transform(function ($hostel) {
                 $currentHead = PositionAssignment::with(['staff.user'])
