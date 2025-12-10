@@ -14,7 +14,9 @@ class StudentLeaveReport extends Model
     protected $casts = [
         'report_date' => 'date',
         'is_late' => 'boolean',
+        'is_verified' => 'boolean',
         'verified_at' => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     public function studentLeave()

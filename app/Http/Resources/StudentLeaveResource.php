@@ -12,6 +12,10 @@ class StudentLeaveResource extends JsonResource
         return [
             'id' => $this->id,
             'leave_number' => $this->leave_number,
+            'created_by' => $this->creator ? [
+                'id' => $this->creator->id,
+                'name' => $this->creator->first_name . ' ' . $this->creator->last_name,
+            ] : null,
             'student' => [
                 'id' => $this->student->id,
                 'name' => $this->student->first_name . ' ' . $this->student->last_name,
@@ -44,6 +48,27 @@ class StudentLeaveResource extends JsonResource
             'has_penalty' => $this->has_penalty,
             'is_overdue' => $this->isOverdue(),
             'days_late' => $this->getDaysLate(),
+            'requires_multi_approval' => $this->requires_multi_approval,
+            'approval_count' => $this->approval_count,
+            'required_approvals' => $this->required_approvals,
+            'all_approved' => $this->all_approved,
+            'approvals' => $this->whenLoaded('approvals', function () {
+                return $this->approvals->map(function ($approval) {
+                    return [
+                        'id' => $approval->id,
+                        'role' => $approval->approver_role,
+                        'role_display' => $approval->getRoleDisplayName(),
+                        'approver' => $approval->approver ? [
+                            'id' => $approval->approver->id,
+                            'name' => $approval->approver->first_name . ' ' . $approval->approver->last_name,
+                        ] : null,
+                        'status' => $approval->status,
+                        'notes' => $approval->notes,
+                        'reviewed_at' => $approval->reviewed_at?->format('Y-m-d H:i:s'),
+                        'approval_order' => $approval->approval_order,
+                    ];
+                });
+            }),
             'report' => $this->report ? new StudentLeaveReportResource($this->report) : null,
             'penalties' => StudentLeavePenaltyResource::collection($this->whenLoaded('penalties')),
             'notes' => $this->notes,

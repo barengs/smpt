@@ -20,6 +20,8 @@ class StudentLeave extends Model
         'actual_return_date' => 'date',
         'approved_at' => 'datetime',
         'has_penalty' => 'boolean',
+        'requires_multi_approval' => 'boolean',
+        'all_approved' => 'boolean',
     ];
 
     // Relationships
@@ -53,6 +55,21 @@ class StudentLeave extends Model
         return $this->hasMany(StudentLeavePenalty::class, 'student_leave_id');
     }
 
+    public function approvals()
+    {
+        return $this->hasMany(StudentLeaveApproval::class, 'student_leave_id')->orderBy('approval_order');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(Staff::class, 'created_by');
+    }
+
+    public function activities()
+    {
+        return $this->hasMany(StudentLeaveActivity::class, 'student_leave_id')->orderByDesc('created_at');
+    }
+
     // Helper methods
     public function isOverdue()
     {
@@ -78,6 +95,73 @@ class StudentLeave extends Model
     public function canBeReported()
     {
         return in_array($this->status, ['approved', 'active', 'overdue']);
+    }
+
+    /**
+     * Check if leave can be approved by specific role
+     */
+    public function canBeApprovedBy($role)
+    {
+        if (!$this->requires_multi_approval) {
+            return false;
+        }
+
+        if ($this->status !== 'pending') {
+            return false;
+        }
+
+        // Check if this role hasn't approved yet
+        $existing = $this->approvals()->where('approver_role', $role)->first();
+        return !$existing || $existing->status === 'pending';
+    }
+
+    /**
+     * Check if all required approvals are obtained
+     */
+    public function hasAllApprovals()
+    {
+        return $this->all_approved && $this->approval_count >= $this->required_approvals;
+    }
+
+    /**
+     * Get pending approvals
+     */
+    public function getPendingApprovals()
+    {
+        return $this->approvals()->where('status', 'pending')->get();
+    }
+
+    /**
+     * Get approval history/timeline
+     */
+    public function getApprovalTimeline()
+    {
+        return $this->approvals()->with(['approver.user'])->orderBy('reviewed_at')->get();
+    }
+
+    /**
+     * Log activity for this leave
+     */
+    public function logActivity($activityType, $actorId = null, $actorRole = null, $description = null, $metadata = [])
+    {
+        return StudentLeaveActivity::create([
+            'student_leave_id' => $this->id,
+            'activity_type' => $activityType,
+            'actor_id' => $actorId,
+            'actor_role' => $actorRole,
+            'description' => $description,
+            'metadata' => $metadata,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+        ]);
+    }
+
+    /**
+     * Get complete activity history
+     */
+    public function getActivityHistory()
+    {
+        return $this->activities()->with('actor')->get();
     }
 
     /**

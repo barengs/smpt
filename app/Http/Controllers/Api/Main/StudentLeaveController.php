@@ -10,6 +10,8 @@ use App\Http\Resources\StudentLeaveResource;
 use App\Models\StudentLeave;
 use App\Models\StudentLeaveReport;
 use App\Models\StudentLeavePenalty;
+use App\Models\StudentLeaveApproval;
+use App\Models\StudentLeaveActivity;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +42,8 @@ class StudentLeaveController extends Controller
                 'leaveType',
                 'academicYear',
                 'approver:id,first_name,last_name',
+                'creator:id,first_name,last_name',
+                'approvals.approver:id,first_name,last_name',
                 'report',
                 'penalties'
             ]);
@@ -128,8 +132,12 @@ class StudentLeaveController extends Controller
             // Generate unique leave number
             $leaveNumber = StudentLeave::generateLeaveNumber();
 
+            // Get current user/staff
+            $createdBy = Auth::user()->staff->id ?? null;
+
             $leave = StudentLeave::create([
                 'leave_number' => $leaveNumber,
+                'created_by' => $createdBy,
                 'student_id' => $request->student_id,
                 'leave_type_id' => $request->leave_type_id,
                 'academic_year_id' => $academicYearId,
@@ -143,7 +151,40 @@ class StudentLeaveController extends Controller
                 'expected_return_date' => $endDate->copy()->addDay(),
                 'status' => 'pending',
                 'notes' => $request->notes,
+                'requires_multi_approval' => true,
+                'required_approvals' => 3,
             ]);
+
+            // Create approval workflows for required roles
+            $approvalRoles = [
+                ['role' => 'keamanan', 'order' => 1],
+                ['role' => 'kepala_asrama', 'order' => 2],
+                ['role' => 'wali_kelas', 'order' => 3],
+            ];
+
+            foreach ($approvalRoles as $index => $roleData) {
+                StudentLeaveApproval::create([
+                    'student_leave_id' => $leave->id,
+                    'approver_role' => $roleData['role'],
+                    'approver_id' => 1, // Will be updated when actual staff approves
+                    'status' => 'pending',
+                    'approval_order' => $roleData['order'],
+                ]);
+            }
+
+            // Log activity: dokumen dibuat
+            $leave->logActivity(
+                'created',
+                $createdBy,
+                null,
+                'Dokumen izin dibuat',
+                [
+                    'leave_number' => $leaveNumber,
+                    'student_id' => $request->student_id,
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $endDate->format('Y-m-d'),
+                ]
+            );
 
             DB::commit();
 
@@ -453,6 +494,7 @@ class StudentLeaveController extends Controller
                 'is_late' => $isLate,
                 'late_days' => $lateDays,
                 'reported_to' => $request->reported_to,
+                'submitted_at' => now(),
             ]);
 
             // Update leave status
@@ -461,6 +503,20 @@ class StudentLeaveController extends Controller
                 'actual_return_date' => $reportDate,
                 'has_penalty' => $isLate,
             ]);
+
+            // Log activity: report submitted
+            $leave->logActivity(
+                'report_submitted',
+                $request->reported_to,
+                null,
+                'Laporan kepulangan disubmit',
+                [
+                    'report_date' => $reportDate->format('Y-m-d'),
+                    'is_late' => $isLate,
+                    'late_days' => $lateDays,
+                    'condition' => $request->condition,
+                ]
+            );
 
             // Auto create penalty if late
             if ($isLate) {
@@ -734,6 +790,353 @@ class StudentLeaveController extends Controller
                 'message' => 'Gagal memeriksa izin overdue',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Approve leave by specific role (Multi-level approval)
+     *
+     * Path:
+     * - id: integer (required) - student leave ID
+     * Body:
+     * - approver_role: enum(keamanan,kepala_asrama,wali_kelas) (required)
+     * - notes: string (optional)
+     */
+    public function approveByRole(Request $request, string $id)
+    {
+        $request->validate([
+            'approver_role' => 'required|in:keamanan,kepala_asrama,wali_kelas',
+            'notes' => 'nullable|string',
+        ]);
+
+        try {
+            $leave = StudentLeave::with('approvals')->findOrFail($id);
+
+            if (!$leave->canBeApprovedBy($request->approver_role)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Izin tidak dapat disetujui oleh role ini atau sudah disetujui sebelumnya'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $staffId = Auth::user()->staff->id ?? null;
+
+            // Find or create approval record for this role
+            $approval = $leave->approvals()
+                ->where('approver_role', $request->approver_role)
+                ->first();
+
+            if ($approval) {
+                $approval->update([
+                    'approver_id' => $staffId,
+                    'status' => 'approved',
+                    'notes' => $request->notes,
+                    'reviewed_at' => now(),
+                ]);
+            }
+
+            // Update approval count
+            $approvedCount = $leave->approvals()->where('status', 'approved')->count();
+            $leave->update([
+                'approval_count' => $approvedCount,
+                'all_approved' => $approvedCount >= $leave->required_approvals,
+            ]);
+
+            // Log activity: approval by role
+            $leave->logActivity(
+                'approved_by_role',
+                $staffId,
+                $request->approver_role,
+                'Disetujui oleh ' . $approval->getRoleDisplayName(),
+                [
+                    'role' => $request->approver_role,
+                    'notes' => $request->notes,
+                    'approval_count' => $approvedCount,
+                ]
+            );
+
+            // If all approved, change status to approved
+            if ($leave->all_approved) {
+                $leave->update([
+                    'status' => 'approved',
+                    'approved_by' => $staffId,
+                    'approved_at' => now(),
+                ]);
+
+                // Log activity: fully approved
+                $leave->logActivity(
+                    'fully_approved',
+                    $staffId,
+                    null,
+                    'Semua persetujuan terkumpul, izin disetujui',
+                    ['approval_count' => $approvedCount]
+                );
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Approval berhasil diberikan',
+                'data' => [
+                    'leave' => $leave->fresh(['approvals.approver', 'student', 'leaveType']),
+                    'approval_count' => $approvedCount,
+                    'all_approved' => $leave->all_approved,
+                ]
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memberikan approval',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Reject leave by specific role
+     *
+     * Path:
+     * - id: integer (required) - student leave ID
+     * Body:
+     * - approver_role: enum(keamanan,kepala_asrama,wali_kelas) (required)
+     * - notes: string (required)
+     */
+    public function rejectByRole(Request $request, string $id)
+    {
+        $request->validate([
+            'approver_role' => 'required|in:keamanan,kepala_asrama,wali_kelas',
+            'notes' => 'required|string|min:10',
+        ], [
+            'notes.required' => 'Alasan penolakan harus diisi',
+            'notes.min' => 'Alasan penolakan minimal 10 karakter',
+        ]);
+
+        try {
+            $leave = StudentLeave::with('approvals')->findOrFail($id);
+
+            if (!$leave->canBeApprovedBy($request->approver_role)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak dapat menolak izin ini'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $staffId = Auth::user()->staff->id ?? null;
+
+            // Update approval record
+            $approval = $leave->approvals()
+                ->where('approver_role', $request->approver_role)
+                ->first();
+
+            if ($approval) {
+                $approval->update([
+                    'approver_id' => $staffId,
+                    'status' => 'rejected',
+                    'notes' => $request->notes,
+                    'reviewed_at' => now(),
+                ]);
+            }
+
+            // Update leave status to rejected
+            $leave->update([
+                'status' => 'rejected',
+                'approved_by' => $staffId,
+                'approved_at' => now(),
+                'approval_notes' => $request->notes,
+            ]);
+
+            // Log activity: rejected by role
+            $leave->logActivity(
+                'rejected_by_role',
+                $staffId,
+                $request->approver_role,
+                'Ditolak oleh ' . $approval->getRoleDisplayName(),
+                [
+                    'role' => $request->approver_role,
+                    'notes' => $request->notes,
+                ]
+            );
+
+            // Log activity: fully rejected
+            $leave->logActivity(
+                'fully_rejected',
+                $staffId,
+                null,
+                'Izin ditolak',
+                ['rejected_by_role' => $request->approver_role]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Izin ditolak',
+                'data' => $leave->fresh(['approvals.approver', 'student', 'leaveType'])
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menolak izin',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get approval history/timeline for a leave
+     *
+     * Path:
+     * - id: integer (required) - student leave ID
+     */
+    public function approvalHistory(string $id)
+    {
+        try {
+            $leave = StudentLeave::findOrFail($id);
+            $timeline = $leave->getApprovalTimeline();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'leave_number' => $leave->leave_number,
+                    'status' => $leave->status,
+                    'created_at' => $leave->created_at,
+                    'created_by' => $leave->creator,
+                    'approval_timeline' => $timeline,
+                    'approval_count' => $leave->approval_count,
+                    'required_approvals' => $leave->required_approvals,
+                    'all_approved' => $leave->all_approved,
+                ]
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil riwayat approval',
+                'error' => $e->getMessage()
+            ], 404);
+        }
+    }
+
+    /**
+     * Verify leave report
+     *
+     * Path:
+     * - id: integer (required) - student leave ID
+     * Body:
+     * - verification_notes: string (optional)
+     */
+    public function verifyReport(Request $request, string $id)
+    {
+        $request->validate([
+            'verification_notes' => 'nullable|string',
+        ]);
+
+        try {
+            $leave = StudentLeave::with('report')->findOrFail($id);
+
+            if (!$leave->report) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Laporan belum disubmit'
+                ], 422);
+            }
+
+            if ($leave->report->is_verified) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Laporan sudah diverifikasi sebelumnya'
+                ], 422);
+            }
+
+            DB::beginTransaction();
+
+            $staffId = Auth::user()->staff->id ?? null;
+
+            // Update report verification
+            $leave->report->update([
+                'is_verified' => true,
+                'verified_by' => $staffId,
+                'verified_at' => now(),
+                'verification_notes' => $request->verification_notes,
+            ]);
+
+            // Log activity: report verified
+            $leave->logActivity(
+                'report_verified',
+                $staffId,
+                null,
+                'Laporan kepulangan diverifikasi',
+                [
+                    'verification_notes' => $request->verification_notes,
+                    'verified_at' => now()->format('Y-m-d H:i:s'),
+                ]
+            );
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Laporan berhasil diverifikasi',
+                'data' => $leave->fresh(['report.reportedToStaff', 'report.verifiedByStaff'])
+            ]);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memverifikasi laporan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get complete activity history for a leave
+     *
+     * Path:
+     * - id: integer (required) - student leave ID
+     */
+    public function activityHistory(string $id)
+    {
+        try {
+            $leave = StudentLeave::findOrFail($id);
+            $activities = $leave->getActivityHistory();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'leave_number' => $leave->leave_number,
+                    'status' => $leave->status,
+                    'activities' => $activities->map(function ($activity) {
+                        return [
+                            'id' => $activity->id,
+                            'activity_type' => $activity->activity_type,
+                            'description' => $activity->getActivityDescription(),
+                            'actor' => $activity->actor ? [
+                                'id' => $activity->actor->id,
+                                'name' => $activity->actor->first_name . ' ' . $activity->actor->last_name,
+                            ] : null,
+                            'actor_role' => $activity->actor_role,
+                            'role_display' => $activity->actor_role ? $activity->getRoleDisplayName() : null,
+                            'metadata' => $activity->metadata,
+                            'timestamp' => $activity->created_at->format('Y-m-d H:i:s'),
+                            'ip_address' => $activity->ip_address,
+                        ];
+                    }),
+                    'total_activities' => $activities->count(),
+                ]
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil riwayat aktivitas',
+                'error' => $e->getMessage()
+            ], 404);
         }
     }
 }
