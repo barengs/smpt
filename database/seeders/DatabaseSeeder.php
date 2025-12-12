@@ -44,6 +44,10 @@ class DatabaseSeeder extends Seeder
             EducationalInstitutionSeeder::class,
             OrganizationStructureSeeder::class,
             ClassGroupAdvisorSeeder::class,
+            LeaveTypeSeeder::class,
+            DisciplineSystemSeeder::class,
+            InstallmentPlanSeeder::class,
+            InstallmentScheduleSeeder::class,
         ]);
     }
 }
