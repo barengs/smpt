@@ -18,6 +18,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentsImport;
+use App\Exports\StudentTemplateExport;
 
 class StudentController extends Controller
 {
@@ -414,80 +415,10 @@ class StudentController extends Controller
     public function downloadTemplate()
     {
         try {
-            $headers = [
-                'nis',
-                'first_name',
-                'last_name',
-                'gender',
-                'program_id',
-                'parent_id',
-                'period',
-                'nik',
-                'kk',
-                'address',
-                'born_in',
-                'born_at',
-                'last_education',
-                'village_id',
-                'village',
-                'district',
-                'postal_code',
-                'phone',
-                'hostel_id',
-                'status'
-            ];
-
-            $sampleData = [
-                [
-                    '2024001',
-                    'John',
-                    'Doe',
-                    'L',
-                    '1',
-                    'NIK001',
-                    '2024',
-                    '1234567890123456',
-                    '1234567890123456',
-                    'Jl. Contoh No. 123',
-                    'Jakarta',
-                    '2005-01-15',
-                    'SMP',
-                    '1',
-                    'Desa Contoh',
-                    'Kec. Contoh',
-                    '12345',
-                    '081234567890',
-                    '1',
-                    'Aktif'
-                ]
-            ];
-
-            // Create CSV content
-            $callback = function() use ($headers, $sampleData) {
-                $file = fopen('php://output', 'w');
-
-                // Add BOM for UTF-8
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-                // Write headers
-                fputcsv($file, $headers);
-
-                // Write sample data
-                foreach ($sampleData as $row) {
-                    fputcsv($file, $row);
-                }
-
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="student_import_template.csv"',
-                'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                'Pragma' => 'no-cache',
-                'Expires' => '0'
-            ]);
-
+            return Excel::download(
+                new StudentTemplateExport(),
+                'student_import_template.xlsx'
+            );
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
