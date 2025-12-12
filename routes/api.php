@@ -253,9 +253,15 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('staff-study', StaffStudyController::class);
 
     // Student
+    Route::post('student/import', [StudentController::class, 'import']);
+    Route::get('student/import/template', [StudentController::class, 'downloadTemplate']);
     Route::post('student/{id}/room/assign', [StudentController::class, 'assignRoom']);
     Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
     Route::apiResource('student', StudentController::class);
+
+    // Parent
+    Route::post('parent/import', [ParentController::class, 'import']);
+    Route::get('parent/import/template', [ParentController::class, 'downloadTemplate']);
     Route::apiResource('parent', ParentController::class);
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
         ->name('parent.getByNik');

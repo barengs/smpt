@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ParentResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ParentsImport;
+use Exception;
 
 class ParentController extends Controller
 {
@@ -262,6 +266,141 @@ class ParentController extends Controller
             ], 200);
         } catch (\Throwable $th) {
             return response()->json('An error occurred: ' . $th->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Import parents from Excel or CSV file
+     * Creates user account for each parent with NIK as email and 'password' as default password
+     */
+    public function import(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            $import = new ParentsImport();
+
+            // Import the file
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            // Prepare response
+            $response = [
+                'success' => true,
+                'message' => 'Import completed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount,
+                    'info' => 'User accounts created with NIK as email and default password: "password"'
+                ]
+            ];
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50); // Limit to first 50 errors
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = 'Import completed with some errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download template for parent import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            $headers = [
+                'nik',
+                'kk',
+                'first_name',
+                'last_name',
+                'gender',
+                'parent_as',
+                'card_address',
+                'domicile_address',
+                'phone',
+                'email',
+                'occupation_id',
+                'education_id'
+            ];
+
+            $sampleData = [
+                [
+                    '1234567890123456',
+                    '1234567890123456',
+                    'Ahmad',
+                    'Santoso',
+                    'L',
+                    'ayah',
+                    'Jl. Merdeka No. 123, Jakarta',
+                    'Jl. Sudirman No. 456, Jakarta',
+                    '081234567890',
+                    'ahmad@example.com',
+                    '1',
+                    '1'
+                ],
+                [
+                    '1234567890123457',
+                    '1234567890123456',
+                    'Siti',
+                    'Rahayu',
+                    'P',
+                    'ibu',
+                    'Jl. Merdeka No. 123, Jakarta',
+                    'Jl. Sudirman No. 456, Jakarta',
+                    '081234567891',
+                    'siti@example.com',
+                    '2',
+                    '2'
+                ]
+            ];
+
+            $csvContent = implode(',', $headers) . "\n";
+            foreach ($sampleData as $row) {
+                $csvContent .= implode(',', $row) . "\n";
+            }
+
+            return response($csvContent, 200, [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="parent_import_template.csv"',
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -1,0 +1,4 @@
+nis,first_name,last_name,gender,program_id,parent_id,period,nik,kk,address,born_in,born_at,last_education,village_id,village,district,postal_code,phone,hostel_id,status
+2024001,Ahmad,Fauzi,L,1,NIK001,2024,1234567890123456,1234567890123456,Jl. Merdeka No. 123,Jakarta,2005-01-15,SMP,1,Desa Maju,Kec. Sentosa,12345,081234567890,1,Aktif
+2024002,Siti,Nurhaliza,P,1,NIK002,2024,1234567890123457,1234567890123457,Jl. Sudirman No. 456,Bandung,2005-03-20,SMP,2,Desa Jaya,Kec. Makmur,12346,081234567891,1,Aktif
+2024003,Budi,Santoso,L,1,NIK003,2024,1234567890123458,1234567890123458,Jl. Gatot Subroto No. 789,Surabaya,2005-05-10,SMP,3,Desa Sejahtera,Kec. Damai,12347,081234567892,2,Aktif
