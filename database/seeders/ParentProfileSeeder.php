@@ -18,7 +18,7 @@ class ParentProfileSeeder extends Seeder
     {
         $now = Carbon::now();
         $Csv = new CsvtoArray();
-        $file = __DIR__ . '/../../public/csv/orangtua_siswa_ayah.csv';
+        $file = __DIR__ . '/../../public/csv/orangtua_siswa.csv';
         $header = ['kk', 'nik', 'first_name', 'card_address', 'user_id'];
         $data = $Csv->csv_to_array($file, $header);
 
