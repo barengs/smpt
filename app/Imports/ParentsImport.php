@@ -73,7 +73,7 @@ class ParentsImport implements
                 ]);
 
                 // Assign user role
-                $user->syncRoles('user');
+                $user->syncRoles('orangtua');
 
                 // Create parent profile
                 $parent = new ParentProfile([
