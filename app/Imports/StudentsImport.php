@@ -60,10 +60,20 @@ class StudentsImport implements
     public function model(array $row)
     {
         try {
+            // Convert numeric fields to string to handle Excel numeric values
+            $nis = (string) ($row['nis'] ?? '');
+            $nik = !empty($row['nik']) ? (string) $row['nik'] : null;
+            $kk = !empty($row['kk']) ? (string) $row['kk'] : null;
+            $phone = !empty($row['phone']) ? (string) $row['phone'] : null;
+            $postalCode = !empty($row['postal_code']) ? (string) $row['postal_code'] : null;
+            $villageId = !empty($row['village_id']) ? (string) $row['village_id'] : null;
+            $programId = (string) ($row['program_id'] ?? '');
+            $hostelId = !empty($row['hostel_id']) ? (string) $row['hostel_id'] : null;
+
             // Check if NIS already exists
-            $existingStudent = Student::where('nis', $row['nis'])->first();
+            $existingStudent = Student::where('nis', $nis)->first();
             if ($existingStudent) {
-                $this->errors[] = "NIS {$row['nis']} already exists - skipped";
+                $this->errors[] = "NIS {$nis} already exists - skipped";
                 $this->failureCount++;
                 return null;
             }
@@ -72,10 +82,10 @@ class StudentsImport implements
 
             return new Student([
                 'parent_id'       => $row['parent_id'] ?? null,
-                'nis'             => $row['nis'],
+                'nis'             => $nis,
                 'period'          => $row['period'] ?? null,
-                'nik'             => $row['nik'] ?? null,
-                'kk'              => $row['kk'] ?? null,
+                'nik'             => $nik,
+                'kk'              => $kk,
                 'first_name'      => $row['first_name'],
                 'last_name'       => $row['last_name'] ?? null,
                 'gender'          => strtoupper($row['gender']),
@@ -83,18 +93,18 @@ class StudentsImport implements
                 'born_in'         => $row['born_in'] ?? null,
                 'born_at'         => $this->transformDate($row['born_at'] ?? null),
                 'last_education'  => $row['last_education'] ?? null,
-                'village_id'      => $row['village_id'] ?? null,
+                'village_id'      => $villageId,
                 'village'         => $row['village'] ?? null,
                 'district'        => $row['district'] ?? null,
-                'postal_code'     => $row['postal_code'] ?? null,
-                'phone'           => $row['phone'] ?? null,
-                'hostel_id'       => $row['hostel_id'] ?? null,
-                'program_id'      => $row['program_id'],
+                'postal_code'     => $postalCode,
+                'phone'           => $phone,
+                'hostel_id'       => $hostelId,
+                'program_id'      => $programId,
                 'status'          => $row['status'] ?? 'Aktif',
                 'photo'           => null,
             ]);
         } catch (\Exception $e) {
-            $this->errors[] = "Error importing NIS {$row['nis']}: " . $e->getMessage();
+            $this->errors[] = "Error importing row: " . $e->getMessage();
             $this->failureCount++;
             return null;
         }
@@ -106,14 +116,14 @@ class StudentsImport implements
     public function rules(): array
     {
         return [
-            'nis' => 'required|string|max:20',
+            'nis' => 'required|max:20',
             'first_name' => 'required|string|max:255',
             'gender' => 'required|in:L,P,l,p',
-            'program_id' => 'required|exists:programs,id',
-            'nik' => 'nullable|string|max:16',
+            'program_id' => 'required',
+            'nik' => 'nullable|max:16',
             'status' => 'nullable|in:Tidak Aktif,Aktif,Tugas,Lulus,Dikeluarkan',
-            'hostel_id' => 'nullable|exists:hostels,id',
-            'parent_id' => 'nullable|string',
+            'hostel_id' => 'nullable',
+            'parent_id' => 'nullable',
         ];
     }
 

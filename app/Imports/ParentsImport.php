@@ -39,18 +39,25 @@ class ParentsImport implements
     public function model(array $row)
     {
         try {
+            // Convert numeric fields to string to handle Excel numeric values
+            $nik = (string) ($row['nik'] ?? '');
+            $kk = (string) ($row['kk'] ?? '');
+            $phone = (string) ($row['phone'] ?? '');
+            $occupationId = !empty($row['occupation_id']) ? (string) $row['occupation_id'] : null;
+            $educationId = !empty($row['education_id']) ? (string) $row['education_id'] : null;
+
             // Check if NIK already exists
-            $existingParent = ParentProfile::where('nik', $row['nik'])->first();
+            $existingParent = ParentProfile::where('nik', $nik)->first();
             if ($existingParent) {
-                $this->errors[] = "NIK {$row['nik']} already exists - skipped";
+                $this->errors[] = "NIK {$nik} already exists - skipped";
                 $this->failureCount++;
                 return null;
             }
 
             // Check if KK already exists
-            $existingKK = ParentProfile::where('kk', $row['kk'])->first();
+            $existingKK = ParentProfile::where('kk', $kk)->first();
             if ($existingKK) {
-                $this->errors[] = "KK {$row['kk']} already exists - skipped";
+                $this->errors[] = "KK {$kk} already exists - skipped";
                 $this->failureCount++;
                 return null;
             }
@@ -61,7 +68,7 @@ class ParentsImport implements
                 // Create user account with NIK as email and default password
                 $user = User::create([
                     'name' => $row['first_name'] . ' ' . ($row['last_name'] ?? ''),
-                    'email' => $row['nik'], // Use NIK as email
+                    'email' => $nik, // Use NIK as email
                     'password' => Hash::make('password'), // Default password
                 ]);
 
@@ -73,16 +80,16 @@ class ParentsImport implements
                     'user_id'           => $user->id,
                     'first_name'        => $row['first_name'],
                     'last_name'         => $row['last_name'] ?? null,
-                    'nik'               => $row['nik'],
-                    'kk'                => $row['kk'],
+                    'nik'               => $nik,
+                    'kk'                => $kk,
                     'gender'            => strtoupper($row['gender']),
                     'parent_as'         => strtolower($row['parent_as'] ?? 'ayah'),
                     'card_address'      => $row['card_address'] ?? null,
                     'domicile_address'  => $row['domicile_address'] ?? null,
-                    'phone'             => $row['phone'] ?? null,
+                    'phone'             => $phone,
                     'email'             => $row['email'] ?? null,
-                    'occupation_id'     => $row['occupation_id'] ?? null,
-                    'education_id'      => $row['education_id'] ?? null,
+                    'occupation_id'     => $occupationId,
+                    'education_id'      => $educationId,
                     'photo'             => null,
                 ]);
 
@@ -95,13 +102,13 @@ class ParentsImport implements
 
             } catch (\Exception $e) {
                 DB::rollBack();
-                $this->errors[] = "Error creating user/parent for NIK {$row['nik']}: " . $e->getMessage();
+                $this->errors[] = "Error creating user/parent for NIK {$nik}: " . $e->getMessage();
                 $this->failureCount++;
                 return null;
             }
 
         } catch (\Exception $e) {
-            $this->errors[] = "Error importing NIK {$row['nik']}: " . $e->getMessage();
+            $this->errors[] = "Error importing row: " . $e->getMessage();
             $this->failureCount++;
             return null;
         }
@@ -113,18 +120,18 @@ class ParentsImport implements
     public function rules(): array
     {
         return [
-            'nik' => 'required|string|max:16',
-            'kk' => 'required|string|max:16',
+            'nik' => 'required|max:16',
+            'kk' => 'required|max:16',
             'first_name' => 'required|string|max:255',
             'gender' => 'required|in:L,P,l,p',
             'parent_as' => 'required|in:ayah,ibu,Ayah,Ibu',
             'last_name' => 'nullable|string|max:255',
             'card_address' => 'nullable|string|max:255',
             'domicile_address' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:15',
+            'phone' => 'nullable|max:15',
             'email' => 'nullable|email|max:255',
-            'occupation_id' => 'nullable|exists:occupations,id',
-            'education_id' => 'nullable|exists:educations,id',
+            'occupation_id' => 'nullable',
+            'education_id' => 'nullable',
         ];
     }
 
