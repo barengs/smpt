@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Validators\Failure;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class StudentsImport implements
     ToModel,
@@ -102,6 +103,7 @@ class StudentsImport implements
                 'program_id'      => $programId,
                 'status'          => $row['status'] ?? 'Aktif',
                 'photo'           => null,
+                'user_id'         => Auth::id() ?? 1, // Use authenticated user ID, fallback to 1
             ]);
         } catch (\Exception $e) {
             $this->errors[] = "Error importing row: " . $e->getMessage();

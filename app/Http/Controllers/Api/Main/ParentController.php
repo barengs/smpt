@@ -18,6 +18,12 @@ use App\Imports\ParentsImport;
 use App\Exports\ParentTemplateExport;
 use Exception;
 
+/**
+ * @tags Parent Management
+ *
+ * APIs for managing parent/guardian profiles including CRUD operations,
+ * batch Excel/CSV imports with automatic user account creation.
+ */
 class ParentController extends Controller
 {
     /**
@@ -272,7 +278,43 @@ class ParentController extends Controller
 
     /**
      * Import parents from Excel or CSV file
-     * Creates user account for each parent with NIK as email and 'password' as default password
+     *
+     * This endpoint allows batch importing of parent data with automatic user account creation.
+     * For each parent imported, the system automatically:
+     * - Creates a user account with NIK as email/username
+     * - Sets default password to "password"
+     * - Assigns "user" role
+     * - Validates NIK and KK uniqueness
+     * - Handles numeric string fields correctly
+     * - Uses database transactions for data integrity
+     *
+     * @param Request $request
+     * @bodyParam file file required The Excel or CSV file containing parent data. Max size: 10MB. Allowed formats: .xlsx, .xls, .csv. Example: parent_data.xlsx
+     *
+     * @response 200 {
+     *   "success": true,
+     *   "message": "Import completed",
+     *   "data": {
+     *     "success_count": 45,
+     *     "failure_count": 5,
+     *     "total": 50,
+     *     "info": "User accounts created with NIK as email and default password: \"password\"",
+     *     "errors": ["Row 3: NIK 12345 already exists - skipped"],
+     *     "total_errors": 5
+     *   }
+     * }
+     *
+     * @response 422 {
+     *   "success": false,
+     *   "message": "Validasi gagal",
+     *   "errors": {"file": ["The file field is required."]}
+     * }
+     *
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Gagal mengimpor data",
+     *   "error": "Database transaction failed"
+     * }
      */
     public function import(Request $request)
     {
@@ -335,7 +377,30 @@ class ParentController extends Controller
     }
 
     /**
-     * Download template for parent import
+     * Download Excel template for parent import
+     *
+     * Downloads a pre-formatted Excel template file (.xlsx) with:
+     * - All required and optional column headers
+     * - One sample row with example data
+     * - Bold headers and properly sized columns
+     * - Ready to fill and upload for batch import
+     *
+     * The template includes columns: nik, kk, first_name, last_name, gender, parent_as,
+     * card_address, domicile_address, phone, email, occupation_id, education_id.
+     *
+     * Important Notes:
+     * - NIK will be used as the email/username for the auto-created user account
+     * - Default password "password" will be set for all imported parents
+     * - "user" role will be automatically assigned
+     * - Recommend implementing forced password change on first login
+     *
+     * @response 200 Binary file download (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+     *
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Gagal mengunduh template",
+     *   "error": "File generation error"
+     * }
      */
     public function downloadTemplate()
     {

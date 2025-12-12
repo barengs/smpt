@@ -20,6 +20,12 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentsImport;
 use App\Exports\StudentTemplateExport;
 
+/**
+ * @tags Student Management
+ *
+ * APIs for managing student records including CRUD operations, photo uploads,
+ * room assignments, and batch Excel/CSV imports.
+ */
 class StudentController extends Controller
 {
     /**
@@ -349,6 +355,37 @@ class StudentController extends Controller
 
     /**
      * Import students from Excel or CSV file
+     *
+     * This endpoint allows batch importing of student data from Excel (.xlsx, .xls) or CSV files.
+     * The import automatically validates data, checks for duplicate NIS, handles numeric string fields,
+     * and records the authenticated staff member who performed the import.
+     *
+     * @param Request $request
+     * @bodyParam file file required The Excel or CSV file containing student data. Max size: 10MB. Allowed formats: .xlsx, .xls, .csv. Example: student_data.xlsx
+     *
+     * @response 200 {
+     *   "success": true,
+     *   "message": "Import completed",
+     *   "data": {
+     *     "success_count": 95,
+     *     "failure_count": 5,
+     *     "total": 100,
+     *     "errors": ["Row 5: NIS 12345 already exists - skipped"],
+     *     "total_errors": 5
+     *   }
+     * }
+     *
+     * @response 422 {
+     *   "success": false,
+     *   "message": "Validasi gagal",
+     *   "errors": {"file": ["The file field is required."]}
+     * }
+     *
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Gagal mengimpor data",
+     *   "error": "Database connection error"
+     * }
      */
     public function import(Request $request)
     {
@@ -410,7 +447,28 @@ class StudentController extends Controller
     }
 
     /**
-     * Download template for student import
+     * Download Excel template for student import
+     *
+     * Downloads a pre-formatted Excel template file (.xlsx) with:
+     * - All required and optional column headers
+     * - One sample row with example data
+     * - Bold headers and properly sized columns
+     * - Ready to fill and upload for batch import
+     *
+     * The template includes columns: nis, first_name, last_name, gender, program_id, parent_id,
+     * period, nik, kk, address, born_in, born_at, last_education, village_id, village, district,
+     * postal_code, phone, hostel_id, status.
+     *
+     * Note: The user_id field is NOT included in the template as it is automatically assigned
+     * from the authenticated staff member during import.
+     *
+     * @response 200 Binary file download (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+     *
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Gagal mengunduh template",
+     *   "error": "File generation error"
+     * }
      */
     public function downloadTemplate()
     {
