@@ -1,0 +1,5 @@
+nik,kk,first_name,last_name,gender,parent_as,card_address,domicile_address,phone,email,occupation_id,education_id
+1234567890123456,1234567890123456,Ahmad,Santoso,L,ayah,Jl. Merdeka No. 123 Jakarta,Jl. Sudirman No. 456 Jakarta,081234567890,ahmad@example.com,1,1
+1234567890123457,1234567890123456,Siti,Rahayu,P,ibu,Jl. Merdeka No. 123 Jakarta,Jl. Sudirman No. 456 Jakarta,081234567891,siti@example.com,2,2
+2234567890123458,2234567890123458,Budi,Prasetyo,L,ayah,Jl. Gatot Subroto No. 789 Bandung,Jl. Asia Afrika No. 101 Bandung,081234567892,budi@example.com,1,1
+2234567890123459,2234567890123458,Ani,Lestari,P,ibu,Jl. Gatot Subroto No. 789 Bandung,Jl. Asia Afrika No. 101 Bandung,081234567893,ani@example.com,2,2

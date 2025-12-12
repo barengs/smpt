@@ -16,6 +16,8 @@ use Intervention\Image\Drivers\Imagick\Driver;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\StudentsImport;
 
 class StudentController extends Controller
 {
@@ -339,6 +341,141 @@ class StudentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Import students from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            $import = new StudentsImport();
+
+            // Import the file
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            // Prepare response
+            $response = [
+                'success' => true,
+                'message' => 'Import completed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount,
+                ]
+            ];
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50); // Limit to first 50 errors
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = 'Import completed with some errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download template for student import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            $headers = [
+                'nis',
+                'first_name',
+                'last_name',
+                'gender',
+                'program_id',
+                'parent_id',
+                'period',
+                'nik',
+                'kk',
+                'address',
+                'born_in',
+                'born_at',
+                'last_education',
+                'village_id',
+                'village',
+                'district',
+                'postal_code',
+                'phone',
+                'hostel_id',
+                'status'
+            ];
+
+            $sampleData = [
+                [
+                    '2024001',
+                    'John',
+                    'Doe',
+                    'L',
+                    '1',
+                    'NIK001',
+                    '2024',
+                    '1234567890123456',
+                    '1234567890123456',
+                    'Jl. Contoh No. 123',
+                    'Jakarta',
+                    '2005-01-15',
+                    'SMP',
+                    '1',
+                    'Desa Contoh',
+                    'Kec. Contoh',
+                    '12345',
+                    '081234567890',
+                    '1',
+                    'Aktif'
+                ]
+            ];
+
+            $csvContent = implode(',', $headers) . "\n";
+            foreach ($sampleData as $row) {
+                $csvContent .= implode(',', $row) . "\n";
+            }
+
+            return response($csvContent, 200, [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="student_import_template.csv"',
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
                 'error' => $e->getMessage()
             ], 500);
         }
