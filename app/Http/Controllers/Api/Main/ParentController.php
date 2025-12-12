@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ParentsImport;
+use App\Exports\ParentTemplateExport;
 use Exception;
 
 class ParentController extends Controller
@@ -339,78 +340,10 @@ class ParentController extends Controller
     public function downloadTemplate()
     {
         try {
-            $headers = [
-                'nik',
-                'kk',
-                'first_name',
-                'last_name',
-                'gender',
-                'parent_as',
-                'card_address',
-                'domicile_address',
-                'phone',
-                'email',
-                'occupation_id',
-                'education_id'
-            ];
-
-            $sampleData = [
-                [
-                    '1234567890123456',
-                    '1234567890123456',
-                    'Ahmad',
-                    'Santoso',
-                    'L',
-                    'ayah',
-                    'Jl. Merdeka No. 123, Jakarta',
-                    'Jl. Sudirman No. 456, Jakarta',
-                    '081234567890',
-                    'ahmad@example.com',
-                    '1',
-                    '1'
-                ],
-                [
-                    '1234567890123457',
-                    '1234567890123456',
-                    'Siti',
-                    'Rahayu',
-                    'P',
-                    'ibu',
-                    'Jl. Merdeka No. 123, Jakarta',
-                    'Jl. Sudirman No. 456, Jakarta',
-                    '081234567891',
-                    'siti@example.com',
-                    '2',
-                    '2'
-                ]
-            ];
-
-            // Create CSV content
-            $callback = function() use ($headers, $sampleData) {
-                $file = fopen('php://output', 'w');
-
-                // Add BOM for UTF-8
-                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-
-                // Write headers
-                fputcsv($file, $headers);
-
-                // Write sample data
-                foreach ($sampleData as $row) {
-                    fputcsv($file, $row);
-                }
-
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, [
-                'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="parent_import_template.csv"',
-                'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                'Pragma' => 'no-cache',
-                'Expires' => '0'
-            ]);
-
+            return Excel::download(
+                new ParentTemplateExport(),
+                'parent_import_template.xlsx'
+            );
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
