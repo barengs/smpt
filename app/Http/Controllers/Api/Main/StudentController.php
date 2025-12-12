@@ -462,14 +462,30 @@ class StudentController extends Controller
                 ]
             ];
 
-            $csvContent = implode(',', $headers) . "\n";
-            foreach ($sampleData as $row) {
-                $csvContent .= implode(',', $row) . "\n";
-            }
+            // Create CSV content
+            $callback = function() use ($headers, $sampleData) {
+                $file = fopen('php://output', 'w');
 
-            return response($csvContent, 200, [
-                'Content-Type' => 'text/csv',
+                // Add BOM for UTF-8
+                fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+                // Write headers
+                fputcsv($file, $headers);
+
+                // Write sample data
+                foreach ($sampleData as $row) {
+                    fputcsv($file, $row);
+                }
+
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
                 'Content-Disposition' => 'attachment; filename="student_import_template.csv"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0'
             ]);
 
         } catch (Exception $e) {
