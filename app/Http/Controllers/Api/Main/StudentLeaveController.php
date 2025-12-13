@@ -13,9 +13,11 @@ use App\Models\StudentLeavePenalty;
 use App\Models\StudentLeaveApproval;
 use App\Models\StudentLeaveActivity;
 use App\Models\AcademicYear;
+use App\Exports\StudentLeavesReportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Exception;
 
@@ -1137,6 +1139,135 @@ class StudentLeaveController extends Controller
                 'message' => 'Gagal mengambil riwayat aktivitas',
                 'error' => $e->getMessage()
             ], 404);
+        }
+    }
+
+    /**
+     * Download leave report as Excel
+     *
+     * Downloads a comprehensive Excel report of all leave data with filters.
+     * Supports monthly, quarterly, and yearly reporting periods.
+     *
+     * Query params:
+     * - period: enum(monthly,quarterly,yearly) (required) - Report period filter
+     * - year: integer (optional, default: current year) - Year for the report (e.g., 2024)
+     * - month: integer (optional, 1-12) - Month for monthly report (e.g., 1 for January)
+     * - quarter: integer (optional, 1-4) - Quarter for quarterly report (e.g., 1 for Q1: Jan-Mar)
+     * - student_id: integer (optional) - Filter by specific student
+     * - leave_type_id: integer (optional) - Filter by leave type
+     * - status: enum(pending,approved,rejected,active,completed,overdue,cancelled) (optional)
+     * - academic_year_id: integer (optional) - Filter by academic year
+     *
+     * Examples:
+     * - Monthly: GET /api/main/student-leave/download-report?period=monthly&year=2024&month=12
+     * - Quarterly: GET /api/main/student-leave/download-report?period=quarterly&year=2024&quarter=4
+     * - Yearly: GET /api/main/student-leave/download-report?period=yearly&year=2024
+     *
+     * Excel columns include:
+     * - Leave Number, Student Name, NIS, Leave Type, Academic Year
+     * - Start/End Dates, Duration, Reason, Destination
+     * - Contact Person/Phone, Status, Approver
+     * - Expected/Actual Return Date, Late Status
+     * - Penalties, Creator, Created Date
+     *
+     * @response 200 Binary file download (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+     *
+     * @response 422 {
+     *   "success": false,
+     *   "message": "Validasi gagal",
+     *   "errors": {
+     *     "period": ["Period filter is required"]
+     *   }
+     * }
+     *
+     * @response 500 {
+     *   "success": false,
+     *   "message": "Gagal mengunduh laporan",
+     *   "error": "Export error details"
+     * }
+     */
+    public function downloadReport(Request $request)
+    {
+        // Validate request
+        $validated = $request->validate([
+            'period' => 'required|in:monthly,quarterly,yearly',
+            'year' => 'nullable|integer|min:2020|max:2100',
+            'month' => 'nullable|integer|min:1|max:12',
+            'quarter' => 'nullable|integer|min:1|max:4',
+            'student_id' => 'nullable|exists:students,id',
+            'leave_type_id' => 'nullable|exists:leave_types,id',
+            'status' => 'nullable|in:pending,approved,rejected,active,completed,overdue,cancelled',
+            'academic_year_id' => 'nullable|exists:academic_years,id',
+        ], [
+            'period.required' => 'Period filter is required',
+            'period.in' => 'Period must be: monthly, quarterly, or yearly',
+            'month.min' => 'Month must be between 1-12',
+            'month.max' => 'Month must be between 1-12',
+            'quarter.min' => 'Quarter must be between 1-4',
+            'quarter.max' => 'Quarter must be between 1-4',
+        ]);
+
+        try {
+            // Prepare filters
+            $filters = [
+                'student_id' => $request->student_id,
+                'leave_type_id' => $request->leave_type_id,
+                'status' => $request->status,
+                'academic_year_id' => $request->academic_year_id,
+            ];
+
+            // Generate filename based on period
+            $year = $request->year ?? now()->year;
+            $filename = $this->generateReportFilename($validated['period'], $year, $request->month, $request->quarter);
+
+            // Create export instance
+            $export = new StudentLeavesReportExport(
+                $filters,
+                $validated['period'],
+                $year,
+                $request->month,
+                $request->quarter
+            );
+
+            // Download Excel file
+            return Excel::download($export, $filename);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh laporan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate report filename based on period
+     *
+     * @param string $period
+     * @param int $year
+     * @param int|null $month
+     * @param int|null $quarter
+     * @return string
+     */
+    protected function generateReportFilename(string $period, int $year, ?int $month, ?int $quarter): string
+    {
+        $timestamp = now()->format('Ymd_His');
+
+        switch ($period) {
+            case 'monthly':
+                $month = $month ?? now()->month;
+                $monthName = Carbon::create($year, $month, 1)->format('F');
+                return "laporan_izin_bulanan_{$monthName}_{$year}_{$timestamp}.xlsx";
+
+            case 'quarterly':
+                $quarter = $quarter ?? ceil(now()->month / 3);
+                return "laporan_izin_triwulan_Q{$quarter}_{$year}_{$timestamp}.xlsx";
+
+            case 'yearly':
+                return "laporan_izin_tahunan_{$year}_{$timestamp}.xlsx";
+
+            default:
+                return "laporan_izin_{$timestamp}.xlsx";
         }
     }
 }

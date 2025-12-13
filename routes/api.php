@@ -293,6 +293,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('student-violation', StudentViolationController::class);
 
     // Student Leaves (Perizinan Santri)
+    Route::get('student-leave/download-report', [StudentLeaveController::class, 'downloadReport']);
     Route::get('student-leave/statistics', [StudentLeaveController::class, 'statistics']);
     Route::get('student-leave/student/{studentId}/report', [StudentLeaveController::class, 'reportByStudent']);
     Route::get('student-leave/{id}/approval-history', [StudentLeaveController::class, 'approvalHistory']);
