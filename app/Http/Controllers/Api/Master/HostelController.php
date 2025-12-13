@@ -14,10 +14,36 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
+/**
+ * @tags Hostel Management
+ *
+ * APIs for managing hostels (asrama), including CRUD operations,
+ * hostel head (Kepala Asrama) assignments, and assignment history.
+ */
 class HostelController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of hostels
+     *
+     * Get all hostels with their program relationship and current hostel head information.
+     *
+     * @response 200 scenario="Success" {
+     *   "message": "Data asrama berhasil diambil",
+     *   "status": 200,
+     *   "data": [{
+     *     "id": 1,
+     *     "name": "Asrama Putra A",
+     *     "program_id": 1,
+     *     "description": "Asrama untuk siswa putra program reguler",
+     *     "capacity": 50,
+     *     "program": {"id": 1, "name": "Reguler"},
+     *     "current_head": {
+     *       "id": 1,
+     *       "staff_id": 6,
+     *       "staff": {"id": 6, "name": "Ahmad Rizki"}
+     *     }
+     *   }]
+     * }
      */
     public function index(): JsonResponse
     {
@@ -112,6 +138,57 @@ class HostelController extends Controller
 
     /**
      * Tetapkan Kepala Asrama untuk periode tahun akademik
+     *
+     * Assigns a staff member as hostel head (Kepala Asrama) for a specific academic year.
+     * This endpoint automatically deactivates any previous active assignments for:
+     * 1. The hostel (previous hostel head)
+     * 2. The staff member (their other active assignments)
+     *
+     * @param Request $request
+     * @param string $id Hostel ID
+     * @bodyParam staff_id integer required The staff member ID to assign as hostel head. Must have 'kepala asrama' role. Example: 6
+     * @bodyParam academic_year_id integer required The academic year ID for this assignment. Example: 1
+     * @bodyParam start_date date required Assignment start date. Format: Y-m-d. Example: 2025-12-13
+     * @bodyParam end_date date optional Assignment end date. Must be after start_date. Format: Y-m-d. Example: 2026-12-13
+     * @bodyParam notes string optional Additional notes for this assignment. Example: Penempatan semester genap
+     *
+     * @response 201 scenario="Assignment successful" {
+     *   "message": "Kepala Asrama berhasil ditetapkan",
+     *   "status": 201,
+     *   "data": {
+     *     "id": 1,
+     *     "staff_id": 6,
+     *     "hostel_id": 1,
+     *     "academic_year_id": 1,
+     *     "start_date": "2025-12-13",
+     *     "end_date": "2026-12-13",
+     *     "is_active": true,
+     *     "staff": {
+     *       "id": 6,
+     *       "name": "Ahmad Rizki",
+     *       "user": {
+     *         "id": 10,
+     *         "name": "Ahmad Rizki"
+     *       }
+     *     }
+     *   }
+     * }
+     *
+     * @response 422 scenario="Staff doesn't have kepala asrama role" {
+     *   "message": "Staff tidak memiliki role Kepala Asrama",
+     *   "status": 422
+     * }
+     *
+     * @response 404 scenario="Hostel not found" {
+     *   "message": "Asrama tidak ditemukan",
+     *   "status": 404
+     * }
+     *
+     * @response 500 scenario="Server error" {
+     *   "message": "Gagal menetapkan Kepala Asrama",
+     *   "status": 500,
+     *   "data": "Error message"
+     * }
      */
     public function assignHead(Request $request, string $id): JsonResponse
     {
@@ -137,7 +214,7 @@ class HostelController extends Controller
 
             DB::beginTransaction();
 
-            // Nonaktifkan kepala asrama aktif sebelumnya
+            // 1. Nonaktifkan kepala asrama aktif sebelumnya untuk hostel ini
             PositionAssignment::where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->update([
@@ -145,7 +222,18 @@ class HostelController extends Controller
                     'end_date' => $validated['start_date'],
                 ]);
 
-            // Buat assignment baru tanpa position_id
+            // 2. Nonaktifkan assignment aktif untuk staff ini di hostel yang SAMA
+            //    (mencegah duplicate entry untuk combination staff_id + hostel_id + academic_year_id)
+            PositionAssignment::where('staff_id', $validated['staff_id'])
+                ->where('hostel_id', $hostel->id)
+                ->where('academic_year_id', $validated['academic_year_id'])
+                ->where('is_active', true)
+                ->update([
+                    'is_active' => false,
+                    'end_date' => $validated['start_date'],
+                ]);
+
+            // 3. Buat assignment baru tanpa position_id
             $assignment = PositionAssignment::create([
                 'position_id' => null,
                 'staff_id' => $validated['staff_id'],
@@ -167,7 +255,37 @@ class HostelController extends Controller
     }
 
     /**
-     * Kepala Asrama saat ini
+     * Get current hostel head
+     *
+     * Retrieve the current active hostel head (Kepala Asrama) for a specific hostel,
+     * optionally filtered by academic year.
+     *
+     * @param Request $request
+     * @param string $id Hostel ID
+     * @queryParam academic_year_id integer optional Filter by specific academic year. Example: 1
+     *
+     * @response 200 scenario="Current head found" {
+     *   "message": "Kepala Asrama saat ini",
+     *   "status": 200,
+     *   "data": {
+     *     "id": 1,
+     *     "staff_id": 6,
+     *     "hostel_id": 1,
+     *     "academic_year_id": 1,
+     *     "is_active": true,
+     *     "staff": {
+     *       "id": 6,
+     *       "name": "Ahmad Rizki",
+     *       "user": {"id": 10, "name": "Ahmad Rizki"}
+     *     }
+     *   }
+     * }
+     *
+     * @response 200 scenario="No current head" {
+     *   "message": "Kepala Asrama saat ini",
+     *   "status": 200,
+     *   "data": null
+     * }
      */
     public function currentHead(Request $request, string $id): JsonResponse
     {
@@ -188,7 +306,28 @@ class HostelController extends Controller
     }
 
     /**
-     * Riwayat Kepala Asrama
+     * Get hostel head assignment history
+     *
+     * Retrieve the complete history of hostel head assignments for a specific hostel,
+     * including both active and inactive assignments, ordered by start date (newest first).
+     *
+     * @param string $id Hostel ID
+     *
+     * @response 200 scenario="Success" {
+     *   "message": "Riwayat Kepala Asrama",
+     *   "status": 200,
+     *   "data": [{
+     *     "id": 1,
+     *     "staff_id": 6,
+     *     "hostel_id": 1,
+     *     "academic_year_id": 1,
+     *     "start_date": "2025-12-13",
+     *     "end_date": "2026-12-13",
+     *     "is_active": true,
+     *     "staff": {"id": 6, "name": "Ahmad Rizki"},
+     *     "academicYear": {"id": 1, "year": "2025/2026"}
+     *   }]
+     * }
      */
     public function headHistory(string $id): JsonResponse
     {
@@ -203,7 +342,32 @@ class HostelController extends Controller
     }
 
     /**
-     * Get all staff with 'Kepala Asrama' role
+     * Get all staff with Kepala Asrama role
+     *
+     * Retrieve all staff members who have the 'kepala asrama' (hostel head) role.
+     * Useful for populating dropdown/select options when assigning hostel heads.
+     *
+     * @response 200 scenario="Success" {
+     *   "message": "Data staff Kepala Asrama berhasil diambil",
+     *   "status": 200,
+     *   "data": [{
+     *     "id": 6,
+     *     "nik": "123456789",
+     *     "first_name": "Ahmad",
+     *     "last_name": "Rizki",
+     *     "user": {
+     *       "id": 10,
+     *       "name": "Ahmad Rizki",
+     *       "email": "ahmad@example.com"
+     *     }
+     *   }]
+     * }
+     *
+     * @response 500 scenario="Server error" {
+     *   "message": "Gagal mengambil data staff Kepala Asrama",
+     *   "status": 500,
+     *   "data": null
+     * }
      */
     public function getHeadStaff(): JsonResponse
     {
