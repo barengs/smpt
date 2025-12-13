@@ -222,11 +222,10 @@ class HostelController extends Controller
                     'end_date' => $validated['start_date'],
                 ]);
 
-            // 2. Nonaktifkan assignment aktif untuk staff ini di hostel yang SAMA
-            //    (mencegah duplicate entry untuk combination staff_id + hostel_id + academic_year_id)
+            // 2. Nonaktifkan SEMUA assignment aktif untuk staff ini
+            //    Karena unique constraint: UNIQUE(staff_id, is_active)
+            //    Satu staff hanya boleh punya 1 active assignment di seluruh sistem
             PositionAssignment::where('staff_id', $validated['staff_id'])
-                ->where('hostel_id', $hostel->id)
-                ->where('academic_year_id', $validated['academic_year_id'])
                 ->where('is_active', true)
                 ->update([
                     'is_active' => false,
