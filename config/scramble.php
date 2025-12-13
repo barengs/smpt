@@ -29,116 +29,69 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => ''
-            . '# Education Management System API\n\n'
-            . 'Welcome to the comprehensive API documentation for the Education Management System (SMP). '
-            . 'This API provides complete access to manage students, parents, staff, classes, schedules, attendance, internships, and more.\n\n'
-            . '## Authentication\n\n'
-            . 'This API uses **JWT (JSON Web Token)** authentication. To access protected endpoints:\n\n'
-            . '1. Login via `POST /api/auth/login` with your credentials\n'
-            . '2. Receive a JWT token in the response\n'
-            . '3. Include the token in all subsequent requests:\n'
-            . '   ```\n'
-            . '   Authorization: Bearer {your-jwt-token}\n'
-            . '   ```\n\n'
-            . '## Main Features\n\n'
-            . '### 📚 Student Management\n'
-            . '- Create, read, update, delete student records\n'
-            . '- **Batch import** from Excel/CSV files\n'
-            . '- Photo upload with automatic compression\n'
-            . '- Room assignment and hostel management\n'
-            . '- Academic tracking and class assignments\n\n'
-            . '### 👥 Parent Management\n'
-            . '- Manage parent/guardian profiles\n'
-            . '- **Batch import** with automatic user account creation\n'
-            . '- Link parents to students\n'
-            . '- Contact information management\n\n'
-            . '### 👨‍🏫 Staff Management\n'
-            . '- Staff profiles and role assignments\n'
-            . '- Position and organization tracking\n'
-            . '- Academic qualifications\n'
-            . '- Photo management\n\n'
-            . '### 📅 Academic Operations\n'
-            . '- Class schedules and timetables\n'
-            . '- Attendance/presence tracking\n'
-            . '- Student leave management with multi-level approval\n'
-            . '- Academic year management\n\n'
-            . '### 🏢 Internship Management\n'
-            . '- Internship placement tracking\n'
-            . '- Supervisor assignments\n'
-            . '- Progress monitoring\n\n'
-            . '### 📊 Reports & Analytics\n'
-            . '- Dashboard statistics\n'
-            . '- Student analytics by period\n'
-            . '- Attendance reports\n'
-            . '- Leave system reports\n\n'
-            . '## Import Features\n\n'
-            . '### Student Import\n'
-            . 'Upload Excel/CSV files to batch import student data. The system automatically:\n'
-            . '- Validates data and checks for duplicates (NIS)\n'
-            . '- Handles numeric fields (NIK, KK, phone) correctly\n'
-            . '- Records the staff member who performed the import\n'
-            . '- Provides detailed error reports for failed rows\n\n'
-            . '**Endpoints:**\n'
-            . '- `GET /api/main/student/import/template` - Download Excel template\n'
-            . '- `POST /api/main/student/import` - Upload and import student data\n\n'
-            . '### Parent Import\n'
-            . 'Upload Excel/CSV files to batch import parent data with automatic user creation:\n'
-            . '- Creates user account for each parent (NIK as email)\n'
-            . '- Sets default password: "password"\n'
-            . '- Assigns "user" role automatically\n'
-            . '- Validates NIK and KK uniqueness\n'
-            . '- Transaction safety (rollback on error)\n\n'
-            . '**Endpoints:**\n'
-            . '- `GET /api/main/parent/import/template` - Download Excel template\n'
-            . '- `POST /api/main/parent/import` - Upload and import parent data\n\n'
-            . '## Response Format\n\n'
-            . 'All API responses follow a consistent JSON structure:\n\n'
-            . '**Success Response:**\n'
-            . '```json\n'
-            . '{\n'
-            . '  "success": true,\n'
-            . '  "message": "Operation successful",\n'
-            . '  "data": { ... }\n'
-            . '}\n'
-            . '```\n\n'
-            . '**Error Response:**\n'
-            . '```json\n'
-            . '{\n'
-            . '  "success": false,\n'
-            . '  "message": "Error description",\n'
-            . '  "errors": { ... }\n'
-            . '}\n'
-            . '```\n\n'
-            . '## Rate Limiting\n\n'
-            . 'API requests are rate-limited to prevent abuse. Current limits:\n'
-            . '- 60 requests per minute for authenticated users\n'
-            . '- 10 requests per minute for unauthenticated users\n\n'
-            . '## File Uploads\n\n'
-            . 'When uploading files (photos, Excel imports):\n'
-            . '- Use `multipart/form-data` content type\n'
-            . '- Maximum file size: 10MB for imports, 2MB for photos\n'
-            . '- Allowed formats: .xlsx, .xls, .csv for imports; .jpg, .png for photos\n\n'
-            . '## Error Codes\n\n'
-            . '- `200` - Success\n'
-            . '- `201` - Created\n'
-            . '- `400` - Bad Request\n'
-            . '- `401` - Unauthorized (missing or invalid token)\n'
-            . '- `403` - Forbidden (insufficient permissions)\n'
-            . '- `404` - Not Found\n'
-            . '- `422` - Validation Error\n'
-            . '- `500` - Server Error\n\n'
-            . '## Support & Documentation\n\n'
-            . 'For complete documentation and examples, refer to:\n'
-            . '- Import Features: `docs/IMPORT_FEATURES_DOCUMENTATION.md`\n'
-            . '- Project README: `README.md`\n\n'
-            . '## Getting Started\n\n'
-            . '1. **Authenticate:** Login to get your JWT token\n'
-            . '2. **Explore Endpoints:** Browse the API documentation below\n'
-            . '3. **Try It Out:** Use the interactive "Try It" feature\n'
-            . '4. **Check Examples:** Review request/response samples\n\n'
-            . '---\n\n'
-            . '**Note:** All timestamps are in UTC. Dates follow ISO 8601 format (YYYY-MM-DD).',
+        'description' => <<<'MARKDOWN'
+# Education Management System API
+
+Welcome to the comprehensive API documentation for the **Education Management System (SMP)**. This API provides complete access to manage students, parents, staff, classes, schedules, attendance, internships, and more.
+
+## Authentication
+
+This API uses **JWT (JSON Web Token)** authentication. To access protected endpoints:
+
+1. Login via `POST /api/auth/login` with your credentials
+2. Receive a JWT token in the response
+3. Include the token in all subsequent requests with header: `Authorization: Bearer {your-jwt-token}`
+
+## Main Features
+
+| Feature | Description |
+|---------|-------------|
+| **Student Management** | CRUD operations, batch import, photo upload, room assignment |
+| **Parent Management** | Parent profiles, batch import with auto user creation |
+| **Staff Management** | Staff profiles, role assignments, position tracking |
+| **Academic Operations** | Class schedules, attendance tracking, leave management |
+| **Internship Management** | Placement tracking, supervisor assignments |
+| **Reports & Analytics** | Dashboard statistics, attendance reports |
+
+## Import Features
+
+### Student Import
+- **Template:** `GET /api/main/student/import/template`
+- **Import:** `POST /api/main/student/import`
+- Validates data, checks for duplicates (NIS), handles numeric fields correctly
+
+### Parent Import
+- **Template:** `GET /api/main/parent/import/template`
+- **Import:** `POST /api/main/parent/import`
+- Creates user account (NIK as email, default password: "password")
+
+## Response Format
+
+All API responses follow a consistent JSON structure with `success`, `message`, and `data` fields.
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 422 | Validation Error |
+| 500 | Server Error |
+
+## Getting Started
+
+1. **Authenticate:** Login to get your JWT token
+2. **Explore Endpoints:** Browse the API documentation below
+3. **Try It Out:** Use the interactive "Try It" feature
+
+---
+
+**Note:** All timestamps are in UTC. Dates follow ISO 8601 format (YYYY-MM-DD).
+MARKDOWN,
     ],
 
     /*
