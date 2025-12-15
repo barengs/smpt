@@ -32,6 +32,41 @@ class StudentsImport implements
     protected $failureCount = 0;
 
     /**
+     * Clean numeric string field from Excel
+     *
+     * Handles cases where:
+     * - Excel stores numbers in scientific notation (e.g., 3.5280615E+15)
+     * - User prefixes with apostrophe to prevent scientific notation (e.g., '3528061508860021)
+     * - Value contains leading/trailing whitespace
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    private function cleanNumericString($value): ?string
+    {
+        if (empty($value) && $value !== '0' && $value !== 0) {
+            return null;
+        }
+
+        // Convert to string first
+        $cleaned = (string) $value;
+
+        // Remove leading apostrophe/single quote (Excel text marker)
+        $cleaned = ltrim($cleaned, "'");
+
+        // Remove leading/trailing whitespace
+        $cleaned = trim($cleaned);
+
+        // Handle scientific notation (e.g., 3.5280615E+15)
+        if (preg_match('/^[\d.]+E\+?\d+$/i', $cleaned)) {
+            // Convert scientific notation to full number string
+            $cleaned = number_format((float) $cleaned, 0, '', '');
+        }
+
+        return $cleaned !== '' ? $cleaned : null;
+    }
+
+    /**
      * Transform a date value to a proper format
      */
     private function transformDate($value)
@@ -61,15 +96,18 @@ class StudentsImport implements
     public function model(array $row)
     {
         try {
-            // Convert numeric fields to string to handle Excel numeric values
-            $nis = (string) ($row['nis'] ?? '');
-            $nik = !empty($row['nik']) ? (string) $row['nik'] : null;
-            $kk = !empty($row['kk']) ? (string) $row['kk'] : null;
-            $phone = !empty($row['phone']) ? (string) $row['phone'] : null;
-            $postalCode = !empty($row['postal_code']) ? (string) $row['postal_code'] : null;
-            $villageId = !empty($row['village_id']) ? (string) $row['village_id'] : null;
-            $programId = (string) ($row['program_id'] ?? '');
-            $hostelId = !empty($row['hostel_id']) ? (string) $row['hostel_id'] : null;
+            // Clean numeric string fields to handle:
+            // - Excel scientific notation (3.5280615E+15)
+            // - Leading apostrophe ('3528061508860021)
+            // - Whitespace issues
+            $nis = $this->cleanNumericString($row['nis'] ?? '') ?? '';
+            $nik = $this->cleanNumericString($row['nik'] ?? null);
+            $kk = $this->cleanNumericString($row['kk'] ?? null);
+            $phone = $this->cleanNumericString($row['phone'] ?? null);
+            $postalCode = $this->cleanNumericString($row['postal_code'] ?? null);
+            $villageId = $this->cleanNumericString($row['village_id'] ?? null);
+            $programId = $this->cleanNumericString($row['program_id'] ?? '') ?? '';
+            $hostelId = $this->cleanNumericString($row['hostel_id'] ?? null);
 
             // Check if NIS already exists
             $existingStudent = Student::where('nis', $nis)->first();
