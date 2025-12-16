@@ -235,6 +235,8 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('permission/{id}/remove-roles', [PermissionController::class, 'removeRoles']);
 
     // Staff routes
+    Route::post('staff/import', [StaffController::class, 'import']);
+    Route::get('staff/import/template', [StaffController::class, 'downloadTemplate']);
     Route::apiResource('staff', StaffController::class);
     Route::get('staff/teachers/roles', [StaffController::class, 'getStaffByRoles'])->name('staff.by-roles');
     Route::get('staff/teachers/roles/{id}', [StaffController::class, 'getStaffByRolesById'])->name('staff.by-roles.id');

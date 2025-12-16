@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Intervention\Image\Drivers\Imagick\Driver;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Imports\StaffsImport;
+use App\Exports\StaffTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class StaffController extends Controller
 {
@@ -711,6 +714,125 @@ class StaffController extends Controller
             return new StaffResource('Database error occurred while checking NIK', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
             return new StaffResource('An error occurred while checking NIK', ['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Import staff data from Excel/CSV file
+     *
+     * Uploads an Excel/CSV file to batch import staff data. For each staff:
+     * - Creates a user account with email and default password "password"
+     * - Assigns the specified role (or default "staf")
+     * - Creates the staff profile with generated staff code
+     *
+     * Body:
+     * - file: file (required) - Excel/CSV file (.xlsx, .xls, .csv)
+     *
+     * Template columns:
+     * - first_name: string (required) - First name
+     * - last_name: string (optional) - Last name
+     * - email: string (required) - Email (used for user login)
+     * - gender: enum(L,P) (required) - Gender
+     * - nik: string (optional) - NIK (16 digits)
+     * - nip: string (optional) - NIP
+     * - phone: string (optional) - Phone number
+     * - address: string (optional) - Address
+     * - zip_code: string (optional) - Postal code
+     * - village_id: integer (optional) - Village ID
+     * - job_id: integer (optional) - Job/Profession ID
+     * - birth_place: string (optional) - Birth place
+     * - birth_date: date (optional) - Birth date (YYYY-MM-DD)
+     * - marital_status: enum (optional) - Belum Menikah/Menikah/Cerai/Duda/Janda
+     * - status: enum (optional) - Aktif/Tidak Aktif (default: Aktif)
+     * - role: string (optional) - Role name (default: staf)
+     *
+     * @response 200 {
+     *   "message": "Import completed",
+     *   "status": 200,
+     *   "data": {
+     *     "success_count": 10,
+     *     "failure_count": 2,
+     *     "total": 12,
+     *     "errors": ["Row 5: Email already exists"]
+     *   }
+     * }
+     */
+    public function import(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            ], [
+                'file.required' => 'File is required',
+                'file.mimes' => 'File must be an Excel or CSV file (.xlsx, .xls, .csv)',
+                'file.max' => 'File size must not exceed 10MB',
+            ]);
+
+            if ($validator->fails()) {
+                return new StaffResource('Validation failed', $validator->errors(), 422);
+            }
+
+            $file = $request->file('file');
+            $import = new StaffsImport();
+
+            // Import the file
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            // Prepare response
+            $responseData = [
+                'success_count' => $successCount,
+                'failure_count' => $failureCount,
+                'total' => $successCount + $failureCount,
+            ];
+
+            if (count($errors) > 0) {
+                $responseData['errors'] = array_slice($errors, 0, 50); // Limit to first 50 errors
+                $responseData['total_errors'] = count($errors);
+                return new StaffResource('Import completed with some errors', $responseData, 200);
+            }
+
+            return new StaffResource('Import completed successfully', $responseData, 200);
+        } catch (QueryException $e) {
+            return new StaffResource('Database error during import', ['message' => $e->getMessage()], 500);
+        } catch (Exception $e) {
+            return new StaffResource('An error occurred during import', ['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for staff import
+     *
+     * Downloads a pre-formatted Excel template file (.xlsx) with:
+     * - All required and optional column headers
+     * - Sample data rows with example values
+     * - Bold headers with background color
+     * - Properly sized columns
+     *
+     * Template includes columns: first_name, last_name, email, gender, nik, nip,
+     * phone, address, zip_code, village_id, job_id, birth_place, birth_date,
+     * marital_status, status, role.
+     *
+     * Important Notes:
+     * - Email is required and will be used for user login
+     * - Default password "password" will be set for all imported staff
+     * - Role can be specified per row (default: "staf")
+     * - For NIK/NIP columns, use Text format in Excel or prefix with apostrophe (')
+     *
+     * @response 200 Binary file download (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new StaffTemplateExport(),
+                'staff_import_template.xlsx'
+            );
+        } catch (Exception $e) {
+            return new StaffResource('Failed to download template', ['message' => $e->getMessage()], 500);
         }
     }
 }
