@@ -32,6 +32,41 @@ class ParentsImport implements
     protected $failureCount = 0;
 
     /**
+     * Clean numeric string field from Excel
+     *
+     * Handles cases where:
+     * - Excel stores numbers in scientific notation (e.g., 3.5280615E+15)
+     * - User prefixes with apostrophe to prevent scientific notation (e.g., '3528061508860021)
+     * - Value contains leading/trailing whitespace
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    private function cleanNumericString($value): ?string
+    {
+        if (empty($value) && $value !== '0' && $value !== 0) {
+            return null;
+        }
+
+        // Convert to string first
+        $cleaned = (string) $value;
+
+        // Remove leading apostrophe/single quote (Excel text marker)
+        $cleaned = ltrim($cleaned, "'");
+
+        // Remove leading/trailing whitespace
+        $cleaned = trim($cleaned);
+
+        // Handle scientific notation (e.g., 3.5280615E+15)
+        if (preg_match('/^[\d.]+E\+?\d+$/i', $cleaned)) {
+            // Convert scientific notation to full number string
+            $cleaned = number_format((float) $cleaned, 0, '', '');
+        }
+
+        return $cleaned !== '' ? $cleaned : null;
+    }
+
+    /**
      * @param array $row
      *
      * @return \Illuminate\Database\Eloquent\Model|null
@@ -39,12 +74,15 @@ class ParentsImport implements
     public function model(array $row)
     {
         try {
-            // Convert numeric fields to string to handle Excel numeric values
-            $nik = (string) ($row['nik'] ?? '');
-            $kk = (string) ($row['kk'] ?? '');
-            $phone = (string) ($row['phone'] ?? '');
-            $occupationId = !empty($row['occupation_id']) ? (string) $row['occupation_id'] : null;
-            $educationId = !empty($row['education_id']) ? (string) $row['education_id'] : null;
+            // Clean numeric string fields to handle:
+            // - Excel scientific notation (3.5280615E+15)
+            // - Leading apostrophe ('3528061508860021)
+            // - Whitespace issues
+            $nik = $this->cleanNumericString($row['nik'] ?? '') ?? '';
+            $kk = $this->cleanNumericString($row['kk'] ?? '') ?? '';
+            $phone = $this->cleanNumericString($row['phone'] ?? null);
+            $occupationId = $this->cleanNumericString($row['occupation_id'] ?? null);
+            $educationId = $this->cleanNumericString($row['education_id'] ?? null);
 
             // Check if NIK already exists
             $existingParent = ParentProfile::where('nik', $nik)->first();
