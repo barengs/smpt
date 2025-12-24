@@ -19,7 +19,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
-            MenuSeeder::class,
+            // MenuSeeder::class,
+            FrontendMenuSeeder::class,
             StaffSeeder::class,
             ControlPanelSeeder::class,
             ProvincesSeeder::class,
