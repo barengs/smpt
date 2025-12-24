@@ -139,7 +139,7 @@ class StudentController extends Controller
                 'born_in' => 'nullable|string|max:255',
                 'born_at' => 'nullable|date',
                 'last_education' => 'nullable|string|max:255',
-                'village_id' => 'nullable|exists:villages,id',
+                'village_id' => 'nullable|exists:indonesia_villages,id',
                 'village' => 'nullable|string|max:255',
                 'district' => 'nullable|string|max:255',
                 'postal_code' => 'nullable|string|max:10',
