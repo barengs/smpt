@@ -77,4 +77,16 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(ParentProfile::class, 'user_id', 'id');
     }
+
+    /**
+     * Get menus accessible by the user based on their roles
+     */
+    public function getAccessibleMenus()
+    {
+        $roleIds = $this->roles()->pluck('id');
+
+        return \App\Models\Menu::whereHas('roles', function ($query) use ($roleIds) {
+            $query->whereIn('roles.id', $roleIds);
+        })->with('child', 'permissions')->get();
+    }
 }

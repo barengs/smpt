@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             // MenuSeeder::class,
             FrontendMenuSeeder::class,
+            RoleMenuSeeder::class,
             StaffSeeder::class,
             ControlPanelSeeder::class,
             ProvincesSeeder::class,
