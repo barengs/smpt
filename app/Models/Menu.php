@@ -20,4 +20,14 @@ class Menu extends Model
     {
         return $this->belongsToMany(Permission::class, 'menu_permissions', 'menu_id', 'permission_id');
     }
+
+    public function roles()
+    {
+        return $this->belongsToMany(
+            \Spatie\Permission\Models\Role::class,
+            'role_menu',
+            'menu_id',
+            'role_id'
+        );
+    }
 }

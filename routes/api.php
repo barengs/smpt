@@ -53,6 +53,7 @@ use App\Http\Controllers\Api\Master\SanctionController;
 use App\Http\Controllers\Api\Main\StudentViolationController;
 use App\Http\Controllers\Api\Master\LeaveTypeController;
 use App\Http\Controllers\Api\Main\StudentLeaveController;
+use App\Http\Controllers\Api\Main\RoleMenuController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -228,6 +229,14 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('role', RoleController::class);
     Route::post('role/{id}/assign-permissions', [RoleController::class, 'assignPermissions']);
     Route::post('role/{id}/remove-permissions', [RoleController::class, 'removePermissions']);
+
+    // Role-Menu routes
+    Route::apiResource('role-menu', RoleMenuController::class);
+    Route::get('role/{roleId}/menus', [RoleMenuController::class, 'getRoleMenus']);
+    Route::get('menu/{menuId}/roles', [RoleMenuController::class, 'getMenuRoles']);
+    Route::post('role/{roleId}/assign-menus', [RoleMenuController::class, 'assignMenuToRole']);
+    Route::post('role/{roleId}/remove-menus', [RoleMenuController::class, 'removeMenuFromRole']);
+    Route::get('user/menus', [RoleMenuController::class, 'getUserMenus']);
 
     // Permission routes
     Route::apiResource('permission', PermissionController::class);
