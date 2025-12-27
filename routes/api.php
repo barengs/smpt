@@ -106,6 +106,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('study', StudyController::class);
     Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
     Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);
+    Route::post('class-group/import', [ClassGroupController::class, 'import']);
+    Route::get('class-group/import/template', [ClassGroupController::class, 'downloadTemplate']);
     Route::get('class-group/advisors', [ClassGroupController::class, 'getAdvisors']);
     Route::get('class-group/details', [ClassGroupController::class, 'getClassGroupsWithDetails']);
     Route::post('class-group/{id}/assign-advisor', [ClassGroupController::class, 'assignAdvisor']);
@@ -212,14 +214,18 @@ Route::group(['prefix' => 'main'], function () {
 
     // Transaction routes
     Route::put('transaction/{id}/activate', [
-    TransactionController::class, 'activateTransaction'])->name('transaction.activate');
+        TransactionController::class,
+        'activateTransaction'
+    ])->name('transaction.activate');
     Route::apiResource('transaction', TransactionController::class);
     Route::apiResource('transaction-type', TransactionTypeController::class);
 
     // Account routes
     Route::apiResource('account', AccountController::class);
     Route::get('transaction/account/{accountNumber}/last-7-days', [
-    TransactionController::class, 'getLast7DaysTransactions'])->name('transaction.last-7-days');
+        TransactionController::class,
+        'getLast7DaysTransactions'
+    ])->name('transaction.last-7-days');
 
     // News routes
     Route::apiResource('news', NewsController::class);

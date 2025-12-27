@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Validator;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\ClassGroupImport;
+use App\Exports\ClassGroupTemplateExport;
 
 class ClassGroupController extends Controller
 {
@@ -406,7 +409,7 @@ class ClassGroupController extends Controller
                 'educational_institution:id,institution_name',
                 'advisor.user:id,name'
             ])
-            ->withCount(['studentClasses as total_students']);
+                ->withCount(['studentClasses as total_students']);
 
             // Filter by academic year if provided
             if ($request->has('academic_year_id')) {
@@ -453,6 +456,84 @@ class ClassGroupController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data rombongan belajar',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * Import class groups from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            $import = new ClassGroupImport();
+
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => true,
+                'message' => 'Import completed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount,
+                ]
+            ];
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50);
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = 'Import completed with some errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for class group import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new ClassGroupTemplateExport(),
+                'class_group_import_template.xlsx'
+            );
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
                 'error' => $e->getMessage()
             ], 500);
         }
