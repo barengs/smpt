@@ -289,8 +289,9 @@ class FrontendMenuSeeder extends Seeder
         $r_superadmin = Role::where('name', 'superadmin')->first();
 
         // Define the menu structure based on frontend routes
+
         $menus = [
-            // Dashboard Menu
+            // 1. Dasbor
             [
                 'id_title' => 'Dasbor',
                 'en_title' => 'Dashboard',
@@ -304,13 +305,13 @@ class FrontendMenuSeeder extends Seeder
                 'status' => 'active',
                 'order' => 1
             ],
-            // Management Menu (Parent)
+            // 2. Bank Santri (Parent)
             [
-                'id_title' => 'Manajemen',
-                'en_title' => 'Management',
-                'ar_title' => 'إدارة',
-                'description' => 'Menu manajemen sistem',
-                'icon' => 'settings',
+                'id_title' => 'Bank Santri',
+                'en_title' => 'Student Banking',
+                'ar_title' => 'مصرف الطالب',
+                'description' => 'Menu bank santri',
+                'icon' => 'landmark',
                 'route' => '#',
                 'parent_id' => null,
                 'type' => 'main',
@@ -318,699 +319,125 @@ class FrontendMenuSeeder extends Seeder
                 'status' => 'active',
                 'order' => 2
             ],
-            // Staff Management
+            // 3. Manajemen Bank (Parent)
             [
-                'id_title' => 'Manajemen Staf',
-                'en_title' => 'Staff Management',
-                'ar_title' => 'إدارة الموظفين',
-                'description' => 'Manajemen data staf',
-                'icon' => 'users',
-                'route' => '/dashboard/staf',
-                'parent_id' => 2, // Under Management
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // Student Management
-            [
-                'id_title' => 'Manajemen Santri',
-                'en_title' => 'Student Management',
-                'ar_title' => 'إدارة الطلاب',
-                'description' => 'Manajemen data santri',
-                'icon' => 'graduation-cap',
-                'route' => '/dashboard/santri',
-                'parent_id' => 2, // Under Management
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // Parent Management
-            [
-                'id_title' => 'Manajemen Wali Santri',
-                'en_title' => 'Parent Management',
-                'ar_title' => 'إدارة أولياء الأمور',
-                'description' => 'Manajemen data wali santri',
-                'icon' => 'user-friends',
-                'route' => '/dashboard/wali-santri-list',
-                'parent_id' => 2, // Under Management
-                'type' => 'submenu',
+                'id_title' => 'Manajemen Bank',
+                'en_title' => 'Bank Management',
+                'ar_title' => 'إدارة البنك',
+                'description' => 'Menu manajemen bank',
+                'icon' => 'briefcase',
+                'route' => '#',
+                'parent_id' => null,
+                'type' => 'main',
                 'position' => 'sidebar',
                 'status' => 'active',
                 'order' => 3
             ],
-            // Student Registration
+            // 4. Manajemen Santri (Parent)
             [
-                'id_title' => 'Pendaftaran Santri',
-                'en_title' => 'Student Registration',
-                'ar_title' => 'تسجيل الطلاب',
-                'description' => 'Manajemen pendaftaran santri',
-                'icon' => 'user-plus',
-                'route' => '/dashboard/pendaftaran-santri',
-                'parent_id' => 2, // Under Management
-                'type' => 'submenu',
+                'id_title' => 'Manajemen Santri',
+                'en_title' => 'Student Management',
+                'ar_title' => 'إدارة الطلاب',
+                'description' => 'Menu manajemen santri',
+                'icon' => 'users',
+                'route' => '#',
+                'parent_id' => null,
+                'type' => 'main',
                 'position' => 'sidebar',
                 'status' => 'active',
                 'order' => 4
             ],
-            // Academic Menu (Parent)
+            // 5. Guru Tugas (Parent)
             [
-                'id_title' => 'Akademik',
-                'en_title' => 'Academic',
-                'ar_title' => 'أكاديمي',
-                'description' => 'Menu manajemen akademik',
+                'id_title' => 'Guru Tugas',
+                'en_title' => 'Assignment Teacher',
+                'ar_title' => 'معلم الواجب',
+                'description' => 'Menu guru tugas',
+                'icon' => 'chalkboard-teacher',
+                'route' => '#',
+                'parent_id' => null,
+                'type' => 'main',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 5
+            ],
+            // 6. Manajemen Staf (Parent)
+            [
+                'id_title' => 'Manajemen Staf',
+                'en_title' => 'Staff Management',
+                'ar_title' => 'إدارة الموظفين',
+                'description' => 'Menu manajemen staf',
+                'icon' => 'user-tie',
+                'route' => '#',
+                'parent_id' => null,
+                'type' => 'main',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 6
+            ],
+            // 7. Kurikulum (Parent)
+            [
+                'id_title' => 'Kurikulum',
+                'en_title' => 'Curriculum',
+                'ar_title' => 'منهاج دراسي',
+                'description' => 'Menu kurikulum',
                 'icon' => 'book',
                 'route' => '#',
                 'parent_id' => null,
                 'type' => 'main',
                 'position' => 'sidebar',
                 'status' => 'active',
-                'order' => 3
-            ],
-            // Subject Management
-            [
-                'id_title' => 'Mata Pelajaran',
-                'en_title' => 'Subject',
-                'ar_title' => 'المادة الدراسية',
-                'description' => 'Manajemen mata pelajaran',
-                'icon' => 'book-open',
-                'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // Class Management
-            [
-                'id_title' => 'Kelas',
-                'en_title' => 'Class',
-                'ar_title' => 'فصل',
-                'description' => 'Manajemen kelas',
-                'icon' => 'chalkboard',
-                'route' => '/dashboard/pendidikan/kelas',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // Class Group Management
-            [
-                'id_title' => 'Rombel',
-                'en_title' => 'Class Group',
-                'ar_title' => 'مجموعة الفصل',
-                'description' => 'Manajemen rombel',
-                'icon' => 'users',
-                'route' => '/dashboard/pendidikan/rombel',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            // Teacher Management
-            [
-                'id_title' => 'Guru',
-                'en_title' => 'Teacher',
-                'ar_title' => 'معلم',
-                'description' => 'Manajemen guru',
-                'icon' => 'user-tie',
-                'route' => '/dashboard/manajemen-kurikulum/guru',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 4
-            ],
-            // Teaching Assignment Management
-            [
-                'id_title' => 'Penugasan Guru',
-                'en_title' => 'Teacher Assignment',
-                'ar_title' => 'مهمة المعلم',
-                'description' => 'Manajemen penugasan guru',
-                'icon' => 'clipboard-list',
-                'route' => '/dashboard/manajemen-kurikulum/penugasan-guru',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 5
-            ],
-            // Teaching Hours Management
-            [
-                'id_title' => 'Jam Mengajar',
-                'en_title' => 'Teaching Hours',
-                'ar_title' => 'ساعات التدريس',
-                'description' => 'Manajemen jam mengajar',
-                'icon' => 'clock',
-                'route' => '/dashboard/manajemen-kurikulum/jam-mengajar',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 6
-            ],
-            // Class Schedule Management
-            [
-                'id_title' => 'Jadwal Pelajaran',
-                'en_title' => 'Class Schedule',
-                'ar_title' => 'جدول الفصل',
-                'description' => 'Manajemen jadwal pelajaran',
-                'icon' => 'calendar-alt',
-                'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
                 'order' => 7
             ],
-            // Presence Management
+            // 8. Manajemen Kamtib (Parent)
             [
-                'id_title' => 'Presensi',
-                'en_title' => 'Attendance',
-                'ar_title' => 'الحضور',
-                'description' => 'Manajemen presensi',
-                'icon' => 'check-circle',
-                'route' => '/dashboard/manajemen-kurikulum/presensi',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 8
-            ],
-            // Promotion Management
-            [
-                'id_title' => 'Kenaikan Kelas',
-                'en_title' => 'Class Promotion',
-                'ar_title' => 'ترقية الفصل',
-                'description' => 'Manajemen kenaikan kelas',
-                'icon' => 'arrow-up',
-                'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas',
-                'parent_id' => 7, // Under Academic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 9
-            ],
-            // Security Menu (Parent)
-            [
-                'id_title' => 'Keamanan',
-                'en_title' => 'Security',
-                'ar_title' => 'الأمن',
-                'description' => 'Menu manajemen keamanan',
+                'id_title' => 'Manajemen Kamtib',
+                'en_title' => 'Security Management',
+                'ar_title' => 'إدارة الأمن',
+                'description' => 'Menu manajemen kamtib',
                 'icon' => 'shield-alt',
                 'route' => '#',
                 'parent_id' => null,
                 'type' => 'main',
                 'position' => 'sidebar',
                 'status' => 'active',
-                'order' => 4
-            ],
-            // Violation Management
-            [
-                'id_title' => 'Pelanggaran',
-                'en_title' => 'Violation',
-                'ar_title' => 'انتهاك',
-                'description' => 'Manajemen pelanggaran',
-                'icon' => 'exclamation-triangle',
-                'route' => '/dashboard/manajemen-kamtib/pelanggaran',
-                'parent_id' => 16, // Under Security
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // Violation Category Management
-            [
-                'id_title' => 'Kategori Pelanggaran',
-                'en_title' => 'Violation Category',
-                'ar_title' => 'فئة الانتهاك',
-                'description' => 'Manajemen kategori pelanggaran',
-                'icon' => 'tags',
-                'route' => '/dashboard/manajemen-kamtib/kategori-pelanggaran',
-                'parent_id' => 16, // Under Security
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // Sanction Management
-            [
-                'id_title' => 'Sanksi',
-                'en_title' => 'Sanction',
-                'ar_title' => 'عقوبة',
-                'description' => 'Manajemen sanksi',
-                'icon' => 'ban',
-                'route' => '/dashboard/manajemen-kamtib/sanksi',
-                'parent_id' => 16, // Under Security
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            // Leave Management
-            [
-                'id_title' => 'Perizinan',
-                'en_title' => 'Leave',
-                'ar_title' => 'إجازة',
-                'description' => 'Manajemen perizinan',
-                'icon' => 'calendar-check',
-                'route' => '/dashboard/manajemen-kamtib/perizinan',
-                'parent_id' => 16, // Under Security
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 4
-            ],
-            // Leave Type Management
-            [
-                'id_title' => 'Tipe Izin',
-                'en_title' => 'Leave Type',
-                'ar_title' => 'نوع الإجازة',
-                'description' => 'Manajemen tipe izin',
-                'icon' => 'calendar-day',
-                'route' => '/dashboard/manajemen-kamtib/tipe-izin',
-                'parent_id' => 16, // Under Security
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 5
-            ],
-            // Security Report Management
-            [
-                'id_title' => 'Laporan Kamtib',
-                'en_title' => 'Security Report',
-                'ar_title' => 'تقرير الأمن',
-                'description' => 'Manajemen laporan kamtib',
-                'icon' => 'file-alt',
-                'route' => '/dashboard/manajemen-kamtib/laporan',
-                'parent_id' => 16, // Under Security
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 6
-            ],
-            // Finance Menu (Parent)
-            [
-                'id_title' => 'Keuangan',
-                'en_title' => 'Finance',
-                'ar_title' => 'المالية',
-                'description' => 'Menu manajemen keuangan',
-                'icon' => 'money-bill-wave',
-                'route' => '#',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 5
-            ],
-            // Banking Management
-            [
-                'id_title' => 'Bank Santri',
-                'en_title' => 'Student Banking',
-                'ar_title' => 'مصرف الطالب',
-                'description' => 'Manajemen bank santri',
-                'icon' => 'landmark',
-                'route' => '/dashboard/bank-santri',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // Account Management
-            [
-                'id_title' => 'Rekening',
-                'en_title' => 'Account',
-                'ar_title' => 'حساب',
-                'description' => 'Manajemen rekening',
-                'icon' => 'wallet',
-                'route' => '/dashboard/bank-santri/rekening',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // Transaction Management
-            [
-                'id_title' => 'Transaksi',
-                'en_title' => 'Transaction',
-                'ar_title' => 'عملية',
-                'description' => 'Manajemen transaksi',
-                'icon' => 'exchange-alt',
-                'route' => '/dashboard/bank-santri/transaksi',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            // Product Management
-            [
-                'id_title' => 'Produk',
-                'en_title' => 'Product',
-                'ar_title' => 'منتج',
-                'description' => 'Manajemen produk',
-                'icon' => 'box',
-                'route' => '/dashboard/bank-santri/produk',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 4
-            ],
-            // COA Management
-            [
-                'id_title' => 'COA',
-                'en_title' => 'Chart of Account',
-                'ar_title' => 'مخطط الحساب',
-                'description' => 'Manajemen chart of account',
-                'icon' => 'list',
-                'route' => '/dashboard/bank-santri/coa',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 5
-            ],
-            // Transaction Type Management
-            [
-                'id_title' => 'Jenis Transaksi',
-                'en_title' => 'Transaction Type',
-                'ar_title' => 'نوع المعاملة',
-                'description' => 'Manajemen jenis transaksi',
-                'icon' => 'tags',
-                'route' => '/dashboard/bank-santri/jenis-transaksi',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 6
-            ],
-            // Finance Report Management
-            [
-                'id_title' => 'Laporan Keuangan',
-                'en_title' => 'Finance Report',
-                'ar_title' => 'تقرير مالي',
-                'description' => 'Manajemen laporan keuangan',
-                'icon' => 'file-invoice-dollar',
-                'route' => '/dashboard/bank-santri/laporan',
-                'parent_id' => 23, // Under Finance
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 7
-            ],
-            // System Menu (Parent)
-            [
-                'id_title' => 'Sistem',
-                'en_title' => 'System',
-                'ar_title' => 'نظام',
-                'description' => 'Menu manajemen sistem',
-                'icon' => 'cog',
-                'route' => '#',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 6
-            ],
-            // Role Management
-            [
-                'id_title' => 'Peran',
-                'en_title' => 'Role',
-                'ar_title' => 'دور',
-                'description' => 'Manajemen peran pengguna',
-                'icon' => 'user-shield',
-                'route' => '/dashboard/peran',
-                'parent_id' => 31, // Under System
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // Permission Management
-            [
-                'id_title' => 'Hak Akses',
-                'en_title' => 'Permission',
-                'ar_title' => ' إذن',
-                'description' => 'Manajemen hak akses',
-                'icon' => 'key',
-                'route' => '/dashboard/hak-akses',
-                'parent_id' => 31, // Under System
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // Organization Management
-            [
-                'id_title' => 'Organisasi',
-                'en_title' => 'Organization',
-                'ar_title' => 'منظمة',
-                'description' => 'Manajemen organisasi',
-                'icon' => 'building',
-                'route' => '/dashboard/organisasi',
-                'parent_id' => 31, // Under System
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            // Master Data Menu (Parent)
-            [
-                'id_title' => 'Data Master',
-                'en_title' => 'Master Data',
-                'ar_title' => 'البيانات الرئيسية',
-                'description' => 'Menu data master sistem',
-                'icon' => 'database',
-                'route' => '#',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 7
-            ],
-            // Job Management
-            [
-                'id_title' => 'Pekerjaan',
-                'en_title' => 'Job',
-                'ar_title' => 'وظيفة',
-                'description' => 'Manajemen data pekerjaan',
-                'icon' => 'briefcase',
-                'route' => '/dashboard/master-data/pekerjaan',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // Education Type Management
-            [
-                'id_title' => 'Jenjang Pendidikan',
-                'en_title' => 'Education Level',
-                'ar_title' => 'مستوى التعليم',
-                'description' => 'Manajemen jenjang pendidikan',
-                'icon' => 'school',
-                'route' => '/dashboard/pendidikan/jenjang',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // Program Management
-            [
-                'id_title' => 'Program',
-                'en_title' => 'Program',
-                'ar_title' => 'برنامج',
-                'description' => 'Manajemen program pendidikan',
-                'icon' => 'list-alt',
-                'route' => '/dashboard/pendidikan/program',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            // Academic Year Management
-            [
-                'id_title' => 'Tahun Ajaran',
-                'en_title' => 'Academic Year',
-                'ar_title' => 'العام الدراسي',
-                'description' => 'Manajemen tahun ajaran',
-                'icon' => 'calendar',
-                'route' => '/dashboard/pendidikan/tahun-ajaran',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 4
-            ],
-            // Hostel Management
-            [
-                'id_title' => 'Asrama',
-                'en_title' => 'Hostel',
-                'ar_title' => 'المبيت',
-                'description' => 'Manajemen asrama',
-                'icon' => 'home',
-                'route' => '/dashboard/pendidikan/asrama',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 5
-            ],
-            // Room Management
-            [
-                'id_title' => 'Kamar',
-                'en_title' => 'Room',
-                'ar_title' => 'غرفة',
-                'description' => 'Manajemen kamar asrama',
-                'icon' => 'door-open',
-                'route' => '/dashboard/kepesantrenan/kamar',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 6
-            ],
-            // Educational Institution Management
-            [
-                'id_title' => 'Institusi Pendidikan',
-                'en_title' => 'Educational Institution',
-                'ar_title' => 'مؤسسة تعليمية',
-                'description' => 'Manajemen institusi pendidikan',
-                'icon' => 'university',
-                'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 7
-            ],
-            // Geographic Management Menu (Parent)
-            [
-                'id_title' => 'Wilayah',
-                'en_title' => 'Geographic',
-                'ar_title' => 'جغرافي',
-                'description' => 'Menu manajemen wilayah',
-                'icon' => 'map-marked-alt',
-                'route' => '#',
-                'parent_id' => 35, // Under Master Data
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
                 'order' => 8
             ],
-            // Province Management
+            // 9. Kepesantrenan (Parent)
             [
-                'id_title' => 'Provinsi',
-                'en_title' => 'Province',
-                'ar_title' => 'مقاطعة',
-                'description' => 'Manajemen provinsi',
-                'icon' => 'map',
-                'route' => '/dashboard/wilayah/provinsi',
-                'parent_id' => 43, // Under Geographic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            // City Management
-            [
-                'id_title' => 'Kota',
-                'en_title' => 'City',
-                'ar_title' => 'مدينة',
-                'description' => 'Manajemen kota',
-                'icon' => 'city',
-                'route' => '/dashboard/wilayah/kota',
-                'parent_id' => 43, // Under Geographic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            // District Management
-            [
-                'id_title' => 'Kecamatan',
-                'en_title' => 'District',
-                'ar_title' => 'حي',
-                'description' => 'Manajemen kecamatan',
-                'icon' => 'road',
-                'route' => '/dashboard/wilayah/kecamatan',
-                'parent_id' => 43, // Under Geographic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            // Village Management
-            [
-                'id_title' => 'Desa',
-                'en_title' => 'Village',
-                'ar_title' => 'قرية',
-                'description' => 'Manajemen desa',
-                'icon' => 'tree',
-                'route' => '/dashboard/wilayah/desa',
-                'parent_id' => 43, // Under Geographic
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 4
-            ],
-            // Announcement Management
-            [
-                'id_title' => 'Pengumuman',
-                'en_title' => 'Announcement',
-                'ar_title' => 'إعلان',
-                'description' => 'Manajemen pengumuman',
-                'icon' => 'bullhorn',
-                'route' => '/dashboard/pengumuman',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 8
-            ],
-            // News Management
-            [
-                'id_title' => 'Berita',
-                'en_title' => 'News',
-                'ar_title' => 'أخبار',
-                'description' => 'Manajemen berita',
-                'icon' => 'newspaper',
-                'route' => '/dashboard/berita',
+                'id_title' => 'Kepesantrenan',
+                'en_title' => 'Islamic Boarding School',
+                'ar_title' => 'مدرسة داخلية إسلامية',
+                'description' => 'Menu kepesantrenan',
+                'icon' => 'mosque',
+                'route' => '#',
                 'parent_id' => null,
                 'type' => 'main',
                 'position' => 'sidebar',
                 'status' => 'active',
                 'order' => 9
             ],
-            // Schedule Management
+            // 10. Manajemen Pendidikan (Parent)
             [
-                'id_title' => 'Jadwal Kegiatan',
-                'en_title' => 'Schedule',
-                'ar_title' => 'جدول',
-                'description' => 'Manajemen jadwal kegiatan',
-                'icon' => 'calendar-alt',
-                'route' => '/dashboard/jadwal',
+                'id_title' => 'Manajemen Pendidikan',
+                'en_title' => 'Education Management',
+                'ar_title' => 'إدارة التعليم',
+                'description' => 'Menu manajemen pendidikan',
+                'icon' => 'graduation-cap',
+                'route' => '#',
                 'parent_id' => null,
                 'type' => 'main',
                 'position' => 'sidebar',
                 'status' => 'active',
                 'order' => 10
             ],
-            // Settings Menu
+            // 11. Informasi (Parent)
             [
-                'id_title' => 'Pengaturan',
-                'en_title' => 'Settings',
-                'ar_title' => 'إعدادات',
-                'description' => 'Pengaturan sistem',
-                'icon' => 'cog',
+                'id_title' => 'Informasi',
+                'en_title' => 'Information',
+                'ar_title' => 'معلومات',
+                'description' => 'Menu informasi',
+                'icon' => 'info-circle',
                 'route' => '#',
                 'parent_id' => null,
                 'type' => 'main',
@@ -1018,21 +445,656 @@ class FrontendMenuSeeder extends Seeder
                 'status' => 'active',
                 'order' => 11
             ],
-            // Navigation Management
+            // 12. Data Master (Parent)
             [
-                'id_title' => 'Manajemen Navigasi',
-                'en_title' => 'Navigation Management',
-                'ar_title' => 'إدارة التنقل',
-                'description' => 'Manajemen navigasi sistem',
-                'icon' => 'sitemap',
-                'route' => '/dashboard/settings/navigation',
-                'parent_id' => 50, // Under Settings
+                'id_title' => 'Data Master',
+                'en_title' => 'Master Data',
+                'ar_title' => 'البيانات الرئيسية',
+                'description' => 'Menu data master',
+                'icon' => 'database',
+                'route' => '#',
+                'parent_id' => null,
+                'type' => 'main',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 12
+            ],
+            // 13. Pengaturan (Parent)
+            [
+                'id_title' => 'Pengaturan',
+                'en_title' => 'Settings',
+                'ar_title' => 'إعدادات',
+                'description' => 'Menu pengaturan',
+                'icon' => 'cog',
+                'route' => '#',
+                'parent_id' => null,
+                'type' => 'main',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 13
+            ],
+
+            // --- Submenus for Bank Santri (Parent ID: 2) ---
+            [
+                'id_title' => 'Rekening',
+                'en_title' => 'Account',
+                'ar_title' => 'حساب',
+                'description' => 'Manajemen rekening',
+                'icon' => 'wallet',
+                'route' => '/dashboard/bank-santri/rekening',
+                'parent_id' => 2,
                 'type' => 'submenu',
                 'position' => 'sidebar',
                 'status' => 'active',
                 'order' => 1
             ],
-            // App Profile Management
+            [
+                'id_title' => 'Transaksi',
+                'en_title' => 'Transaction',
+                'ar_title' => 'عملية',
+                'description' => 'Manajemen transaksi',
+                'icon' => 'exchange-alt',
+                'route' => '/dashboard/bank-santri/transaksi',
+                'parent_id' => 2,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Laporan Keuangan',
+                'en_title' => 'Finance Report',
+                'ar_title' => 'تقرير مالي',
+                'description' => 'Manajemen laporan keuangan',
+                'icon' => 'file-invoice-dollar',
+                'route' => '/dashboard/bank-santri/laporan',
+                'parent_id' => 2,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+
+            // --- Submenus for Manajemen Bank (Parent ID: 3) ---
+            [
+                'id_title' => 'Produk',
+                'en_title' => 'Product',
+                'ar_title' => 'منتج',
+                'description' => 'Manajemen produk',
+                'icon' => 'box',
+                'route' => '/dashboard/bank-santri/produk',
+                'parent_id' => 3,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'COA',
+                'en_title' => 'Chart of Account',
+                'ar_title' => 'مخطط الحساب',
+                'description' => 'Manajemen chart of account',
+                'icon' => 'list',
+                'route' => '/dashboard/bank-santri/coa',
+                'parent_id' => 3,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Jenis Transaksi',
+                'en_title' => 'Transaction Type',
+                'ar_title' => 'نوع المعاملة',
+                'description' => 'Manajemen jenis transaksi',
+                'icon' => 'tags',
+                'route' => '/dashboard/bank-santri/jenis-transaksi',
+                'parent_id' => 3,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+
+            // --- Submenus for Manajemen Santri (Parent ID: 4) ---
+            [
+                'id_title' => 'Data Santri',
+                'en_title' => 'Student Data',
+                'ar_title' => 'بيانات الطالب',
+                'description' => 'Manajemen data santri',
+                'icon' => 'user-graduate',
+                'route' => '/dashboard/santri',
+                'parent_id' => 4,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Pendaftaran Santri',
+                'en_title' => 'Student Registration',
+                'ar_title' => 'تسجيل الطلاب',
+                'description' => 'Manajemen pendaftaran santri',
+                'icon' => 'user-plus',
+                'route' => '/dashboard/pendaftaran-santri',
+                'parent_id' => 4,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Wali Santri',
+                'en_title' => 'Guardian',
+                'ar_title' => 'وصي',
+                'description' => 'Manajemen wali santri',
+                'icon' => 'user-friends',
+                'route' => '/dashboard/wali-santri-list',
+                'parent_id' => 4,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+
+            // --- Submenus for Guru Tugas (Parent ID: 5) ---
+            [
+                'id_title' => 'Guru Tugas',
+                'en_title' => 'Assignment Teacher',
+                'ar_title' => 'معلم الواجب',
+                'description' => 'Manajemen guru tugas',
+                'icon' => 'chalkboard-teacher',
+                'route' => '/dashboard/guru-tugas',
+                'parent_id' => 5,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Penanggung Jawab',
+                'en_title' => 'Supervisor',
+                'ar_title' => 'مشرف',
+                'description' => 'Manajemen penanggung jawab magang',
+                'icon' => 'user-check',
+                'route' => '/dashboard/penanggung-jawab-magang',
+                'parent_id' => 5,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Institusi Tugas',
+                'en_title' => 'Assignment Institution',
+                'ar_title' => 'مؤسسة الواجب',
+                'description' => 'Manajemen institusi tugas',
+                'icon' => 'building',
+                'route' => '/dashboard/institusi-tugas',
+                'parent_id' => 5,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+
+            // --- Submenus for Manajemen Staf (Parent ID: 6) ---
+            [
+                'id_title' => 'Data Staf',
+                'en_title' => 'Staff Data',
+                'ar_title' => 'بيانات الموظفين',
+                'description' => 'Manajemen data staf',
+                'icon' => 'users',
+                'route' => '/dashboard/staf',
+                'parent_id' => 6,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+
+            // --- Submenus for Kurikulum (Parent ID: 7) ---
+            [
+                'id_title' => 'Mata Pelajaran',
+                'en_title' => 'Subject',
+                'ar_title' => 'المادة الدراسية',
+                'description' => 'Manajemen mata pelajaran',
+                'icon' => 'book-open',
+                'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Jadwal Pelajaran',
+                'en_title' => 'Class Schedule',
+                'ar_title' => 'جدول الفصل',
+                'description' => 'Manajemen jadwal pelajaran',
+                'icon' => 'calendar-alt',
+                'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Guru',
+                'en_title' => 'Teacher',
+                'ar_title' => 'معلم',
+                'description' => 'Manajemen guru',
+                'icon' => 'user-tie',
+                'route' => '/dashboard/manajemen-kurikulum/guru',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+            [
+                'id_title' => 'Penugasan Guru',
+                'en_title' => 'Teacher Assignment',
+                'ar_title' => 'مهمة المعلم',
+                'description' => 'Manajemen penugasan guru',
+                'icon' => 'clipboard-list',
+                'route' => '/dashboard/manajemen-kurikulum/penugasan-guru',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 4
+            ],
+            [
+                'id_title' => 'Jam Mengajar',
+                'en_title' => 'Teaching Hours',
+                'ar_title' => 'ساعات التدريس',
+                'description' => 'Manajemen jam mengajar',
+                'icon' => 'clock',
+                'route' => '/dashboard/manajemen-kurikulum/jam-mengajar',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 5
+            ],
+            [
+                'id_title' => 'Presensi',
+                'en_title' => 'Attendance',
+                'ar_title' => 'الحضور',
+                'description' => 'Manajemen presensi',
+                'icon' => 'check-circle',
+                'route' => '/dashboard/manajemen-kurikulum/presensi',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 6
+            ],
+            [
+                'id_title' => 'Kenaikan Kelas',
+                'en_title' => 'Class Promotion',
+                'ar_title' => 'ترقية الفصل',
+                'description' => 'Manajemen kenaikan kelas',
+                'icon' => 'arrow-up',
+                'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 7
+            ],
+            [
+                'id_title' => 'Institusi Pendidikan',
+                'en_title' => 'Educational Institution',
+                'ar_title' => 'مؤسسة تعليمية',
+                'description' => 'Manajemen institusi pendidikan',
+                'icon' => 'university',
+                'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 8
+            ],
+            [
+                'id_title' => 'Siswa',
+                'en_title' => 'Student',
+                'ar_title' => 'طالب',
+                'description' => 'Manajemen siswa',
+                'icon' => 'user-graduate',
+                'route' => '/dashboard/manajemen-kurikulum/siswa',
+                'parent_id' => 7,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 9
+            ],
+
+            // --- Submenus for Manajemen Kamtib (Parent ID: 8) ---
+            [
+                'id_title' => 'Pelanggaran',
+                'en_title' => 'Violation',
+                'ar_title' => 'انتهاك',
+                'description' => 'Manajemen pelanggaran',
+                'icon' => 'exclamation-triangle',
+                'route' => '/dashboard/manajemen-kamtib/pelanggaran',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Kategori Pelanggaran',
+                'en_title' => 'Violation Category',
+                'ar_title' => 'فئة الانتهاك',
+                'description' => 'Manajemen kategori pelanggaran',
+                'icon' => 'tags',
+                'route' => '/dashboard/manajemen-kamtib/kategori-pelanggaran',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Sanksi',
+                'en_title' => 'Sanction',
+                'ar_title' => 'عقوبة',
+                'description' => 'Manajemen sanksi',
+                'icon' => 'ban',
+                'route' => '/dashboard/manajemen-kamtib/sanksi',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+            [
+                'id_title' => 'Laporan Kamtib',
+                'en_title' => 'Security Report',
+                'ar_title' => 'تقرير الأمن',
+                'description' => 'Manajemen laporan kamtib',
+                'icon' => 'file-alt',
+                'route' => '/dashboard/manajemen-kamtib/laporan',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 4
+            ],
+            [
+                'id_title' => 'Perizinan',
+                'en_title' => 'Leave',
+                'ar_title' => 'إجازة',
+                'description' => 'Manajemen perizinan',
+                'icon' => 'calendar-check',
+                'route' => '/dashboard/manajemen-kamtib/perizinan',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 5
+            ],
+            [
+                'id_title' => 'Tipe Izin',
+                'en_title' => 'Leave Type',
+                'ar_title' => 'نوع الإجازة',
+                'description' => 'Manajemen tipe izin',
+                'icon' => 'calendar-day',
+                'route' => '/dashboard/manajemen-kamtib/tipe-izin',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 6
+            ],
+
+            // --- Submenus for Kepesantrenan (Parent ID: 9) ---
+            [
+                'id_title' => 'Kamar',
+                'en_title' => 'Room',
+                'ar_title' => 'غرفة',
+                'description' => 'Manajemen kamar asrama',
+                'icon' => 'door-open',
+                'route' => '/dashboard/kepesantrenan/kamar',
+                'parent_id' => 9,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Jadwal Kegiatan',
+                'en_title' => 'Activity Schedule',
+                'ar_title' => 'جدول النشاط',
+                'description' => 'Manajemen jadwal kegiatan',
+                'icon' => 'calendar-alt',
+                'route' => '/dashboard/jadwal',
+                'parent_id' => 9,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+
+            // --- Submenus for Manajemen Pendidikan (Parent ID: 10) ---
+            [
+                'id_title' => 'Jenjang Pendidikan',
+                'en_title' => 'Education Level',
+                'ar_title' => 'مستوى التعليم',
+                'description' => 'Manajemen jenjang pendidikan',
+                'icon' => 'school',
+                'route' => '/dashboard/pendidikan/jenjang',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Program',
+                'en_title' => 'Program',
+                'ar_title' => 'برنامج',
+                'description' => 'Manajemen program pendidikan',
+                'icon' => 'list-alt',
+                'route' => '/dashboard/pendidikan/program',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Tahun Ajaran',
+                'en_title' => 'Academic Year',
+                'ar_title' => 'العام الدراسي',
+                'description' => 'Manajemen tahun ajaran',
+                'icon' => 'calendar',
+                'route' => '/dashboard/pendidikan/tahun-ajaran',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+            [
+                'id_title' => 'Asrama',
+                'en_title' => 'Hostel',
+                'ar_title' => 'المبيت',
+                'description' => 'Manajemen asrama',
+                'icon' => 'home',
+                'route' => '/dashboard/pendidikan/asrama',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 4
+            ],
+            [
+                'id_title' => 'Kelas',
+                'en_title' => 'Class',
+                'ar_title' => 'فصل',
+                'description' => 'Manajemen kelas',
+                'icon' => 'chalkboard',
+                'route' => '/dashboard/pendidikan/kelas',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 5
+            ],
+            [
+                'id_title' => 'Rombel',
+                'en_title' => 'Class Group',
+                'ar_title' => 'مجموعة الفصل',
+                'description' => 'Manajemen rombel',
+                'icon' => 'users',
+                'route' => '/dashboard/pendidikan/rombel',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 6
+            ],
+            [
+                'id_title' => 'Kelompok Pendidikan',
+                'en_title' => 'Education Group',
+                'ar_title' => 'مجموعة التعليم',
+                'description' => 'Manajemen kelompok pendidikan',
+                'icon' => 'layer-group',
+                'route' => '/dashboard/pendidikan/kelompok-pendidikan',
+                'parent_id' => 10,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 7
+            ],
+
+            // --- Submenus for Informasi (Parent ID: 11) ---
+            [
+                'id_title' => 'Pengumuman',
+                'en_title' => 'Announcement',
+                'ar_title' => 'إعلان',
+                'description' => 'Manajemen pengumuman',
+                'icon' => 'bullhorn',
+                'route' => '/dashboard/pengumuman',
+                'parent_id' => 11,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Berita',
+                'en_title' => 'News',
+                'ar_title' => 'أخبار',
+                'description' => 'Manajemen berita',
+                'icon' => 'newspaper',
+                'route' => '/dashboard/berita',
+                'parent_id' => 11,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Informasi Santri',
+                'en_title' => 'Student Information',
+                'ar_title' => 'معلومات الطالب',
+                'description' => 'Informasi santri',
+                'icon' => 'info',
+                'route' => '/dashboard/informasi-santri',
+                'parent_id' => 11,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+            [
+                'id_title' => 'Nilai Absensi',
+                'en_title' => 'Attendance Score',
+                'ar_title' => 'نتائج الحضور',
+                'description' => 'Informasi nilai absensi',
+                'icon' => 'star',
+                'route' => '/dashboard/nilai-absensi',
+                'parent_id' => 11,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 4
+            ],
+
+            // --- Submenus for Data Master (Parent ID: 12) ---
+            [
+                'id_title' => 'Pekerjaan',
+                'en_title' => 'Job',
+                'ar_title' => 'وظيفة',
+                'description' => 'Manajemen data pekerjaan',
+                'icon' => 'briefcase',
+                'route' => '/dashboard/master-data/pekerjaan',
+                'parent_id' => 12,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Provinsi',
+                'en_title' => 'Province',
+                'ar_title' => 'مقاطعة',
+                'description' => 'Manajemen provinsi',
+                'icon' => 'map',
+                'route' => '/dashboard/wilayah/provinsi',
+                'parent_id' => 12,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 2
+            ],
+            [
+                'id_title' => 'Kota',
+                'en_title' => 'City',
+                'ar_title' => 'مدينة',
+                'description' => 'Manajemen kota',
+                'icon' => 'city',
+                'route' => '/dashboard/wilayah/kota',
+                'parent_id' => 12,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 3
+            ],
+            [
+                'id_title' => 'Kecamatan',
+                'en_title' => 'District',
+                'ar_title' => 'حي',
+                'description' => 'Manajemen kecamatan',
+                'icon' => 'road',
+                'route' => '/dashboard/wilayah/kecamatan',
+                'parent_id' => 12,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 4
+            ],
+            [
+                'id_title' => 'Desa',
+                'en_title' => 'Village',
+                'ar_title' => 'قرية',
+                'description' => 'Manajemen desa',
+                'icon' => 'tree',
+                'route' => '/dashboard/wilayah/desa',
+                'parent_id' => 12,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 5
+            ],
+
+            // --- Submenus for Pengaturan (Parent ID: 13) ---
             [
                 'id_title' => 'Profil Aplikasi',
                 'en_title' => 'App Profile',
@@ -1040,13 +1102,25 @@ class FrontendMenuSeeder extends Seeder
                 'description' => 'Manajemen profil aplikasi',
                 'icon' => 'window-maximize',
                 'route' => '/dashboard/settings/app-profile',
-                'parent_id' => 50, // Under Settings
+                'parent_id' => 13,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 1
+            ],
+            [
+                'id_title' => 'Manajemen Navigasi',
+                'en_title' => 'Navigation Management',
+                'ar_title' => 'إدارة التنقل',
+                'description' => 'Manajemen navigasi sistem',
+                'icon' => 'sitemap',
+                'route' => '/dashboard/settings/navigation',
+                'parent_id' => 13,
                 'type' => 'submenu',
                 'position' => 'sidebar',
                 'status' => 'active',
                 'order' => 2
             ],
-            // User Profile
             [
                 'id_title' => 'Profil Pengguna',
                 'en_title' => 'User Profile',
@@ -1054,14 +1128,52 @@ class FrontendMenuSeeder extends Seeder
                 'description' => 'Profil pengguna',
                 'icon' => 'user',
                 'route' => '/dashboard/profile',
-                'parent_id' => null,
-                'type' => 'main',
+                'parent_id' => 13,
+                'type' => 'submenu',
                 'position' => 'sidebar',
                 'status' => 'active',
-                'order' => 12
+                'order' => 3
+            ],
+            [
+                'id_title' => 'Peran',
+                'en_title' => 'Role',
+                'ar_title' => 'دور',
+                'description' => 'Manajemen peran pengguna',
+                'icon' => 'user-shield',
+                'route' => '/dashboard/peran',
+                'parent_id' => 13,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 4
+            ],
+            [
+                'id_title' => 'Hak Akses',
+                'en_title' => 'Permission',
+                'ar_title' => ' إذن',
+                'description' => 'Manajemen hak akses',
+                'icon' => 'key',
+                'route' => '/dashboard/hak-akses',
+                'parent_id' => 13,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 5
+            ],
+            [
+                'id_title' => 'Organisasi',
+                'en_title' => 'Organization',
+                'ar_title' => 'منظمة',
+                'description' => 'Manajemen organisasi',
+                'icon' => 'building',
+                'route' => '/dashboard/organisasi',
+                'parent_id' => 13,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 6
             ]
         ];
-
         // Insert each menu into the database and assign appropriate permissions
         foreach ($menus as $index => $menu) {
             $m_menu = Menu::firstOrCreate([

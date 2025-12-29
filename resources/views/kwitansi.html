@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Tanda Terima Pembayaran (Official Receipt)</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+            rel="stylesheet"
+        />
+        <style>
+            @media print {
+                .no-print {
+                    display: none !important;
+                }
+                body {
+                    -webkit-print-color-adjust: exact;
+                    background: none;
+                }
+                body * {
+                    visibility: hidden;
+                }
+                #printableArea,
+                #printableArea * {
+                    visibility: visible;
+                }
+                #printableArea {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                }
+            }
+            .terbilang-box {
+                background-image: linear-gradient(
+                    135deg,
+                    #f3f4f6 25%,
+                    #ffffff 25%,
+                    #ffffff 50%,
+                    #f3f4f6 50%,
+                    #f3f4f6 75%,
+                    #ffffff 75%,
+                    #ffffff 100%
+                );
+                background-size: 20px 20px;
+            }
+        </style>
+    </head>
+    <body
+        class="bg-gray-100 font-sans text-gray-800 flex items-center justify-center min-h-screen"
+    >
+        <div
+            id="printableArea"
+            class="w-full max-w-3xl bg-white p-8 shadow-xl border border-gray-200 print:shadow-none print:border-none print:w-full print:max-w-none"
+        >
+            <!-- Header -->
+            <div
+                class="flex justify-between items-center border-b-2 border-indigo-900 pb-6 mb-8"
+            >
+                <div class="flex items-center gap-4">
+                    <!-- Logo Image -->
+                    <img
+                        src="https://umediatama.com/img/logo.png"
+                        alt="Logo Umediatama"
+                        class="h-16 w-auto object-contain"
+                    />
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-800 uppercase">
+                            PT. UNGGUL MEDITATAMA INDONESIA
+                        </h1>
+                        <p class="text-xs text-gray-500">
+                            Solusi Transformasi Digital
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Jl. Nyalabu Permai Gg. III, No. 03 Pamekasan
+                        </p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <h2
+                        class="text-3xl font-bold text-indigo-900 tracking-widest uppercase"
+                    >
+                        KWITANSI
+                    </h2>
+                    <p class="text-sm font-semibold text-gray-600 mt-1">
+                        RECEIPT
+                    </p>
+                </div>
+            </div>
+
+            <!-- Info Kwitansi -->
+            <div class="flex justify-between mb-8 text-sm">
+                <div>
+                    <table class="w-full">
+                        <tr>
+                            <td class="font-bold text-gray-600 py-1 pr-4">
+                                No. Kwitansi
+                            </td>
+                            <td class="font-mono font-bold text-gray-900">
+                                : RCT/2025/XII/001
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold text-gray-600 py-1 pr-4">
+                                Tanggal
+                            </td>
+                            <td class="text-gray-900">: 29 Desember 2025</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-gray-600">Referensi Invoice:</p>
+                    <p class="font-mono text-indigo-700 font-bold">
+                        #INV-2025-027
+                    </p>
+                </div>
+            </div>
+
+            <!-- Content Utama -->
+            <div class="space-y-6">
+                <!-- Terima Dari -->
+                <div class="flex">
+                    <div class="w-1/4 pt-2">
+                        <p class="font-bold text-gray-700">Sudah Terima Dari</p>
+                        <p class="text-xs text-gray-500 italic">
+                            Received From
+                        </p>
+                    </div>
+                    <div class="w-3/4 border-b-2 border-gray-300 pb-2">
+                        <p class="text-lg text-gray-800 px-2 font-medium">
+                            Panitia Proteg ITS (Dr. Sri Yani Purwaningsih)
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Terbilang -->
+                <div class="flex">
+                    <div class="w-1/4 pt-2">
+                        <p class="font-bold text-gray-700">Banyaknya Uang</p>
+                        <p class="text-xs text-gray-500 italic">
+                            Amount in Words
+                        </p>
+                    </div>
+                    <div
+                        class="w-3/4 bg-gray-100 p-3 rounded border border-gray-300 italic font-medium text-gray-700"
+                    >
+                        # Sepuluh Juta Rupiah #
+                    </div>
+                </div>
+
+                <!-- Guna Pembayaran -->
+                <div class="flex">
+                    <div class="w-1/4 pt-2">
+                        <p class="font-bold text-gray-700">Untuk Pembayaran</p>
+                        <p class="text-xs text-gray-500 italic">
+                            In Payment Of
+                        </p>
+                    </div>
+                    <div class="w-3/4 border-b-2 border-gray-300 pb-2">
+                        <p class="text-gray-800 px-2 leading-relaxed">
+                            Pelunasan Invoice #INV-2025-027 untuk Layanan Sistem
+                            Cloud Computing (Sewa Drive, Hosting, & Domain 1
+                            Tahun).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer: Jumlah Angka & Tanda Tangan -->
+            <div class="flex justify-between items-end mt-12 pt-4">
+                <!-- Kotak Angka -->
+                <div class="relative">
+                    <div
+                        class="absolute -top-3 left-4 bg-white px-2 text-xs font-bold text-indigo-900"
+                    >
+                        JUMLAH (IDR)
+                    </div>
+                    <div
+                        class="border-2 border-indigo-900 rounded-lg px-6 py-3 bg-indigo-50 shadow-sm"
+                    >
+                        <span class="text-2xl font-bold text-gray-900"
+                            >Rp 10.000.000,-</span
+                        >
+                    </div>
+                </div>
+
+                <!-- Tanda Tangan -->
+                <div class="text-center w-64">
+                    <p class="text-sm text-gray-600">
+                        Pamekasan, 29 Desember 2025
+                    </p>
+
+                    <!-- Spasi TTD -->
+                    <div class="h-20"></div>
+
+                    <p class="font-bold text-gray-800 uppercase">HOIRIYAH</p>
+
+                    <!-- Garis TTD -->
+                    <div class="border-b border-gray-400 mb-2"></div>
+
+                    <p class="font-bold text-gray-800 uppercase">
+                        PT. UNGGUL MEDITATAMA INDONESIA
+                    </p>
+                    <p class="text-xs text-gray-500">( Finance Dept )</p>
+                </div>
+            </div>
+
+            <!-- Footer Note -->
+            <div class="mt-12 text-center border-t border-gray-200 pt-4">
+                <p class="text-xs text-gray-400 italic">
+                    Dokumen ini adalah bukti pembayaran yang sah.
+                </p>
+            </div>
+
+            <!-- Tombol Print -->
+            <div class="mt-8 text-center no-print">
+                <button
+                    onclick="printPDF()"
+                    class="bg-gray-800 text-white px-6 py-2 rounded-full hover:bg-gray-700 transition font-medium text-sm"
+                >
+                    <i class="fas fa-print mr-2"></i> Cetak Kwitansi
+                </button>
+            </div>
+        </div>
+        <script>
+            function printPDF() {
+                window.print();
+            }
+        </script>
+    </body>
+</html>
