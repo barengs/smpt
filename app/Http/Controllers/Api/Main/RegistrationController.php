@@ -204,7 +204,7 @@ class RegistrationController extends Controller
     public function show(string $id)
     {
         try {
-            $data = Registration::with(['parent.occupation', 'parent.education', 'files'])->findOrFail($id);
+            $data = Registration::with(['parent.occupation', 'parent.education', 'files', 'program'])->findOrFail($id);
             $data->photo_url = Storage::url($data->photo);
             return new RegistrationResource('Data found', $data, 200);
         } catch (\Throwable $th) {

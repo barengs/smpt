@@ -16,7 +16,7 @@ class Registration extends Model
 
     public function program()
     {
-        return $this->belongsTo(Program::class, 'program_id');
+        return $this->belongsTo(Program::class, 'program_id', 'id');
     }
 
     public function files()
