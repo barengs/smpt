@@ -71,7 +71,7 @@ class RegistrationController extends Controller
     public function index()
     {
         try {
-            $registrations = Registration::with(['parent', 'program'])
+            $registrations = Registration::with(['parent.occupation', 'parent.education', 'program'])
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
@@ -184,7 +184,7 @@ class RegistrationController extends Controller
 
             DB::commit();
 
-            return new RegistrationResource('Registration successful', $registration->load('parent'), 201);
+            return new RegistrationResource('Registration successful', $registration->load(['parent.occupation', 'parent.education']), 201);
         } catch (ValidationException $e) {
             return response()->json([
                 'message' => 'Validation error',
@@ -204,7 +204,7 @@ class RegistrationController extends Controller
     public function show(string $id)
     {
         try {
-            $data = Registration::with(['parent', 'files'])->findOrFail($id);
+            $data = Registration::with(['parent.occupation', 'parent.education', 'files'])->findOrFail($id);
             $data->photo_url = Storage::url($data->photo);
             return new RegistrationResource('Data found', $data, 200);
         } catch (\Throwable $th) {
@@ -309,7 +309,7 @@ class RegistrationController extends Controller
 
             DB::commit();
 
-            return new RegistrationResource('Registration updated successfully', $registration->load('parent'), 200);
+            return new RegistrationResource('Registration updated successfully', $registration->load(['parent.occupation', 'parent.education']), 200);
         } catch (ModelNotFoundException $e) {
             DB::rollBack();
             return response()->json(['message' => 'Registration not found'], 404);
@@ -342,7 +342,7 @@ class RegistrationController extends Controller
     public function getByCurrentYear()
     {
         try {
-            $registrations = Registration::with('parent')
+            $registrations = Registration::with(['parent.occupation', 'parent.education'])
                 ->whereYear('created_at', date('Y'))
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
