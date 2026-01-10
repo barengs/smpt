@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Spatie\Permission\Models\Role as SpatieRole;
-use App\Models\Menu;
 
 class Role extends SpatieRole
 {
+    /**
+     * Get menus associated with this role.
+     */
     public function menus()
     {
         return $this->belongsToMany(
