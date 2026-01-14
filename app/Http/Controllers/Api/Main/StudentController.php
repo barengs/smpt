@@ -582,4 +582,14 @@ class StudentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Export students data to CSV
+     * 
+     * @response 200 Binary file download
+     */
+    public function export()
+    {
+        return Excel::download(new \App\Exports\StudentsExport, 'students_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }
