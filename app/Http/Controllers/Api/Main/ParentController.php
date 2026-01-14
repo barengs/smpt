@@ -159,7 +159,7 @@ class ParentController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'nik' => 'required|string|max:16', // Not unique anymore since we're updating
+            'nik' => 'required|string|max:16',
             'kk' => 'required|string|max:16',
             'gender' => 'required|in:L,P',
             'parent_as' => 'required|in:ayah,ibu',
@@ -177,8 +177,10 @@ class ParentController extends Controller
 
         try {
             // Find the user and parent profile
-            $user = User::whereHas('parent')->where('id', $id)->firstOrFail();
+            $user = User::whereHas('parent')->with('parent')->where('id', $id)->firstOrFail();
             $parentProfile = $user->parent;
+            $oldNik = $parentProfile->nik;
+            $newNik = $request->nik;
 
             // Check if KK already exists for another parent
             $ifKKExist = ParentProfile::where('kk', $request->kk)->where('id', '!=', $parentProfile->id)->first();
@@ -192,11 +194,28 @@ class ParentController extends Controller
                 return new ParentResource('NIK sudah digunakan oleh orang tua lain', null, 409);
             }
 
-            // Update user data
-            $user->update([
-                'name' => $request->first_name,
-                'email' => $request->email,
-            ]);
+            // Determine Email Logic
+            // If the current User email matches the OLD NIK, it means they are using NIK as username.
+            // We should update it to the NEW NIK.
+            if ($user->email === $oldNik) {
+                 // Check if new NIK is already used as email by another user
+                 if (User::where('email', $newNik)->where('id', '!=', $user->id)->exists()) {
+                     return response()->json(['message' => 'NIK (Username) sudah digunakan oleh pengguna lain'], 409);
+                 }
+                 $user->email = $newNik;
+            }
+
+            // If request has explicit email, it overrides (or updates if they switched from NIK to email)
+            if ($request->filled('email') && $request->email !== $user->email) {
+                 // Check uniqueness
+                 if (User::where('email', $request->email)->where('id', '!=', $user->id)->exists()) {
+                     return response()->json(['message' => 'Email sudah digunakan oleh pengguna lain'], 409);
+                 }
+                 $user->email = $request->email;
+            }
+
+            $user->name = $request->first_name;
+            $user->save();
 
             // Handle photo upload
             $photoPath = $parentProfile->photo; // Keep existing photo by default
@@ -223,7 +242,7 @@ class ParentController extends Controller
                 'card_address' => $request->card_address,
                 'domicile_address' => $request->domicile_address,
                 'phone' => $request->phone,
-                'email' => $request->email,
+                'email' => $request->email, // This is contact email in profile, separate from User login
                 'occupation_id' => $request->occupation_id,
                 'education_id' => $request->education_id,
                 'photo' => $photoPath,
