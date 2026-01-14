@@ -357,7 +357,8 @@ class StudentController extends Controller
      * Update Student Photo
      *
      * Upload or replace the profile photo for a specific student.
-     * This endpoint handles image validation, resizing (800x800px), and cleanup of old photos.
+     * The system automatically converts any uploaded image (JPEG, PNG, GIF) to **WebP** format
+     * and resizes it to 800x800px.
      *
      * @param Request $request
      * @param string $id Student ID
@@ -370,7 +371,7 @@ class StudentController extends Controller
      *   "data": {
      *     "id": 1,
      *     "first_name": "Ahmad",
-     *     "photo": "students/photos/1700000000_profile.jpg"
+     *     "photo": "students/photos/1700000000_profile.webp"
      *   }
      * }
      *
@@ -408,15 +409,17 @@ class StudentController extends Controller
                 // Upload and resize new photo using Intervention Image
                 $image = new ImageManager(new Driver());
                 $photo = $request->file('photo');
-                $filename = time() . '_' . $photo->getClientOriginalName();
+                
+                // Generate filename with .webp extension
+                $filename = time() . '_' . pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';
 
                 $resizedImage = $image->read($photo->getRealPath());
                 // Resize image to a maximum of 800x800 while preserving aspect ratio
                 $resizedImage->cover(800, 800, 'center');
                 
-                // Store in specific directory
+                // Store in specific directory as WebP
                 $path = 'students/photos/' . $filename;
-                Storage::disk('public')->put($path, (string) $resizedImage->encode());
+                Storage::disk('public')->put($path, (string) $resizedImage->toWebp(80));
 
                 // Update database
                 $student->update(['photo' => $path]);
