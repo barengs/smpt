@@ -197,21 +197,27 @@ class ParentController extends Controller
             // Determine Email Logic
             // If the current User email matches the OLD NIK, it means they are using NIK as username.
             // We should update it to the NEW NIK.
+            $isNikSynced = false;
             if ($user->email === $oldNik) {
                  // Check if new NIK is already used as email by another user
                  if (User::where('email', $newNik)->where('id', '!=', $user->id)->exists()) {
                      return response()->json(['message' => 'NIK (Username) sudah digunakan oleh pengguna lain'], 409);
                  }
                  $user->email = $newNik;
+                 $isNikSynced = true;
             }
 
             // If request has explicit email, it overrides (or updates if they switched from NIK to email)
+            // BUT: If we just synced NIK, and the request email is the OLD NIK (form value), ignore it.
             if ($request->filled('email') && $request->email !== $user->email) {
-                 // Check uniqueness
-                 if (User::where('email', $request->email)->where('id', '!=', $user->id)->exists()) {
-                     return response()->json(['message' => 'Email sudah digunakan oleh pengguna lain'], 409);
+                 // If we synced NIK, and the request tries to set it back to Old NIK, skip this block
+                 if (!($isNikSynced && $request->email === $oldNik)) {
+                     // Check uniqueness
+                     if (User::where('email', $request->email)->where('id', '!=', $user->id)->exists()) {
+                         return response()->json(['message' => 'Email sudah digunakan oleh pengguna lain'], 409);
+                     }
+                     $user->email = $request->email;
                  }
-                 $user->email = $request->email;
             }
 
             $user->name = $request->first_name;
