@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\StudentViolationsReportExport;
 use Exception;
 
 class StudentViolationController extends Controller
@@ -435,4 +437,43 @@ class StudentViolationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Download violation report
+     *
+     * Query:
+     * - period: enum(daily, weekly, monthly, custom) (optional, default: monthly)
+     * - date_from: date (required if period=custom)
+     * - date_to: date (required if period=custom)
+     * - student_id: integer (optional)
+     * - status: enum(pending, verified, processed, cancelled) (optional)
+     * - academic_year_id: integer (optional)
+     */
+    public function downloadReport(Request $request)
+    {
+        try {
+            $period = $request->input('period', 'monthly');
+            $dateFrom = $request->input('date_from');
+            $dateTo = $request->input('date_to');
+
+            // Filters
+            $filters = [
+                'student_id' => $request->student_id,
+                'status' => $request->status,
+                'academic_year_id' => $request->academic_year_id,
+            ];
+
+            return Excel::download(
+                new StudentViolationsReportExport($filters, $period, $dateFrom, $dateTo),
+                'laporan_pelanggaran_' . time() . '.xlsx'
+            );
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh laporan',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
+
