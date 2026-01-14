@@ -851,6 +851,26 @@ class StaffController extends Controller
     }
 
     /**
+     * Export staff data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return Excel::download(new \App\Exports\StaffReadableExport, 'laporan_staf_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup staff data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return Excel::download(new \App\Exports\StaffBackupExport, 'backup_staf_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    /**
      * Download Excel template for staff import
      *
      * Downloads a pre-formatted Excel template file (.xlsx) with:
