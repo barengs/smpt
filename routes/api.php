@@ -272,6 +272,7 @@ Route::group(['prefix' => 'main'], function () {
     // Student
     Route::post('student/import', [StudentController::class, 'import']);
     Route::get('student/export', [StudentController::class, 'export']);
+    Route::get('student/backup', [StudentController::class, 'backup']);
     Route::get('student/import/template', [StudentController::class, 'downloadTemplate']);
     Route::post('student/{id}/room/assign', [StudentController::class, 'assignRoom']);
     Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
