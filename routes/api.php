@@ -275,6 +275,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('student/{id}/room/assign', [StudentController::class, 'assignRoom']);
     Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
     Route::apiResource('student', StudentController::class);
+    Route::post('student/{id}/update-photo', [StudentController::class, 'updatePhoto'])->name('student.update-photo');
 
     // Parent
     Route::post('parent/import', [ParentController::class, 'import']);

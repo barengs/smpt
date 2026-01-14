@@ -354,6 +354,100 @@ class StudentController extends Controller
     }
 
     /**
+     * Update Student Photo
+     *
+     * Upload or replace the profile photo for a specific student.
+     * This endpoint handles image validation, resizing (800x800px), and cleanup of old photos.
+     *
+     * @param Request $request
+     * @param string $id Student ID
+     *
+     * @bodyParam photo file required The image file to upload. Max size: 2MB. Allowed formats: jpeg, png, jpg, gif.
+     *
+     * @response 200 {
+     *   "success": true,
+     *   "message": "Foto berhasil diperbarui",
+     *   "data": {
+     *     "id": 1,
+     *     "first_name": "Ahmad",
+     *     "photo": "students/photos/1700000000_profile.jpg"
+     *   }
+     * }
+     *
+     * @response 422 {
+     *   "success": false,
+     *   "message": "Validasi gagal",
+     *   "errors": {
+     *     "photo": ["The photo field must be an image."]
+     *   }
+     * }
+     */
+    public function updatePhoto(Request $request, string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+
+            $validator = Validator::make($request->all(), [
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            if ($request->hasFile('photo')) {
+                // Delete old photo if it exists
+                if ($student->photo && Storage::disk('public')->exists($student->photo)) {
+                    Storage::disk('public')->delete($student->photo);
+                }
+
+                // Upload and resize new photo using Intervention Image
+                $image = new ImageManager(new Driver());
+                $photo = $request->file('photo');
+                $filename = time() . '_' . $photo->getClientOriginalName();
+
+                $resizedImage = $image->read($photo->getRealPath());
+                // Resize image to a maximum of 800x800 while preserving aspect ratio
+                $resizedImage->cover(800, 800, 'center');
+                
+                // Store in specific directory
+                $path = 'students/photos/' . $filename;
+                Storage::disk('public')->put($path, (string) $resizedImage->encode());
+
+                // Update database
+                $student->update(['photo' => $path]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Foto berhasil diperbarui',
+                    'data' => $student
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada file foto yang diunggah'
+            ], 400);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Siswa tidak ditemukan'
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui foto',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Import students from Excel or CSV file
      *
      * This endpoint allows batch importing of student data from Excel (.xlsx, .xls) or CSV files.
