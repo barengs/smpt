@@ -255,6 +255,9 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('staff', StaffController::class);
     Route::get('staff/teachers/roles', [StaffController::class, 'getStaffByRoles'])->name('staff.by-roles');
     Route::get('staff/teachers/roles/{id}', [StaffController::class, 'getStaffByRolesById'])->name('staff.by-roles.id');
+    Route::get('staff/by-category/{category}', [StaffController::class, 'getStaffByCategory'])->name('staff.by-category');
+    Route::get('staff/role-categories', [StaffController::class, 'getRoleCategories'])->name('staff.role-categories');
+    Route::post('roles/{id}/sync-access', [RoleMenuController::class, 'syncRoleAccess'])->name('roles.sync-access');
     Route::post('staff/check-nik', [StaffController::class, 'checkNik'])->name('staff.check-nik');
 
     Route::post('/{id}/restore', [StaffController::class, 'restore']);

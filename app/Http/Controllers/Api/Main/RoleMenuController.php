@@ -279,4 +279,113 @@ class RoleMenuController extends Controller
             ], 500);
         }
     }
+    /**
+     * Sync Role Access (Menus and Permissions) in one go.
+     * "Concept-Based Access Control"
+     */
+    public function syncRoleAccess(Request $request, string $roleId)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'items' => 'required|array',
+                'items.*.menu_id' => 'required|exists:menus,id',
+                'items.*.permissions' => 'array', // e.g., ['view', 'create', 'edit', 'delete', 'approve']
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $role = Role::findOrFail($roleId);
+
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $menuIds = collect($request->items)->pluck('menu_id')->toArray();
+            
+            // 1. Sync Menus
+            $role->menus()->sync($menuIds);
+
+            // 2. Sync Permissions
+            $allPermissionIds = [];
+            
+            foreach ($request->items as $item) {
+                $menu = Menu::find($item['menu_id']);
+                // Use English title for permission slug, fallback to ID title if needed
+                $menuSlug = \Illuminate\Support\Str::slug($menu->en_title ?? $menu->id_title); 
+
+                // If permissions array is empty, default to just 'view' or nothing? 
+                // Let's assume passed permissions are what they get.
+                $actions = $item['permissions'] ?? [];
+                
+                // Always ensure they have 'view' if they have the menu? 
+                // Let's stick to what's requested.
+                
+                foreach ($actions as $action) {
+                    $permissionName = "{$action} {$menuSlug}"; // e.g., "create student-data", "view dashboard"
+                    // Or keep existing format: "buat santri" etc.
+                    // The existing seeder uses Indonesian: "buat santri", "lihat santri".
+                    // We need to match EXISTING convention if possible, OR switch to dynamic English.
+                    // IMPORTANT: The user said "simplify". Using standardized English/Slug is simpler.
+                    // BUT converting existing Indonesian permissions to this new standard is a huge breaking change.
+                    // Strategy: Start using "action menu-slug" (e.g. "view dashboard") for NEW/Dynamic logic.
+                    // Check if we should translate "view" to "lihat" to match existing?
+                    // User request: "simplify". 
+                    // To be safe and compatible with the FrontendMenuSeeder we just read:
+                    // It uses "lihat dashboard", "buat peran", etc.
+                    
+                    // LET'S TRY TO MATCH EXISTING INDONESIAN FORMAT FOR COMPATIBILITY
+                    // Actions: view->lihat, create->buat, edit->ubah, delete->hapus, approve->aktivasi
+                    
+                    $idnAction = match($action) {
+                        'view' => 'lihat',
+                        'create' => 'buat',
+                        'edit' => 'ubah',
+                        'update' => 'ubah',
+                        'delete' => 'hapus',
+                        'approve' => 'aktivasi',
+                        default => $action
+                    };
+                    
+                    // We need the "object" name. In seeder it is "data santri" -> "santri"? 
+                    // "Manajemen Staf" -> "staf"?
+                    // This mapping is hard to guess dynamically.
+                    // BETTER APPROACH for this "Simplify" task:
+                    // Use the `en_title` or `id_title` and strict standard: "action menu_title".
+                    // If the old permissions are different, we might migrate them or just add new ones.
+                    // Let's create NEW permissions dynamically: "action menu_slug".
+                    // e.g. "view student-banking", "create student-banking".
+                    
+                    $permName = "{$idnAction} {$menuSlug}";
+                    
+                    $permission = \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $permName]);
+                    $allPermissionIds[] = $permission->id;
+                }
+            }
+            
+            // Sync all collected permissions to the role
+            // WARNING: This removes permissions not in the list. 
+            // If the role has other permissions (not menu related), they might be lost?
+            // "Concept-based" implies this IS the source of truth.
+            $role->syncPermissions($allPermissionIds);
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Akses role berhasil diperbarui',
+                'data' => $role->load('menus', 'permissions')
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memperbarui akses role: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

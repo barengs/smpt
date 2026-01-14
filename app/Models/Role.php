@@ -18,4 +18,16 @@ class Role extends SpatieRole
             'menu_id'
         );
     }
+
+    /**
+     * Scope a query to only include roles of a given category.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $category
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
 }

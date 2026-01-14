@@ -612,6 +612,53 @@ class StaffController extends Controller
     }
 
     /**
+     * Get staff members by role category.
+     *
+     * @param string $category
+     * @return \App\Http\Resources\StaffResource
+     */
+    public function getStaffByCategory(string $category)
+    {
+        try {
+            // Find roles with the given category
+            $roleNames = \App\Models\Role::byCategory($category)->pluck('name');
+
+            if ($roleNames->isEmpty()) {
+                return new StaffResource('No roles found for this category', [], 200);
+            }
+
+            $data = User::whereHas('staff')
+                ->whereHas('roles', function ($query) use ($roleNames) {
+                    $query->whereIn('name', $roleNames);
+                })
+                ->with(['staff', 'roles'])
+                ->get();
+
+            return new StaffResource('Data fetched successfully', $data, 200);
+        } catch (Exception $e) {
+            return new StaffResource('An error occurred', ['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get list of available role categories.
+     *
+     * @return \App\Http\Resources\StaffResource
+     */
+    public function getRoleCategories()
+    {
+        try {
+            $categories = \App\Models\Role::whereNotNull('category')
+                ->distinct()
+                ->pluck('category');
+
+            return new StaffResource('Categories fetched successfully', $categories, 200);
+        } catch (Exception $e) {
+            return new StaffResource('An error occurred', ['message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get a single staff member by ID with specific roles (asatidz and walikelas only).
      */
     public function getStaffByRolesById(string $id)
