@@ -103,6 +103,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('program', ProgramController::class);
     Route::get('study/trashed', [StudyController::class, 'trashed']);
     Route::post('study/{id}/restore', [StudyController::class, 'restore']);
+    Route::get('study/export', [StudyController::class, 'export']);
+    Route::get('study/backup', [StudyController::class, 'backup']);
     Route::apiResource('study', StudyController::class);
     Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
     Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);
