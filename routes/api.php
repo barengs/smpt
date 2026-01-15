@@ -253,6 +253,8 @@ Route::group(['prefix' => 'main'], function () {
 
     // Staff routes
     Route::post('staff/import', [StaffController::class, 'import']);
+    Route::get('staff/export', [StaffController::class, 'export']);
+    Route::get('staff/backup', [StaffController::class, 'backup']);
     Route::get('staff/import/template', [StaffController::class, 'downloadTemplate']);
     Route::apiResource('staff', StaffController::class);
     Route::get('staff/teachers/roles', [StaffController::class, 'getStaffByRoles'])->name('staff.by-roles');
