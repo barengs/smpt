@@ -77,4 +77,24 @@ class ClassroomController extends Controller
             return response()->json(new ClassroomResource('Gagal menghapus kelas', null, 500), 500);
         }
     }
+
+    /**
+     * Export classroom data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ClassroomReadableExport, 'laporan_kelas_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup classroom data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ClassroomBackupExport, 'backup_kelas_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }

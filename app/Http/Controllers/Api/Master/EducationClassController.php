@@ -94,4 +94,24 @@ class EducationClassController extends Controller
             return response()->json(new EducationClassResource('Gagal menghapus kelas pendidikan', null, 500), 500);
         }
     }
+
+    /**
+     * Export education class data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationClassReadableExport, 'laporan_kelompok_pendidikan_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup education class data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationClassBackupExport, 'backup_kelompok_pendidikan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }

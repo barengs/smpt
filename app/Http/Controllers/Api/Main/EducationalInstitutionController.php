@@ -96,12 +96,45 @@ class EducationalInstitutionController extends Controller
 
             DB::commit();
             return new EducationalInstitutionResource('Institusi pendidikan berhasil dihapus', null, 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollback(); // Added rollback for QueryException
+            Log::error('Error deleting educational institution (QueryException): ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus institusi pendidikan',
+                'error' => $e->getMessage()
+            ], 500);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) { // Re-added ModelNotFoundException
+            DB::rollback(); // Added rollback
             return new EducationalInstitutionResource('Institusi pendidikan tidak ditemukan', null, 404);
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Error deleting educational institution: ' . $e->getMessage());
-            return new EducationalInstitutionResource('Gagal menghapus institusi pendidikan', null, 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat menghapus institusi pendidikan',
+                'error' => $e->getMessage()
+            ], 500);
         }
+    }
+
+    /**
+     * Export educational institution data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationalInstitutionReadableExport, 'laporan_institusi_pendidikan_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup educational institution data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationalInstitutionBackupExport, 'backup_institusi_pendidikan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 }

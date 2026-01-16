@@ -434,4 +434,24 @@ class ClassScheduleController extends Controller
 
         return $startDate->copy()->addDays($daysToAdd);
     }
+
+    /**
+     * Export class schedule data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ClassScheduleReadableExport, 'laporan_jadwal_pelajaran_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup class schedule data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\ClassScheduleBackupExport, 'backup_jadwal_pelajaran_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }

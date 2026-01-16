@@ -114,9 +114,13 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('class-group/details', [ClassGroupController::class, 'getClassGroupsWithDetails']);
     Route::post('class-group/{id}/assign-advisor', [ClassGroupController::class, 'assignAdvisor']);
     Route::post('class-group/{id}/remove-advisor', [ClassGroupController::class, 'removeAdvisor']);
+    Route::get('class-group/export', [ClassGroupController::class, 'export']);
+    Route::get('class-group/backup', [ClassGroupController::class, 'backup']);
     Route::apiResource('class-group', ClassGroupController::class);
     Route::get('education/trashed', [EducationController::class, 'trashed']);
     Route::post('education/{id}/restore', [EducationController::class, 'restore']);
+    Route::get('education/export', [EducationController::class, 'export']);
+    Route::get('education/backup', [EducationController::class, 'backup']);
     Route::apiResource('education', EducationController::class);
     Route::get('education-type/trashed', [EducationTypeController::class, 'trashed']);
     Route::apiResource('education-type', EducationTypeController::class);
@@ -124,6 +128,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('academic-year/trashed', [AcademicYearController::class, 'trashed']);
     Route::post('academic-year/{id}/restore', [AcademicYearController::class, 'restore']);
     Route::get('academic-year/active', [AcademicYearController::class, 'showActiveAcademic'])->name('academic-year.active');
+    Route::get('academic-year/export', [AcademicYearController::class, 'export']);
+    Route::get('academic-year/backup', [AcademicYearController::class, 'backup']);
     Route::apiResource('academic-year', AcademicYearController::class);
     Route::get('occupation/trashed', [OccupationController::class, 'trashed']);
     Route::post('occupation/{id}/restore', [OccupationController::class, 'restore']);
@@ -140,6 +146,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('lesson-hour', LessonHourController::class);
     Route::get('room/trashed', [RoomController::class, 'trashed']);
     Route::post('room/{id}/restore', [RoomController::class, 'restore']);
+    Route::get('room/export', [RoomController::class, 'export']);
+    Route::get('room/backup', [RoomController::class, 'backup']);
     Route::apiResource('room', RoomController::class);
     Route::get('supervisor/trashed', [IntershipSupervisorController::class, 'trashed']);
     Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
@@ -148,9 +156,15 @@ Route::group(['prefix' => 'master'], function () {
     Route::post('hostel/{id}/assign-head', [HostelController::class, 'assignHead']);
     Route::get('hostel/{id}/head/current', [HostelController::class, 'currentHead']);
     Route::get('hostel/{id}/head/history', [HostelController::class, 'headHistory']);
+    Route::get('hostel/export', [HostelController::class, 'export']);
+    Route::get('hostel/backup', [HostelController::class, 'backup']);
     Route::apiResource('hostel', HostelController::class);
+    Route::get('classroom/export', [ClassroomController::class, 'export']);
+    Route::get('classroom/backup', [ClassroomController::class, 'backup']);
     Route::apiResource('classroom', ClassroomController::class);
     Route::apiResource('class-group', ClassGroupController::class);
+    Route::get('education-class/export', [EducationClassController::class, 'export']);
+    Route::get('education-class/backup', [EducationClassController::class, 'backup']);
     Route::apiResource('education-class', EducationClassController::class);
     // Control Panel routes
     Route::get('control-panel', [ConrolPanelController::class, 'index']);
@@ -294,6 +308,9 @@ Route::group(['prefix' => 'main'], function () {
         ->name('parent.getByNik');
 
     // Class Schedule
+    // Class Schedule
+    Route::get('class-schedule/export', [ClassScheduleController::class, 'export']);
+    Route::get('class-schedule/backup', [ClassScheduleController::class, 'backup']);
     Route::apiResource('class-schedule', ClassScheduleController::class);
 
     // Student Class
@@ -304,6 +321,8 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('student-class', StudentClassController::class);
 
     // Educational Institution
+    Route::get('educational-institution/export', [EducationalInstitutionController::class, 'export']);
+    Route::get('educational-institution/backup', [EducationalInstitutionController::class, 'backup']);
     Route::apiResource('educational-institution', EducationalInstitutionController::class);
 
     // Internship
