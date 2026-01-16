@@ -45,7 +45,7 @@ class MenuController extends Controller
         try {
             $maxOrder = Menu::max('order') ?? 0;
             $menu = Menu::create([
-                'id_title' => $request->title,
+                'id_title' => $request->id_title,
                 'en_title' => $request->en_title,
                 'ar_title' => $request->ar_title,
                 'description' => $request->description,
@@ -100,7 +100,7 @@ class MenuController extends Controller
         try {
             $menu = Menu::findOrFail($id);
             $menu->update([
-                'id_title' => $request->title,
+                'id_title' => $request->id_title,
                 'en_title' => $request->en_title,
                 'ar_title' => $request->ar_title,
                 'description' => $request->description,
