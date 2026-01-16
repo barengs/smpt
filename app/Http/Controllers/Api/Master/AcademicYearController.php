@@ -143,4 +143,24 @@ class AcademicYearController extends Controller
             return new AcademicYearResource('Gagal memulihkan tahun ajaran', null, 500);
         }
     }
+
+    /**
+     * Export academic year data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AcademicYearReadableExport, 'laporan_tahun_ajaran_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup academic year data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\AcademicYearBackupExport, 'backup_tahun_ajaran_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }

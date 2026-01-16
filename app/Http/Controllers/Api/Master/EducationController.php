@@ -281,4 +281,24 @@ class EducationController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Export education data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationReadableExport, 'laporan_pendidikan_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup education data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationBackupExport, 'backup_pendidikan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }
