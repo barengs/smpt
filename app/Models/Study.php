@@ -14,6 +14,6 @@ class Study extends Model
 
     public function staff()
     {
-        return $this->belongsToMany(Staff::class, 'study_staff', 'study_id', 'staff_id');
+        return $this->belongsToMany(Staff::class, 'staff_studies', 'study_id', 'staff_id');
     }
 }
