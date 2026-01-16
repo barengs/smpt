@@ -308,6 +308,9 @@ Route::group(['prefix' => 'main'], function () {
         ->name('parent.getByNik');
 
     // Class Schedule
+    // Class Schedule
+    Route::get('class-schedule/export', [ClassScheduleController::class, 'export']);
+    Route::get('class-schedule/backup', [ClassScheduleController::class, 'backup']);
     Route::apiResource('class-schedule', ClassScheduleController::class);
 
     // Student Class
