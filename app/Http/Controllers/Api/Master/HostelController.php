@@ -386,4 +386,24 @@ class HostelController extends Controller
             return response()->json(new HostelResource('Gagal mengambil data staff Kepala Asrama', null, 500), 500);
         }
     }
+
+    /**
+     * Export hostel data to Excel (Readable)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function export()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\HostelReadableExport, 'laporan_asrama_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+    }
+
+    /**
+     * Backup hostel data to CSV (Raw)
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function backup()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\HostelBackupExport, 'backup_asrama_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
 }

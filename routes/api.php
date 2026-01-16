@@ -140,6 +140,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('lesson-hour', LessonHourController::class);
     Route::get('room/trashed', [RoomController::class, 'trashed']);
     Route::post('room/{id}/restore', [RoomController::class, 'restore']);
+    Route::get('room/export', [RoomController::class, 'export']);
+    Route::get('room/backup', [RoomController::class, 'backup']);
     Route::apiResource('room', RoomController::class);
     Route::get('supervisor/trashed', [IntershipSupervisorController::class, 'trashed']);
     Route::post('supervisor/{id}/restore', [IntershipSupervisorController::class, 'restore']);
@@ -148,6 +150,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::post('hostel/{id}/assign-head', [HostelController::class, 'assignHead']);
     Route::get('hostel/{id}/head/current', [HostelController::class, 'currentHead']);
     Route::get('hostel/{id}/head/history', [HostelController::class, 'headHistory']);
+    Route::get('hostel/export', [HostelController::class, 'export']);
+    Route::get('hostel/backup', [HostelController::class, 'backup']);
     Route::apiResource('hostel', HostelController::class);
     Route::apiResource('classroom', ClassroomController::class);
     Route::apiResource('class-group', ClassGroupController::class);
