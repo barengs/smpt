@@ -53,4 +53,14 @@ class Student extends Model
                     ->wherePivot('is_active', true)
                     ->withPivot(['id', 'academic_year_id', 'start_date', 'end_date', 'is_active', 'notes', 'created_at', 'updated_at']);
     }
+
+    public function studentCards()
+    {
+        return $this->hasMany(StudentCard::class);
+    }
+
+    public function activeStudentCard()
+    {
+        return $this->hasOne(StudentCard::class)->where('is_active', true);
+    }
 }

@@ -40,6 +40,8 @@ use App\Http\Controllers\Api\Main\RoleController;
 use App\Http\Controllers\Api\Main\PermissionController;
 use App\Http\Controllers\Api\Main\StaffController;
 use App\Http\Controllers\Api\Main\StudentController;
+use App\Http\Controllers\Api\Main\StudentCardController;
+use App\Http\Controllers\Api\Main\StudentCardSettingController;
 use App\Http\Controllers\Api\Main\ParentController;
 use App\Http\Controllers\Api\Main\ClassScheduleController;
 use App\Http\Controllers\Api\Main\StudentClassController;
@@ -299,6 +301,17 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
     Route::apiResource('student', StudentController::class);
     Route::post('student/{id}/update-photo', [StudentController::class, 'updatePhoto'])->name('student.update-photo');
+
+    // Student Card
+    Route::get('student/{id}/cards', [StudentCardController::class, 'index']); // History by Student ID
+    Route::get('student/card/{id}', [StudentCardController::class, 'show']);   // Specific Card Detail
+    Route::post('student/card', [StudentCardController::class, 'store']);
+    Route::put('student/card/{id}/deactivate', [StudentCardController::class, 'deactivate']);
+    Route::delete('student/card/{id}', [StudentCardController::class, 'destroy']);
+    
+    // Student Card Configuration
+    Route::get('student-card/setting', [StudentCardSettingController::class, 'show']);
+    Route::post('student-card/setting', [StudentCardSettingController::class, 'update']);
 
     // Parent
     Route::post('parent/import', [ParentController::class, 'import']);
