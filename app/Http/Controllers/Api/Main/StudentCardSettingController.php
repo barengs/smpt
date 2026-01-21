@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
+use Intervention\Image\Laravel\Facades\Image;
+
 class StudentCardSettingController extends Controller
 {
     /**
@@ -56,24 +58,51 @@ class StudentCardSettingController extends Controller
             ], 422);
         }
 
-        $setting = StudentCardSetting::firstOrNew(['is_active' => true]);
+        // Use firstOrNew with checks, but let's assume we want to work with the active one.
+        // If multiple active exist (shouldn't happen per design), take first. 
+        // If none, create new instance.
+        $setting = StudentCardSetting::where('is_active', true)->first();
+        if (!$setting) {
+            $setting = new StudentCardSetting();
+            $setting->is_active = true;
+        }
 
         // Handle File Uploads
         $fields = ['front_template', 'back_template', 'stamp', 'signature'];
         foreach ($fields as $field) {
             if ($request->hasFile($field)) {
+                $file = $request->file($field);
+
                 // Delete old file if exists
                 if ($setting->$field && Storage::disk('public')->exists($setting->$field)) {
                     Storage::disk('public')->delete($setting->$field);
                 }
 
-                // Upload new file
-                $path = $request->file($field)->store('student-card', 'public');
+                // Generate Filename (hash + .webp)
+                $filename = $file->hashName();
+                $filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
+                $path = 'student-card/' . $filename;
+
+                // Create Image using Intervention and encode to WebP
+                // Using v3 style: Image::read($file)->toWebp() or similar.
+                // Facade in v3 might map to ImageManager.
+                // Let's use standard Image::read() if using simple facade, 
+                // or check the typical facade usage in Laravel integration.
+                // Assuming typical 'Intervention\Image\Laravel\Facades\Image' works as 'Image::read'
+                
+                $image = Image::read($file);
+                
+                // Encode to WebP
+                $encoded = $image->toWebp(80); // quality 80
+
+                // Save to storage using Laravel Storage
+                Storage::disk('public')->put($path, (string) $encoded);
+
+                // Update model
                 $setting->$field = $path;
             }
         }
 
-        $setting->is_active = true;
         $setting->save();
 
         return response()->json([
