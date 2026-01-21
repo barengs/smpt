@@ -303,6 +303,8 @@ Route::group(['prefix' => 'main'], function () {
     // Parent
     Route::post('parent/import', [ParentController::class, 'import']);
     Route::get('parent/import/template', [ParentController::class, 'downloadTemplate']);
+    Route::get('parent/export', [ParentController::class, 'export']);
+    Route::get('parent/backup', [ParentController::class, 'backup']);
     Route::apiResource('parent', ParentController::class);
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
         ->name('parent.getByNik');

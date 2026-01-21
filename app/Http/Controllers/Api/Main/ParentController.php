@@ -17,6 +17,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ParentsImport;
 use App\Exports\ParentTemplateExport;
 use Exception;
+use App\Exports\ParentReadableExport;
+use App\Exports\ParentBackupExport;
 
 /**
  * @tags Parent Management
@@ -440,6 +442,34 @@ class ParentController extends Controller
                 'message' => 'Gagal mengunduh template',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Export data parents to Excel (Human Readable)
+     *
+     * @response 200 Binary file download
+     */
+    public function export()
+    {
+        try {
+            return Excel::download(new ParentReadableExport, 'parents_export_' . date('Y-m-d_H-i-s') . '.xlsx');
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Gagal mengexport data: ' . $th->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Backup data parents to CSV/Excel (Raw Data)
+     *
+     * @response 200 Binary file download
+     */
+    public function backup()
+    {
+        try {
+            return Excel::download(new ParentBackupExport, 'parents_backup_' . date('Y-m-d_H-i-s') . '.csv');
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Gagal membackup data: ' . $th->getMessage()], 500);
         }
     }
 }
