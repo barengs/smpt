@@ -311,7 +311,7 @@ Route::group(['prefix' => 'main'], function () {
     
     // Student Card Configuration
     Route::get('student-card/setting', [StudentCardSettingController::class, 'show']);
-    Route::post('student-card/setting', [StudentCardSettingController::class, 'update']);
+    Route::match(['post', 'put'], 'student-card/setting', [StudentCardSettingController::class, 'update']);
 
     // Parent
     Route::post('parent/import', [ParentController::class, 'import']);
