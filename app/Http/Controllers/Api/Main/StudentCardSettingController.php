@@ -44,8 +44,8 @@ class StudentCardSettingController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'front_template' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'back_template' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'front_template' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'back_template' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'stamp' => 'nullable|image|mimes:jpeg,png,jpg,png|max:1024',
             'signature' => 'nullable|image|mimes:jpeg,png,jpg,png|max:1024',
         ]);
