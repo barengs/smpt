@@ -14,8 +14,7 @@ class StudentBackupExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        // No relations needed for raw data export
-        return Student::all();
+        return Student::with(['activeRoom'])->get();
     }
 
     /**
@@ -23,6 +22,12 @@ class StudentBackupExport implements FromCollection, WithHeadings, WithMapping
      */
     public function map($student): array
     {
+        // Get active room id
+        $roomId = null;
+        if ($student->activeRoom->isNotEmpty()) {
+            $roomId = $student->activeRoom->first()->id;
+        }
+
         return [
             $student->id,
             $student->nis,
@@ -42,6 +47,7 @@ class StudentBackupExport implements FromCollection, WithHeadings, WithMapping
             $student->last_education,
             $student->program_id,
             $student->hostel_id,
+            $roomId, // Added room_id
             $student->status,
             $student->period,
             $student->parent_id,
@@ -72,6 +78,7 @@ class StudentBackupExport implements FromCollection, WithHeadings, WithMapping
             'last_education',
             'program_id',
             'hostel_id',
+            'room_id', // Added room_id heading
             'status',
             'period',
             'parent_id',

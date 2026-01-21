@@ -16,7 +16,7 @@ class StudentReadableExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        return Student::with(['program', 'hostel', 'parents', 'village'])->get();
+        return Student::with(['program', 'hostel', 'parents', 'village', 'activeRoom'])->get();
     }
 
     /**
@@ -24,6 +24,12 @@ class StudentReadableExport implements FromCollection, WithHeadings, WithMapping
      */
     public function map($student): array
     {
+        // Get active room name if exists
+        $roomName = '-';
+        if ($student->activeRoom->isNotEmpty()) {
+            $roomName = $student->activeRoom->first()->name;
+        }
+
         return [
             $student->nis,
             $student->first_name . ' ' . $student->last_name,
@@ -31,6 +37,7 @@ class StudentReadableExport implements FromCollection, WithHeadings, WithMapping
             $student->born_in . ', ' . ($student->born_at ? $student->born_at->format('d-m-Y') : '-'),
             $student->program ? $student->program->name : '-',
             $student->hostel ? $student->hostel->name : '-',
+            $roomName, // Added Room
             $student->status,
             $student->address . ', ' . ($student->village ? $student->village : '-'),
             $student->parents ? $student->parents->father_name : '-',
@@ -47,6 +54,7 @@ class StudentReadableExport implements FromCollection, WithHeadings, WithMapping
             'TTL',
             'Program Pendidikan',
             'Asrama',
+            'Kamar', // Added Heading
             'Status',
             'Alamat',
             'Nama Ayah/Wali',

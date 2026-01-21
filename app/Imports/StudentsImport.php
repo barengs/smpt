@@ -6,7 +6,7 @@ use App\Models\Student;
 use App\Models\Program;
 use App\Models\Hostel;
 use App\Models\ParentProfile;
-use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\SkipsOnError;
@@ -17,9 +17,10 @@ use Maatwebsite\Excel\Validators\Failure;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class StudentsImport implements
-    ToModel,
+    ToCollection,
     WithHeadingRow,
     WithValidation,
     SkipsOnError,
@@ -33,14 +34,6 @@ class StudentsImport implements
 
     /**
      * Clean numeric string field from Excel
-     *
-     * Handles cases where:
-     * - Excel stores numbers in scientific notation (e.g., 3.5280615E+15)
-     * - User prefixes with apostrophe to prevent scientific notation (e.g., '3528061508860021)
-     * - Value contains leading/trailing whitespace
-     *
-     * @param mixed $value
-     * @return string|null
      */
     private function cleanNumericString($value): ?string
     {
@@ -89,64 +82,92 @@ class StudentsImport implements
     }
 
     /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @param \Illuminate\Support\Collection $rows
      */
-    public function model(array $row)
+    public function collection(\Illuminate\Support\Collection $rows)
     {
-        try {
-            // Clean numeric string fields to handle:
-            // - Excel scientific notation (3.5280615E+15)
-            // - Leading apostrophe ('3528061508860021)
-            // - Whitespace issues
-            $nis = $this->cleanNumericString($row['nis'] ?? '') ?? '';
-            $nik = $this->cleanNumericString($row['nik'] ?? null);
-            $kk = $this->cleanNumericString($row['kk'] ?? null);
-            $phone = $this->cleanNumericString($row['phone'] ?? null);
-            $postalCode = $this->cleanNumericString($row['postal_code'] ?? null);
-            $villageId = $this->cleanNumericString($row['village_id'] ?? null);
-            $programId = $this->cleanNumericString($row['program_id'] ?? '') ?? '';
-            $hostelId = $this->cleanNumericString($row['hostel_id'] ?? null);
+        foreach ($rows as $row) {
+            try {
+                // Clean numeric string fields
+                $nis = $this->cleanNumericString($row['nis'] ?? '') ?? '';
+                $nik = $this->cleanNumericString($row['nik'] ?? null);
+                $kk = $this->cleanNumericString($row['kk'] ?? null);
+                $phone = $this->cleanNumericString($row['phone'] ?? null);
+                $postalCode = $this->cleanNumericString($row['postal_code'] ?? null);
+                $villageId = $this->cleanNumericString($row['village_id'] ?? null);
+                $programId = $this->cleanNumericString($row['program_id'] ?? '') ?? '';
+                $hostelId = $this->cleanNumericString($row['hostel_id'] ?? null);
+                $roomId = $this->cleanNumericString($row['room_id'] ?? null);
 
-            // Check if NIS already exists
-            $existingStudent = Student::where('nis', $nis)->first();
-            if ($existingStudent) {
-                $this->errors[] = "NIS {$nis} already exists - skipped";
+                // Check if NIS already exists
+                $existingStudent = Student::where('nis', $nis)->first();
+                if ($existingStudent) {
+                    $this->errors[] = "NIS {$nis} already exists - skipped";
+                    $this->failureCount++;
+                    continue;
+                }
+
+                DB::beginTransaction();
+
+                $student = Student::create([
+                    'parent_id'       => $row['parent_id'] ?? null,
+                    'nis'             => $nis,
+                    'period'          => $row['period'] ?? null,
+                    'nik'             => $nik,
+                    'kk'              => $kk,
+                    'first_name'      => $row['first_name'],
+                    'last_name'       => $row['last_name'] ?? null,
+                    'gender'          => strtoupper($row['gender']),
+                    'address'         => $row['address'] ?? null,
+                    'born_in'         => $row['born_in'] ?? null,
+                    'born_at'         => $this->transformDate($row['born_at'] ?? null),
+                    'last_education'  => $row['last_education'] ?? null,
+                    'village_id'      => $villageId,
+                    'village'         => $row['village'] ?? null,
+                    'district'        => $row['district'] ?? null,
+                    'postal_code'     => $postalCode,
+                    'phone'           => $phone,
+                    'hostel_id'       => $hostelId,
+                    'program_id'      => $programId,
+                    'status'          => $row['status'] ?? 'Aktif',
+                    'photo'           => null,
+                    'user_id'         => Auth::id() ?? 1,
+                ]);
+
+                // Handle Room Assignment
+                if ($roomId) {
+                    $room = \App\Models\Room::find($roomId);
+                    if ($room) {
+                        // Insert into student_room_assignments
+                        DB::table('student_room_assignments')->insert([
+                            'student_id' => $student->id,
+                            'room_id' => $room->id,
+                            'academic_year_id' => null, // Or fetch current/active academic year if possible
+                            'start_date' => now()->toDateString(),
+                            'is_active' => true,
+                            'notes' => 'Imported via Excel',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+
+                        // Update student hostel if room belongs to one
+                        if ($room->hostel_id) {
+                            $student->update(['hostel_id' => $room->hostel_id]);
+                        }
+                    } else {
+                        // Log warning or error about room not found?
+                        // For now we just skip assignment if room invalid
+                    }
+                }
+
+                DB::commit();
+                $this->successCount++;
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                $this->errors[] = "Error processing NIS {$row['nis']}: " . $e->getMessage();
                 $this->failureCount++;
-                return null;
             }
-
-            $this->successCount++;
-
-            return new Student([
-                'parent_id'       => $row['parent_id'] ?? null,
-                'nis'             => $nis,
-                'period'          => $row['period'] ?? null,
-                'nik'             => $nik,
-                'kk'              => $kk,
-                'first_name'      => $row['first_name'],
-                'last_name'       => $row['last_name'] ?? null,
-                'gender'          => strtoupper($row['gender']),
-                'address'         => $row['address'] ?? null,
-                'born_in'         => $row['born_in'] ?? null,
-                'born_at'         => $this->transformDate($row['born_at'] ?? null),
-                'last_education'  => $row['last_education'] ?? null,
-                'village_id'      => $villageId,
-                'village'         => $row['village'] ?? null,
-                'district'        => $row['district'] ?? null,
-                'postal_code'     => $postalCode,
-                'phone'           => $phone,
-                'hostel_id'       => $hostelId,
-                'program_id'      => $programId,
-                'status'          => $row['status'] ?? 'Aktif',
-                'photo'           => null,
-                'user_id'         => Auth::id() ?? 1, // Use authenticated user ID, fallback to 1
-            ]);
-        } catch (\Exception $e) {
-            $this->errors[] = "Error importing row: " . $e->getMessage();
-            $this->failureCount++;
-            return null;
         }
     }
 
@@ -164,6 +185,7 @@ class StudentsImport implements
             'status' => 'nullable|in:Tidak Aktif,Aktif,Tugas,Lulus,Dikeluarkan',
             'hostel_id' => 'nullable',
             'parent_id' => 'nullable',
+            'room_id' => 'nullable|exists:rooms,id',
         ];
     }
 
@@ -174,13 +196,10 @@ class StudentsImport implements
     {
         return [
             'nis.required' => 'NIS is required',
-            'nis.unique' => 'NIS already exists',
             'first_name.required' => 'First name is required',
             'gender.required' => 'Gender is required',
-            'gender.in' => 'Gender must be L or P',
             'program_id.required' => 'Program ID is required',
-            'program_id.exists' => 'Program ID does not exist',
-            'hostel_id.exists' => 'Hostel ID does not exist',
+            'room_id.exists' => 'Room ID does not exist',
         ];
     }
 

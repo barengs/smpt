@@ -46,4 +46,11 @@ class Student extends Model
     {
         return $this->hasMany(StudentViolation::class);
     }
+
+    public function activeRoom()
+    {
+        return $this->belongsToMany(Room::class, 'student_room_assignments')
+                    ->wherePivot('is_active', true)
+                    ->withPivot(['id', 'academic_year_id', 'start_date', 'end_date', 'is_active', 'notes', 'created_at', 'updated_at']);
+    }
 }
