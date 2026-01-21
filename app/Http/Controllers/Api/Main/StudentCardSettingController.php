@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
-use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class StudentCardSettingController extends Controller
 {
@@ -67,6 +68,9 @@ class StudentCardSettingController extends Controller
             $setting->is_active = true;
         }
 
+        // Create Image Manager instance with GD Driver
+        $manager = new ImageManager(new Driver());
+
         // Handle File Uploads
         $fields = ['front_template', 'back_template', 'stamp', 'signature'];
         foreach ($fields as $field) {
@@ -83,14 +87,8 @@ class StudentCardSettingController extends Controller
                 $filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
                 $path = 'student-card/' . $filename;
 
-                // Create Image using Intervention and encode to WebP
-                // Using v3 style: Image::read($file)->toWebp() or similar.
-                // Facade in v3 might map to ImageManager.
-                // Let's use standard Image::read() if using simple facade, 
-                // or check the typical facade usage in Laravel integration.
-                // Assuming typical 'Intervention\Image\Laravel\Facades\Image' works as 'Image::read'
-                
-                $image = Image::read($file);
+                // Create Image using Manager and encode to WebP
+                $image = $manager->read($file);
                 
                 // Encode to WebP
                 $encoded = $image->toWebp(80); // quality 80
