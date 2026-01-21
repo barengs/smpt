@@ -23,7 +23,7 @@ class StudentTemplateExport implements FromArray, WithHeadings, WithColumnWidths
                 'Doe',
                 'L',
                 '1',
-                'NIK001',
+                '1',
                 '2024',
                 '1234567890123456',
                 '1234567890123456',
@@ -37,6 +37,7 @@ class StudentTemplateExport implements FromArray, WithHeadings, WithColumnWidths
                 '12345',
                 '081234567890',
                 '1',
+                '1', // room_id sample
                 'Aktif'
             ],
         ];
@@ -67,6 +68,7 @@ class StudentTemplateExport implements FromArray, WithHeadings, WithColumnWidths
             'postal_code',
             'phone',
             'hostel_id',
+            'room_id', // Added room_id
             'status'
         ];
     }
@@ -96,7 +98,8 @@ class StudentTemplateExport implements FromArray, WithHeadings, WithColumnWidths
             'Q' => 12,  // postal_code
             'R' => 15,  // phone
             'S' => 12,  // hostel_id
-            'T' => 15,  // status
+            'T' => 10,  // room_id
+            'U' => 15,  // status
         ];
     }
 
