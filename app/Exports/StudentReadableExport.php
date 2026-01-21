@@ -16,7 +16,7 @@ class StudentReadableExport implements FromCollection, WithHeadings, WithMapping
     */
     public function collection()
     {
-        return Student::with(['program', 'hostel', 'parents', 'village', 'activeRoom'])->get();
+        return Student::with(['program', 'hostel', 'parents', 'activeRoom'])->get();
     }
 
     /**
