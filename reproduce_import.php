@@ -25,16 +25,16 @@ foreach ($roles as $role) {
 echo "----------------\n";
 
 try {
-    // create dummy csv
-    $csvContent = "first_name,last_name,nik,kk,gender,parent_as,card_address,domicile_address,phone,email,occupation_id,education_id\n";
-    $csvContent .= "TestFather,TestLast,'1234567890123456,'9876543210987654,L,ayah,Jalan Test,Jalan Domisili,'08123456789,test@mail.com,1,1\n";
+    // Use the actual file provided by the user
+    $realFilePath = '/Users/rofi/Development/pesantren/smpt/wali_santri_backup_2026-01-24.csv';
     
-    $filePath = sys_get_temp_dir() . '/test_import.csv';
-    file_put_contents($filePath, $csvContent);
+    if (!file_exists($realFilePath)) {
+        throw new Exception("File not found: $realFilePath");
+    }
+
+    $file = new UploadedFile($realFilePath, 'wali_santri_backup.csv', 'text/csv', null, true);
     
-    $file = new UploadedFile($filePath, 'test_import.csv', 'text/csv', null, true);
-    
-    echo "File created at: $filePath\n";
+    echo "Using real file at: $realFilePath\n";
     
     $import = new ParentsImport();
     Excel::import($import, $file);
