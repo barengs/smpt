@@ -382,7 +382,7 @@ class ParentController extends Controller
             ];
 
             if (count($errors) > 0) {
-                $response['data']['errors'] = array_slice($errors, 0, 50); // Limit to first 50 errors
+                $response['data']['errors'] = $errors;
                 $response['data']['total_errors'] = count($errors);
                 $response['message'] = 'Import completed with some errors';
             }
