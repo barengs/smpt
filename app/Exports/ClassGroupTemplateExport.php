@@ -18,6 +18,7 @@ class ClassGroupTemplateExport implements FromArray, WithHeadings, WithColumnWid
                 '1', // classroom_id
                 '10', // advisor_id (optional)
                 '1', // educational_institution_id (optional)
+                'active', // status (optional)
             ],
         ];
     }
@@ -29,6 +30,7 @@ class ClassGroupTemplateExport implements FromArray, WithHeadings, WithColumnWid
             'classroom_id',
             'advisor_id',
             'educational_institution_id',
+            'status',
         ];
     }
 
@@ -39,6 +41,7 @@ class ClassGroupTemplateExport implements FromArray, WithHeadings, WithColumnWid
             'B' => 15, // classroom_id
             'C' => 15, // advisor_id
             'D' => 25, // educational_institution_id
+            'E' => 15, // status
         ];
     }
 

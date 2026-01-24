@@ -2,8 +2,8 @@
 
 namespace App\Imports;
 
-use App\Models\ClassGroup;
-use App\Models\Staff;
+use App\Models\Classroom;
+use App\Models\EducationalInstitution;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -14,7 +14,7 @@ use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Validators\Failure;
 use Illuminate\Support\Facades\Log;
 
-class ClassGroupImport implements
+class ClassroomImport implements
     ToModel,
     WithHeadingRow,
     WithValidation,
@@ -56,32 +56,28 @@ class ClassGroupImport implements
     {
         try {
             $name = trim($row['name'] ?? '');
-            $classroomId = $this->cleanNumericString($row['classroom_id'] ?? null);
-            $advisorId = $this->cleanNumericString($row['advisor_id'] ?? null);
+            $level = trim($row['level'] ?? '');
             $educationalInstitutionId = $this->cleanNumericString($row['educational_institution_id'] ?? null);
 
-            $status = trim($row['status'] ?? 'active'); // Default status to active if missing
-
-            // Additional validation for Advisor Role if ID is provided
-            if ($advisorId) {
-                $staff = Staff::with('user')->find($advisorId);
-                // If staff doesn't exist or doesn't have role 'walikelas', we could either skip or just log warning.
-                // For now, let's treat it as an error to ensure data integrity, mirroring Controller logic.
-                if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
-                    $this->errors[] = "Row with Name '{$name}': Advisor ID {$advisorId} is invalid or missing 'walikelas' role - skipped";
+            // Basic validation for existence of institution
+            if ($educationalInstitutionId) {
+                if (!EducationalInstitution::find($educationalInstitutionId)) {
+                    $this->errors[] = "Row with Name '{$name}': Educational Institution ID {$educationalInstitutionId} does not exist - skipped";
                     $this->failureCount++;
                     return null;
                 }
+            } else {
+                 $this->errors[] = "Row with Name '{$name}': Educational Institution ID is missing - skipped";
+                 $this->failureCount++;
+                 return null;
             }
 
             $this->successCount++;
 
-            return new ClassGroup([
+            return new Classroom([
                 'name' => $name,
-                'classroom_id' => $classroomId,
-                'advisor_id' => $advisorId,
+                'level' => $level,
                 'educational_institution_id' => $educationalInstitutionId,
-                'status' => $status,
             ]);
         } catch (\Exception $e) {
             $this->errors[] = "Error importing row '{$name}': " . $e->getMessage();
@@ -94,10 +90,8 @@ class ClassGroupImport implements
     {
         return [
             'name' => 'required|string|max:255',
-            'classroom_id' => 'required|exists:classrooms,id',
-            'advisor_id' => 'nullable|exists:staff,id',
-            'educational_institution_id' => 'nullable|exists:educational_institutions,id',
-            'status' => 'nullable|string|max:50',
+            'level' => 'required|string|max:255',
+            'educational_institution_id' => 'required|exists:educational_institutions,id',
         ];
     }
 
@@ -105,9 +99,8 @@ class ClassGroupImport implements
     {
         return [
             'name.required' => 'Name is required',
-            'classroom_id.required' => 'Classroom ID is required',
-            'classroom_id.exists' => 'Classroom ID does not exist',
-            'advisor_id.exists' => 'Advisor (Staff) ID does not exist',
+            'level.required' => 'Level is required',
+            'educational_institution_id.required' => 'Educational Institution ID is required',
             'educational_institution_id.exists' => 'Educational Institution ID does not exist',
         ];
     }
@@ -115,7 +108,7 @@ class ClassGroupImport implements
     public function onError(\Throwable $e)
     {
         $this->errors[] = $e->getMessage();
-        Log::error('ClassGroup Import error: ' . $e->getMessage());
+        Log::error('Classroom Import error: ' . $e->getMessage());
     }
 
     public function onFailure(Failure ...$failures)
