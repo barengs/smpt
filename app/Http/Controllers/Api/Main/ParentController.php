@@ -345,6 +345,7 @@ class ParentController extends Controller
      */
     public function import(Request $request)
     {
+        set_time_limit(300); // Increase timeout to 5 minutes
         try {
             $validator = Validator::make($request->all(), [
                 'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240', // Max 10MB
