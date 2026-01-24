@@ -197,14 +197,14 @@ class ParentsImport implements
                 $this->successCount++;
                 return $parent;
 
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 DB::rollBack();
                 $this->errors[] = "Error creating user/parent for NIK {$nik}: " . $e->getMessage();
                 $this->failureCount++;
                 return null;
             }
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->errors[] = "Error importing row: " . $e->getMessage();
             $this->failureCount++;
             return null;
