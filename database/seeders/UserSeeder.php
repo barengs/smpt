@@ -19,24 +19,12 @@ class UserSeeder extends Seeder
         $this->password = Hash::make('password');
         $this->data = [
             ["name" => "superadmin", "email" => "superadmin@mail.com", "password" => $this->password],
-            ["name" => "erfaruq", "email" => "erfaruq@mail.com", "password" => $this->password],
-            ["name" => "rumhul", "email" => "rumhul@mail.com", "password" => $this->password],
-            ["name" => "rosi", "email" => "rosi@mail.com", "password" => $this->password],
-            ["name" => "bahul", "email" => "bahul@mail.com", "password" => $this->password],
         ];
 
         foreach ($this->data as $value) {
             $user = User::create($value);
             if ($user->name === 'superadmin') {
                 $user->assignRole('superadmin');
-            } elseif ($user->name === 'erfaruq') {
-                $user->assignRole('admin');
-            } elseif ($user->name === 'rumhul') {
-                $user->assignRole('asatidz');
-            } elseif ($user->name === 'rosi') {
-                $user->assignRole('walikelas');
-            } elseif ($user->name === 'bahul') {
-                $user->assignRole('teller');
             }
         }
     }

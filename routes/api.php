@@ -161,6 +161,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('hostel/export', [HostelController::class, 'export']);
     Route::get('hostel/backup', [HostelController::class, 'backup']);
     Route::apiResource('hostel', HostelController::class);
+    Route::post('classroom/import', [ClassroomController::class, 'import']);
+    Route::get('classroom/import/template', [ClassroomController::class, 'downloadTemplate']);
     Route::get('classroom/export', [ClassroomController::class, 'export']);
     Route::get('classroom/backup', [ClassroomController::class, 'backup']);
     Route::apiResource('classroom', ClassroomController::class);

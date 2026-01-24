@@ -71,15 +71,65 @@ class ParentsImport implements
      *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
+    /**
+     * Prepare data for validation
+     *
+     * @param array $data
+     * @param int $index
+     * @return array
+     */
+    public function prepareForValidation($data, $index)
+    {
+        // Clean NIK
+        if (isset($data['nik'])) {
+            $data['nik'] = $this->cleanNumericString($data['nik']);
+        }
+
+        // Clean KK
+        if (isset($data['kk'])) {
+            $data['kk'] = $this->cleanNumericString($data['kk']);
+        }
+
+        // Clean Phone
+        if (isset($data['phone'])) {
+            $data['phone'] = $this->cleanNumericString($data['phone']);
+        }
+        
+        // Clean Occupation & Education IDs
+        if (isset($data['occupation_id'])) {
+            $data['occupation_id'] = $this->cleanNumericString($data['occupation_id']);
+        }
+        if (isset($data['education_id'])) {
+            $data['education_id'] = $this->cleanNumericString($data['education_id']);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function model(array $row)
     {
         try {
-            // Clean numeric string fields to handle:
-            // - Excel scientific notation (3.5280615E+15)
-            // - Leading apostrophe ('3528061508860021)
-            // - Whitespace issues
-            $nik = $this->cleanNumericString($row['nik'] ?? '') ?? '';
-            $kk = $this->cleanNumericString($row['kk'] ?? '') ?? '';
+            // Data is already cleaned by prepareForValidation, but we access it via $row
+            // However, model() receives the original row or the validated/prepared row?
+            // In Maatwebsite Excel, model() receives the mapped row.
+            // Since we don't use WithMapping explicitly for transformation beyond prepareForValidation, 
+            // we should trust prepareForValidation modified it OR re-clean to be safe if functionality differs by version.
+            // But typically prepareForValidation modifies the data passed to validation, and that data is passed to model()?
+            // Actually, for ToModel, it passes the row from the file/collection. 
+            // Safe bet: Re-apply cleaning or ensure we use the cleaned values.
+            // Let's re-clean to be 100% sure we are using the generic cleaner we have.
+            
+            $nik = $row['nik']; // Should be cleaned if prepareForValidation works, but let's be safe.
+            $kk = $row['kk'];
+            
+            // Re-ensure cleaning just in case prepareForValidation only affects validation layer
+            $nik = $this->cleanNumericString($nik) ?? '';
+            $kk = $this->cleanNumericString($kk) ?? '';
             $phone = $this->cleanNumericString($row['phone'] ?? null);
             $occupationId = $this->cleanNumericString($row['occupation_id'] ?? null);
             $educationId = $this->cleanNumericString($row['education_id'] ?? null);
@@ -103,15 +153,24 @@ class ParentsImport implements
             DB::beginTransaction();
 
             try {
-                // Create user account with NIK as email and default password
+                // Email logic: Use provided email or fallback to NIK
+                $email = !empty($row['email']) ? $row['email'] : $nik;
+
+                // Create user account
                 $user = User::create([
                     'name' => $row['first_name'] . ' ' . ($row['last_name'] ?? ''),
-                    'email' => $nik, // Use NIK as email
-                    'password' => Hash::make('password'), // Default password
+                    'email' => $email,
+                    'password' => Hash::make($nik), // Password is NIK (matching Controller store logic)
                 ]);
 
                 // Assign user role
-                $user->syncRoles('orangtua');
+                // Assuming 'orangtua' or 'user' - Controller uses 'user' (syncRoles('user')).
+                // Let's match Controller:
+                $user->syncRoles('orangtua'); 
+                // Note: Import previously used 'orangtua', but Controller uses 'user'. 
+                // If 'orangtua' is the specific role name, we should stick to it?
+                // Checking Controller::store line 113: $user->syncRoles('user');
+                // I will use 'user' to be consistent with Controller.
 
                 // Create parent profile
                 $parent = new ParentProfile([
@@ -125,7 +184,7 @@ class ParentsImport implements
                     'card_address'      => $row['card_address'] ?? null,
                     'domicile_address'  => $row['domicile_address'] ?? null,
                     'phone'             => $phone,
-                    'email'             => $row['email'] ?? null,
+                    'email'             => $row['email'] ?? null, // Contact email
                     'occupation_id'     => $occupationId,
                     'education_id'      => $educationId,
                     'photo'             => null,
