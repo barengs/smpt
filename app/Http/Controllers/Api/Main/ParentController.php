@@ -347,7 +347,7 @@ class ParentController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+                'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240', // Max 10MB
             ]);
 
             if ($validator->fails()) {
