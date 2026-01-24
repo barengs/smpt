@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Concerns\SkipsOnError;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Validators\Failure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +27,8 @@ class ParentsImport implements
     SkipsOnError,
     SkipsOnFailure,
     WithBatchInserts,
-    WithChunkReading
+    WithChunkReading,
+    SkipsEmptyRows
 {
     protected $errors = [];
     protected $successCount = 0;
