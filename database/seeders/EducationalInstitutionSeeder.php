@@ -24,7 +24,7 @@ class EducationalInstitutionSeeder extends Seeder
             'institution_website' => 'www.mi-panyeppen.sch.id',
             'institution_status' => 'active',
             'institution_description' => 'Madrasah Ibtidaiyah',
-            'headmaster_id' => 3,
+            'headmaster_id' => 1,
         ]);
     }
 }
