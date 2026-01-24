@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use App\Models\ParentProfile;
 use App\Models\Occupation;
 use App\Models\Education;
@@ -163,14 +164,15 @@ class ParentsImport implements
                     'password' => Hash::make($nik), // Password is NIK (matching Controller store logic)
                 ]);
 
-                // Assign user role
-                // Assuming 'orangtua' or 'user' - Controller uses 'user' (syncRoles('user')).
-                // Let's match Controller:
-                $user->syncRoles('orangtua'); 
-                // Note: Import previously used 'orangtua', but Controller uses 'user'. 
-                // If 'orangtua' is the specific role name, we should stick to it?
-                // Checking Controller::store line 113: $user->syncRoles('user');
-                // I will use 'user' to be consistent with Controller.
+                // Match Controller logic, but ensure role exists to prevent crash
+                $roleName = 'orangtua'; // User requested this role specificially
+                
+                // Ensure role exists for api guard
+                if (!Role::where('name', $roleName)->where('guard_name', 'api')->exists()) {
+                    Role::create(['name' => $roleName, 'guard_name' => 'api']);
+                }
+                
+                $user->assignRole($roleName);
 
                 // Create parent profile
                 $parent = new ParentProfile([
@@ -195,7 +197,7 @@ class ParentsImport implements
                 DB::commit();
 
                 $this->successCount++;
-                return $parent;
+                return null; // Return null to prevent Maatwebsite from trying to save again (avoiding duplicate ID error)
 
             } catch (\Throwable $e) {
                 DB::rollBack();
