@@ -26,8 +26,8 @@ echo "----------------\n";
 
 try {
     // Use the actual file provided by the user
-    // Use the actual file provided by the user
     $realFilePath = '/Users/rofi/Development/pesantren/smpt/wali_santri_backup_2026-01-24.csv';
+    // $realFilePath = '/Users/rofi/Development/pesantren/smpt/wali_santri_backup_2026-01-24.xlsx';
     
     if (!file_exists($realFilePath)) {
         throw new Exception("File not found: $realFilePath");

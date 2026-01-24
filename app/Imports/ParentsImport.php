@@ -15,6 +15,7 @@ use Maatwebsite\Excel\Concerns\SkipsOnFailure;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 use Maatwebsite\Excel\Validators\Failure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -28,11 +29,19 @@ class ParentsImport implements
     SkipsOnFailure,
     WithBatchInserts,
     WithChunkReading,
-    SkipsEmptyRows
+    SkipsEmptyRows,
+    WithCustomCsvSettings
 {
     protected $errors = [];
     protected $successCount = 0;
     protected $failureCount = 0;
+
+    public function getCsvSettings(): array
+    {
+        return [
+            'delimiter' => ',',
+        ];
+    }
 
     /**
      * Clean numeric string field from Excel
@@ -117,7 +126,6 @@ class ParentsImport implements
     public function model(array $row)
     {
         try {
-            // Data is already cleaned by prepareForValidation, but we access it via $row
             // However, model() receives the original row or the validated/prepared row?
             // In Maatwebsite Excel, model() receives the mapped row.
             // Since we don't use WithMapping explicitly for transformation beyond prepareForValidation, 
