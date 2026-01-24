@@ -228,7 +228,7 @@ class ParentsImport implements
             'card_address' => 'nullable|string|max:255',
             'domicile_address' => 'nullable|string|max:255',
             'phone' => 'nullable|max:15',
-            'email' => 'nullable|email|max:255',
+            'email' => 'nullable|string|max:255',
             'occupation_id' => 'nullable',
             'education_id' => 'nullable',
         ];
