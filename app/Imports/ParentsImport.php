@@ -182,7 +182,7 @@ class ParentsImport implements
                 $user = User::create([
                     'name' => $row['first_name'] . ' ' . ($row['last_name'] ?? ''),
                     'email' => $email,
-                    'password' => Hash::make($nik), // Password is NIK (matching Controller store logic)
+                    'password' => bcrypt($nik, ['rounds' => 4]), // Optimize: Low cost for import speed
                 ]);
 
                 // Match Controller logic, using cached role

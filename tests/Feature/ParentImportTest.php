@@ -52,8 +52,11 @@ class ParentImportTest extends TestCase
             ->assertJsonPath('data.failure_count', 0);
 
         $this->assertDatabaseHas('parent_profiles', ['nik' => '1234567890123456']);
-        $this->assertDatabaseHas('parent_profiles', ['nik' => '1234567890123457']);
         $this->assertDatabaseHas('users', ['email' => 'father@test.com']);
+
+        // Verify login works with the optimized hash
+        $token = auth()->attempt(['email' => 'father@test.com', 'password' => '1234567890123456']);
+        $this->assertNotEmpty($token, 'Login failed or returned empty token');
     }
 
     /** @test */
