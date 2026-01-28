@@ -345,7 +345,8 @@ class ParentController extends Controller
      */
     public function import(Request $request)
     {
-        set_time_limit(300); // Increase timeout to 5 minutes
+        set_time_limit(1800); // Increase timeout to 30 minutes
+        ini_set('memory_limit', '512M'); // Increase memory limit
         try {
             $validator = Validator::make($request->all(), [
                 'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240', // Max 10MB

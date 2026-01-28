@@ -35,6 +35,17 @@ class ParentsImport implements
     protected $errors = [];
     protected $successCount = 0;
     protected $failureCount = 0;
+    protected $role;
+
+    public function __construct()
+    {
+        // Cache the role to avoid querying it for every row
+        $this->role = Role::where('name', 'orangtua')->where('guard_name', 'api')->first();
+        
+        if (!$this->role) {
+            $this->role = Role::create(['name' => 'orangtua', 'guard_name' => 'api']);
+        }
+    }
 
     public function getCsvSettings(): array
     {
@@ -174,15 +185,13 @@ class ParentsImport implements
                     'password' => Hash::make($nik), // Password is NIK (matching Controller store logic)
                 ]);
 
-                // Match Controller logic, but ensure role exists to prevent crash
-                $roleName = 'orangtua'; // User requested this role specificially
-                
-                // Ensure role exists for api guard
-                if (!Role::where('name', $roleName)->where('guard_name', 'api')->exists()) {
-                    Role::create(['name' => $roleName, 'guard_name' => 'api']);
+                // Match Controller logic, using cached role
+                if ($this->role) {
+                    $user->assignRole($this->role);
+                } else {
+                     // Fallback just in case, though constructor should have handled it
+                    $user->assignRole('orangtua');
                 }
-                
-                $user->assignRole($roleName);
 
                 // Create parent profile
                 $parent = new ParentProfile([
