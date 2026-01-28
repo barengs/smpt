@@ -174,13 +174,13 @@ class ParentsImport implements
                 return null;
             }
 
-            // Check if KK already exists
-            $existingKK = ParentProfile::where('kk', $kk)->first();
-            if ($existingKK) {
-                $this->warnings[] = "KK {$kk} already exists - skipped";
-                $this->skippedCount++;
-                return null;
-            }
+            // Check if KK already exists - REMOVED per user request to allow same KK (e.g. husband/wife)
+            // $existingKK = ParentProfile::where('kk', $kk)->first();
+            // if ($existingKK) {
+            //     $this->warnings[] = "KK {$kk} already exists - skipped";
+            //     $this->skippedCount++;
+            //     return null;
+            // }
 
             DB::beginTransaction();
 

@@ -96,4 +96,40 @@ class ParentImportTest extends TestCase
         // So it should default to NIK.
         $this->assertDatabaseHas('users', ['email' => '7777777777777777']);
     }
+
+    /** @test */
+    public function it_allows_duplicate_kk_but_skips_duplicate_nik()
+    {
+        // 1. Create existing parent with specific KK
+        ParentProfile::factory()->create([
+            'nik' => '1111111111111111',
+            'kk'  => '9999999999999999'
+        ]);
+
+        // 2. Prepare CSV content
+        // Row 1: Duplicate NIK (Should be skipped)
+        // Row 2: New NIK, Same KK (Should be ALLOWED)
+        
+        $header = 'nik,kk,first_name,gender,parent_as,email';
+        $row1 = '1111111111111111,9999999999999999,DuplicateNIK,L,ayah,dup@test.com';
+        $row2 = '2222222222222222,9999999999999999,SameKK,P,ibu,wife@test.com';
+
+        $content = implode("\n", [$header, $row1, $row2]);
+        $file = UploadedFile::fake()->createWithContent('parents_kk.csv', $content);
+
+        $response = $this->postJson('/api/main/parent/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(200)
+             ->assertJsonPath('data.success_count', 1) // Row 2 should succeed
+             ->assertJsonPath('data.skipped_count', 1) // Row 1 skipped (NIK)
+             ->assertJsonPath('data.failure_count', 0);
+
+        // Verify Row 2 inserted
+        $this->assertDatabaseHas('parent_profiles', [
+            'nik' => '2222222222222222',
+            'kk'  => '9999999999999999'
+        ]);
+    }
 }
