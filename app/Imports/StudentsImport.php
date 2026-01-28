@@ -31,6 +31,8 @@ class StudentsImport implements
     protected $errors = [];
     protected $successCount = 0;
     protected $failureCount = 0;
+    protected $skippedCount = 0;
+    protected $warnings = [];
 
     /**
      * Clean numeric string field from Excel
@@ -102,10 +104,22 @@ class StudentsImport implements
                 // Check if NIS already exists
                 $existingStudent = Student::where('nis', $nis)->first();
                 if ($existingStudent) {
-                    $this->errors[] = "NIS {$nis} already exists - skipped";
-                    $this->failureCount++;
+                    $this->warnings[] = "NIS {$nis} already exists - skipped";
+                    $this->skippedCount++;
                     continue;
                 }
+
+                // Check if NIK already exists
+                if ($nik) {
+                    $existingNik = Student::where('nik', $nik)->first();
+                    if ($existingNik) {
+                        $this->warnings[] = "NIK {$nik} already exists - skipped";
+                        $this->skippedCount++;
+                        continue;
+                    }
+                }
+
+                // KK Duplicates are ALLOWED (No check performed)
 
                 DB::beginTransaction();
 
@@ -261,5 +275,15 @@ class StudentsImport implements
     public function getFailureCount(): int
     {
         return $this->failureCount;
+    }
+
+    public function getSkippedCount(): int
+    {
+        return $this->skippedCount;
+    }
+
+    public function getWarnings(): array
+    {
+        return $this->warnings;
     }
 }

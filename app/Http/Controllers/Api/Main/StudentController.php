@@ -506,8 +506,10 @@ class StudentController extends Controller
             Excel::import($import, $file);
 
             $errors = $import->getErrors();
+            $warnings = $import->getWarnings();
             $successCount = $import->getSuccessCount();
             $failureCount = $import->getFailureCount();
+            $skippedCount = $import->getSkippedCount();
 
             // Prepare response
             $response = [
@@ -515,10 +517,16 @@ class StudentController extends Controller
                 'message' => 'Import completed',
                 'data' => [
                     'success_count' => $successCount,
+                    'skipped_count' => $skippedCount,
                     'failure_count' => $failureCount,
-                    'total' => $successCount + $failureCount,
+                    'total' => $successCount + $failureCount + $skippedCount,
                 ]
             ];
+
+            if (count($warnings) > 0) {
+                $response['data']['warnings'] = array_slice($warnings, 0, 50);
+                $response['data']['total_warnings'] = count($warnings);
+            }
 
             if (count($errors) > 0) {
                 $response['data']['errors'] = array_slice($errors, 0, 50); // Limit to first 50 errors
