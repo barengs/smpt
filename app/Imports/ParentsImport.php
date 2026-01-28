@@ -35,6 +35,8 @@ class ParentsImport implements
     protected $errors = [];
     protected $successCount = 0;
     protected $failureCount = 0;
+    protected $skippedCount = 0;
+    protected $warnings = [];
     protected $role;
 
     public function __construct()
@@ -126,6 +128,14 @@ class ParentsImport implements
             $data['education_id'] = $this->cleanNumericString($data['education_id']);
         }
 
+        // Clean Email
+        if (isset($data['email'])) {
+            $data['email'] = trim((string) $data['email']);
+            if ($data['email'] === '') {
+                $data['email'] = null;
+            }
+        }
+
         return $data;
     }
 
@@ -159,16 +169,16 @@ class ParentsImport implements
             // Check if NIK already exists
             $existingParent = ParentProfile::where('nik', $nik)->first();
             if ($existingParent) {
-                $this->errors[] = "NIK {$nik} already exists - skipped";
-                $this->failureCount++;
+                $this->warnings[] = "NIK {$nik} already exists - skipped";
+                $this->skippedCount++;
                 return null;
             }
 
             // Check if KK already exists
             $existingKK = ParentProfile::where('kk', $kk)->first();
             if ($existingKK) {
-                $this->errors[] = "KK {$kk} already exists - skipped";
-                $this->failureCount++;
+                $this->warnings[] = "KK {$kk} already exists - skipped";
+                $this->skippedCount++;
                 return null;
             }
 
@@ -324,11 +334,18 @@ class ParentsImport implements
         return $this->successCount;
     }
 
-    /**
-     * Get failure count
-     */
     public function getFailureCount(): int
     {
         return $this->failureCount;
+    }
+
+    public function getSkippedCount(): int
+    {
+        return $this->skippedCount;
+    }
+
+    public function getWarnings(): array
+    {
+        return $this->warnings;
     }
 }
