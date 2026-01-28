@@ -367,8 +367,10 @@ class ParentController extends Controller
             Excel::import($import, $file);
 
             $errors = $import->getErrors();
+            $warnings = $import->getWarnings();
             $successCount = $import->getSuccessCount();
             $failureCount = $import->getFailureCount();
+            $skippedCount = $import->getSkippedCount();
 
             // Prepare response
             $response = [
@@ -376,11 +378,16 @@ class ParentController extends Controller
                 'message' => 'Import completed',
                 'data' => [
                     'success_count' => $successCount,
+                    'skipped_count' => $skippedCount,
                     'failure_count' => $failureCount,
-                    'total' => $successCount + $failureCount,
+                    'total' => $successCount + $failureCount + $skippedCount,
                     'info' => 'User accounts created with NIK as email and default password: "password"'
                 ]
             ];
+
+            if (count($warnings) > 0) {
+                $response['data']['warnings'] = $warnings;
+            }
 
             if (count($errors) > 0) {
                 $response['data']['errors'] = $errors;

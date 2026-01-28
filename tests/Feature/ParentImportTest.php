@@ -60,24 +60,40 @@ class ParentImportTest extends TestCase
     }
 
     /** @test */
-    public function it_handles_duplicate_nik_in_import()
+    public function it_cleans_email_input_and_skips_duplicates()
     {
-        // Create an existing parent
+        // 1. Create existing parent for duplicate check
         ParentProfile::factory()->create(['nik' => '9999999999999999']);
 
-        $header = 'nik,kk,first_name,gender,parent_as';
-        $row1 = '9999999999999999,1111111111111111,Duplicate,L,ayah'; // Duplicate NIK
-        $row2 = '8888888888888888,2222222222222222,New,L,ayah';       // valid
+        // 2. Prepare CSV content
+        // Row 1: Duplicate NIK (Should be skipped)
+        // Row 2: Valid, but email has whitespace (Should be cleaned)
+        // Row 3: Valid, email is empty string (Should be null)
         
-        $content = implode("\n", [$header, $row1, $row2]);
-        $file = UploadedFile::fake()->createWithContent('parents_duplicates.csv', $content);
+        $header = 'nik,kk,first_name,gender,parent_as,email';
+        $row1 = '9999999999999999,1111111111111111,Duplicate,L,ayah,dup@test.com';
+        $row2 = '8888888888888888,2222222222222222,DirtyEmail,L,ayah,   dirty@test.com   ';
+        $row3 = '7777777777777777,3333333333333333,EmptyEmail,L,ayah,'; 
+
+        $content = implode("\n", [$header, $row1, $row2, $row3]);
+        $file = UploadedFile::fake()->createWithContent('parents_clean.csv', $content);
 
         $response = $this->postJson('/api/main/parent/import', [
             'file' => $file,
         ]);
 
         $response->assertStatus(200)
-             ->assertJsonPath('data.success_count', 1)
-             ->assertJsonPath('data.failure_count', 1);
+             ->assertJsonPath('data.success_count', 2)
+             ->assertJsonPath('data.skipped_count', 1) // Duplicate NIK
+             ->assertJsonPath('data.failure_count', 0);
+
+        // Check trimmed email
+        $this->assertDatabaseHas('users', ['email' => 'dirty@test.com']);
+        
+        // Check empty email became NIK (default logic in Import) or null?
+        // Logic: $email = !empty($row['email']) ? $row['email'] : $nik;
+        // Since we set empty string to null in prepareForValidation, !empty(null) is false.
+        // So it should default to NIK.
+        $this->assertDatabaseHas('users', ['email' => '7777777777777777']);
     }
 }
