@@ -88,11 +88,57 @@ class StudentsImport implements
      */
     public function collection(\Illuminate\Support\Collection $rows)
     {
-        foreach ($rows as $row) {
+        // 1. Prepare data and collect IDs for batch checking
+        $preparedRows = [];
+        $nisList = [];
+        $nikList = [];
+
+        foreach ($rows as $index => $row) {
+            // Clean fields
+            $nis = $this->cleanNumericString($row['nis'] ?? '') ?? '';
+            $nik = $this->cleanNumericString($row['nik'] ?? null);
+            
+            // Store prepared data to avoid re-cleaning
+            $preparedRows[$index] = [
+                'cleaned_nis' => $nis,
+                'cleaned_nik' => $nik,
+                'original_row' => $row,
+            ];
+
+            if ($nis) $nisList[] = $nis;
+            if ($nik) $nikList[] = $nik;
+        }
+
+        // 2. Batch query existing records
+        $existingNis = [];
+        if (!empty($nisList)) {
+            $existingNis = Student::whereIn('nis', $nisList)
+                ->pluck('nis')
+                ->map(fn($item) => (string)$item)
+                ->flip()
+                ->toArray();
+        }
+
+        $existingNik = [];
+        if (!empty($nikList)) {
+            $existingNik = Student::whereIn('nik', $nikList)
+                ->pluck('nik')
+                ->map(fn($item) => (string)$item)
+                ->flip()
+                ->toArray();
+        }
+
+        // track duplicates within the current chunk to prevent double insertion
+        $processedNis = [];
+        $processedNik = [];
+
+        // 3. Process each row
+        foreach ($preparedRows as $data) {
+            $row = $data['original_row'];
+            $nis = $data['cleaned_nis'];
+            $nik = $data['cleaned_nik'];
+            
             try {
-                // Clean numeric string fields
-                $nis = $this->cleanNumericString($row['nis'] ?? '') ?? '';
-                $nik = $this->cleanNumericString($row['nik'] ?? null);
                 $kk = $this->cleanNumericString($row['kk'] ?? null);
                 $phone = $this->cleanNumericString($row['phone'] ?? null);
                 $postalCode = $this->cleanNumericString($row['postal_code'] ?? null);
@@ -101,22 +147,17 @@ class StudentsImport implements
                 $hostelId = $this->cleanNumericString($row['hostel_id'] ?? null);
                 $roomId = $this->cleanNumericString($row['room_id'] ?? null);
 
-                // Check if NIS already exists
-                $existingStudent = Student::where('nis', $nis)->first();
-                if ($existingStudent) {
+                // Check constraints
+                if (isset($existingNis[$nis]) || isset($processedNis[$nis])) {
                     $this->warnings[] = "NIS {$nis} already exists - skipped";
                     $this->skippedCount++;
                     continue;
                 }
 
-                // Check if NIK already exists
-                if ($nik) {
-                    $existingNik = Student::where('nik', $nik)->first();
-                    if ($existingNik) {
-                        $this->warnings[] = "NIK {$nik} already exists - skipped";
-                        $this->skippedCount++;
-                        continue;
-                    }
+                if ($nik && (isset($existingNik[$nik]) || isset($processedNik[$nik]))) {
+                    $this->warnings[] = "NIK {$nik} already exists - skipped";
+                    $this->skippedCount++;
+                    continue;
                 }
 
                 // KK Duplicates are ALLOWED (No check performed)
@@ -168,13 +209,15 @@ class StudentsImport implements
                         if ($room->hostel_id) {
                             $student->update(['hostel_id' => $room->hostel_id]);
                         }
-                    } else {
-                        // Log warning or error about room not found?
-                        // For now we just skip assignment if room invalid
                     }
                 }
 
                 DB::commit();
+                
+                // Mark as processed
+                if ($nis) $processedNis[$nis] = true;
+                if ($nik) $processedNik[$nik] = true;
+                
                 $this->successCount++;
 
             } catch (\Exception $e) {
