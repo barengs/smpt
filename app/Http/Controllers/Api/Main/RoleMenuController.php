@@ -388,4 +388,147 @@ class RoleMenuController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Sync Permission Matrix for a role.
+     * Simplified permission system with standard permissions: CREATE, VIEW, EDIT, DELETE, APPROVE
+     * 
+     * @param Request $request
+     * @param string $roleId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function syncPermissionMatrix(Request $request, string $roleId)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'matrix' => 'required|array',
+                'matrix.*.menu_id' => 'required|exists:menus,id',
+                'matrix.*.permissions' => 'array',
+                'matrix.*.permissions.*' => 'in:CREATE,VIEW,EDIT,DELETE,APPROVE',
+                'matrix.*.custom_permissions' => 'nullable|array',
+                'matrix.*.custom_permissions.*' => 'string|max:50',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $role = Role::findOrFail($roleId);
+
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            // Collect all menu IDs from matrix
+            $menuIds = collect($request->matrix)->pluck('menu_id')->toArray();
+            
+            // 1. Sync Menus to Role
+            $role->menus()->sync($menuIds);
+
+            // 2. Sync Permissions
+            $allPermissionNames = [];
+            
+            foreach ($request->matrix as $item) {
+                $menu = Menu::find($item['menu_id']);
+                $menuPermissionIds = [];
+                
+                // Standard permissions
+                $standardPermissions = $item['permissions'] ?? [];
+                foreach ($standardPermissions as $permissionName) {
+                    $permission = \Spatie\Permission\Models\Permission::firstOrCreate([
+                        'name' => $permissionName,
+                        'guard_name' => 'api'
+                    ]);
+                    
+                    $allPermissionNames[] = $permissionName;
+                    $menuPermissionIds[] = $permission->id;
+                }
+                
+                // Custom permissions (if any)
+                $customPermissions = $item['custom_permissions'] ?? [];
+                foreach ($customPermissions as $customPermName) {
+                    $permission = \Spatie\Permission\Models\Permission::firstOrCreate([
+                        'name' => $customPermName,
+                        'guard_name' => 'api'
+                    ]);
+                    
+                    $allPermissionNames[] = $customPermName;
+                    $menuPermissionIds[] = $permission->id;
+                }
+                
+                // Sync permissions to menu via menu_permissions pivot
+                $menu->permissions()->sync($menuPermissionIds);
+            }
+
+            // 3. Sync all permissions to role
+            $role->syncPermissions(array_unique($allPermissionNames));
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Permission matrix berhasil disinkronkan',
+                'data' => $role->load('menus', 'permissions')
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal menyinkronkan permission matrix: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get Permission Matrix for a role.
+     * Returns the permission matrix showing which permissions are assigned to which menus.
+     * 
+     * @param string $roleId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getPermissionMatrix(string $roleId)
+    {
+        try {
+            $role = Role::with(['menus.permissions'])->findOrFail($roleId);
+
+            $matrix = [];
+            $standardPermissions = ['CREATE', 'VIEW', 'EDIT', 'DELETE', 'APPROVE'];
+
+            foreach ($role->menus as $menu) {
+                $menuPermissions = $menu->permissions->pluck('name')->toArray();
+                
+                // Separate standard and custom permissions
+                $standard = array_values(array_intersect($menuPermissions, $standardPermissions));
+                $custom = array_values(array_diff($menuPermissions, $standardPermissions));
+
+                $matrix[] = [
+                    'menu_id' => $menu->id,
+                    'menu_title' => $menu->id_title,
+                    'permissions' => $standard,
+                    'custom_permissions' => $custom,
+                ];
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'role' => [
+                        'id' => $role->id,
+                        'name' => $role->name,
+                        'category' => $role->category,
+                    ],
+                    'matrix' => $matrix,
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil permission matrix: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

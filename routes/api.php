@@ -263,6 +263,11 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('role/{roleId}/assign-menus', [RoleMenuController::class, 'assignMenuToRole']);
     Route::post('role/{roleId}/remove-menus', [RoleMenuController::class, 'removeMenuFromRole']);
     Route::get('user/menus', [RoleMenuController::class, 'getUserMenus']);
+    
+    // Permission Matrix routes (Simplified Permission System)
+    Route::post('roles/{roleId}/sync-permission-matrix', [RoleMenuController::class, 'syncPermissionMatrix'])->name('roles.sync-permission-matrix');
+    Route::get('roles/{roleId}/permission-matrix', [RoleMenuController::class, 'getPermissionMatrix'])->name('roles.permission-matrix');
+
 
     // Permission routes
     Route::apiResource('permission', PermissionController::class);
