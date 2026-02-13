@@ -18,7 +18,7 @@ class RoleController extends Controller
     public function index()
     {
         try {
-            $roles = Role::with('permissions')->get();
+            $roles = Role::with(['permissions', 'menus'])->get();
 
             return response()->json([
                 'status' => 'success',
@@ -92,7 +92,7 @@ class RoleController extends Controller
     public function show(string $id)
     {
         try {
-            $role = Role::with('permissions')->find($id);
+            $role = Role::with(['permissions', 'menus'])->find($id);
 
             if (!$role) {
                 return response()->json([
