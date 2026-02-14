@@ -55,6 +55,11 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+    /**
+     * Get the authenticated User.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function me()
     {
         $user = auth()->user();
@@ -64,8 +69,12 @@ class AuthController extends Controller
         } else {
             $user->profile = $user->staff; // Attach employee profile if user is a teacher
         }
-        // $user->profile = $user->profile(); // Attach profile based on role
-        return response()->json(['data' => $user]);
+        
+        // Transform user to array and add permissions
+        $userData = $user->toArray();
+        $userData['permissions'] = $user->getAllPermissions()->pluck('name');
+        
+        return response()->json(['data' => $userData]);
     }
 
     /**
@@ -100,11 +109,15 @@ class AuthController extends Controller
      */
     protected function respondWithToken($token, $user)
     {
+        // Transform user to array and add permissions
+        $userData = $user->toArray();
+        $userData['permissions'] = $user->getAllPermissions()->pluck('name');
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => $user
+            'user' => $userData
         ]);
     }
 }

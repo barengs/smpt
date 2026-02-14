@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\Main\StudentClassController;
 use App\Http\Controllers\Api\Main\EducationalInstitutionController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
 use App\Http\Controllers\Api\Main\InternshipController;
+use App\Http\Controllers\Api\Main\MenuController as MainMenuController;
 use App\Http\Controllers\Api\Main\PresenceController;
 use App\Http\Controllers\Api\Master\ViolationCategoryController;
 use App\Http\Controllers\Api\Master\ViolationController;
@@ -262,7 +263,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('menu/{menuId}/roles', [RoleMenuController::class, 'getMenuRoles']);
     Route::post('role/{roleId}/assign-menus', [RoleMenuController::class, 'assignMenuToRole']);
     Route::post('role/{roleId}/remove-menus', [RoleMenuController::class, 'removeMenuFromRole']);
-    Route::get('user/menus', [RoleMenuController::class, 'getUserMenus']);
+    Route::get('user/menus', [MainMenuController::class, 'getUserMenus']);
     
     // Permission Matrix routes (Simplified Permission System)
     Route::post('roles/{roleId}/sync-permission-matrix', [RoleMenuController::class, 'syncPermissionMatrix'])->name('roles.sync-permission-matrix');
