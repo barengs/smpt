@@ -31,10 +31,9 @@ class AuthController extends Controller
         $login = $request->input('login');
         $password = $request->input('password');
 
-        // Check if the login input is an email or name
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
-
-        // Attempt to authenticate with email or name
+        // Check if the login input is an email, numeric (nik), or name
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : (is_numeric($login) ? 'nik' : 'name');
+        // Attempt to authenticate with email, name or nik
         if (! $token = auth()->attempt([$field => $login, 'password' => $password])) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
