@@ -292,7 +292,9 @@ class ParentController extends Controller
     public function getByNik($nik)
     {
         try {
-            $parent = ParentProfile::where('nik', $nik)->first();
+            $parent = ParentProfile::with(['student.program', 'student.hostel'])
+                ->where('nik', $nik)
+                ->first();
             // dd($parent);
             return response()->json([
                 'status' => 'success',
