@@ -1,0 +1,3 @@
+
+   Tymon\JWTAuth\Exceptions\JWTException  Secret is not set.
+

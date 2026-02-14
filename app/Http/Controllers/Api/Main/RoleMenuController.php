@@ -391,7 +391,7 @@ class RoleMenuController extends Controller
 
     /**
      * Sync Permission Matrix for a role.
-     * Simplified permission system with standard permissions: CREATE, VIEW, EDIT, DELETE, APPROVE
+     * Uses scoped permissions: {action}_menu_{id} (e.g., view_menu_1)
      * 
      * @param Request $request
      * @param string $roleId
@@ -431,38 +431,70 @@ class RoleMenuController extends Controller
             $allPermissionNames = [];
             
             foreach ($request->matrix as $item) {
-                $menu = Menu::find($item['menu_id']);
+                $menuId = $item['menu_id'];
+                $menu = Menu::find($menuId);
                 $menuPermissionIds = [];
                 
-                // Standard permissions
+                // Standard permissions check
+                // We use scoped permission names: {action}_menu_{id}
                 $standardPermissions = $item['permissions'] ?? [];
-                foreach ($standardPermissions as $permissionName) {
+                foreach ($standardPermissions as $action) {
+                    $actionLower = strtolower($action);
+                    $scopedName = "{$actionLower}_menu_{$menuId}";
+                    
                     $permission = \Spatie\Permission\Models\Permission::firstOrCreate([
-                        'name' => $permissionName,
+                        'name' => $scopedName,
                         'guard_name' => 'api'
                     ]);
                     
-                    $allPermissionNames[] = $permissionName;
+                    $allPermissionNames[] = $scopedName;
                     $menuPermissionIds[] = $permission->id;
                 }
                 
                 // Custom permissions (if any)
+                // For custom permissions, we also should scope them or keep them global?
+                // Ideally scoped: {action}_menu_{id}
                 $customPermissions = $item['custom_permissions'] ?? [];
                 foreach ($customPermissions as $customPermName) {
+                    // Assuming customPermName is the raw action name
+                    $customActionLower = strtolower($customPermName);
+                    $scopedName = "{$customActionLower}_menu_{$menuId}";
+                    
                     $permission = \Spatie\Permission\Models\Permission::firstOrCreate([
-                        'name' => $customPermName,
+                        'name' => $scopedName,
                         'guard_name' => 'api'
                     ]);
                     
-                    $allPermissionNames[] = $customPermName;
+                    $allPermissionNames[] = $scopedName;
                     $menuPermissionIds[] = $permission->id;
                 }
                 
-                // Sync permissions to menu via menu_permissions pivot
-                $menu->permissions()->sync($menuPermissionIds);
+                // Sync permissions to menu via menu_permissions pivot 
+                // This marks "These permissions are ACTIVE for this menu"
+                // It might need to be cumulative if multiple roles use diff permissions?
+                // NO, because menu_permissions usually defines "Available permissions for this menu".
+                // But here we are using it to track "Assigned permissions"?
+                // Actually, Spatie's role_has_permissions tracks the assignment.
+                // storing in menu_permissions is useful if we want to know "What permissions are relevant to Menu X".
+                // We should probably ADD to menu_permissions, not sync (overwrite), 
+                // but sync is cleaner to avoid orphans. 
+                // LIMITATION: If we overwrite, we lose context of other roles?
+                // No, menu_permissions keys menu_id <-> permission_id. 
+                // It doesn't care about roles. 
+                // So if Role A uses "view_menu_1" and Role B uses "view_menu_1", it's the same permission ID.
+                // So syncing is fine as long as we include ALL relevant permissions?
+                // Actually, if Role A adds View, and Role B adds Edit.
+                // If we Sync for Role A (only View), do we remove Edit from Menu's list?
+                // Yes if we use $menu->permissions()->sync().
+                // FIX: use syncWithoutDetaching or just attach.
+                // Or better: Don't manage menu_permissions here if it's supposed to be "Supported Permissions".
+                // But since we are DYNAMICALLY creating permissions, we probably should link them.
+                // Let's use syncWithoutDetaching to be safe for multiple roles.
+                $menu->permissions()->syncWithoutDetaching($menuPermissionIds);
             }
 
-            // 3. Sync all permissions to role
+            // 3. Sync all collected permissions to role
+            // This replaces old permissions with new set for this role. Correct.
             $role->syncPermissions(array_unique($allPermissionNames));
 
             \Illuminate\Support\Facades\DB::commit();
@@ -484,7 +516,7 @@ class RoleMenuController extends Controller
 
     /**
      * Get Permission Matrix for a role.
-     * Returns the permission matrix showing which permissions are assigned to which menus.
+     * Parses scoped permissions back to generic actions.
      * 
      * @param string $roleId
      * @return \Illuminate\Http\JsonResponse
@@ -492,23 +524,42 @@ class RoleMenuController extends Controller
     public function getPermissionMatrix(string $roleId)
     {
         try {
-            $role = Role::with(['menus.permissions'])->findOrFail($roleId);
+            $role = Role::with(['menus', 'permissions'])->findOrFail($roleId);
 
             $matrix = [];
-            $standardPermissions = ['CREATE', 'VIEW', 'EDIT', 'DELETE', 'APPROVE'];
+            $standardActions = ['CREATE', 'VIEW', 'EDIT', 'DELETE', 'APPROVE'];
+            
+            // Get all role permissions
+            $rolePermissions = $role->permissions->pluck('name')->toArray();
+            // Example: ['view_menu_1', 'create_menu_1', 'view_menu_2']
 
             foreach ($role->menus as $menu) {
-                $menuPermissions = $menu->permissions->pluck('name')->toArray();
+                // Find permissions for this menu in the role's permission list
+                // Pattern: {action}_menu_{menuId}
+                $currentPermissions = [];
+                $customPermissions = [];
                 
-                // Separate standard and custom permissions
-                $standard = array_values(array_intersect($menuPermissions, $standardPermissions));
-                $custom = array_values(array_diff($menuPermissions, $standardPermissions));
+                foreach ($rolePermissions as $permName) {
+                    if (str_ends_with($permName, "_menu_{$menu->id}")) {
+                        // Extract action
+                        // "view_menu_1" -> "view"
+                        $suffix = "_menu_{$menu->id}";
+                        $action = substr($permName, 0, strlen($permName) - strlen($suffix));
+                        $actionUpper = strtoupper($action);
+                        
+                        if (in_array($actionUpper, $standardActions)) {
+                            $currentPermissions[] = $actionUpper;
+                        } else {
+                            $customPermissions[] = $action; // keep as is (lowercase mostly)
+                        }
+                    }
+                }
 
                 $matrix[] = [
                     'menu_id' => $menu->id,
                     'menu_title' => $menu->id_title,
-                    'permissions' => $standard,
-                    'custom_permissions' => $custom,
+                    'permissions' => $currentPermissions,
+                    'custom_permissions' => $customPermissions,
                 ];
             }
 
