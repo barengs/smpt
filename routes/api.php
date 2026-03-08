@@ -327,6 +327,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('parent/export', [ParentController::class, 'export']);
     Route::get('parent/backup', [ParentController::class, 'backup']);
     Route::apiResource('parent', ParentController::class);
+    Route::post('parent/{id}/update-photo', [ParentController::class, 'updatePhoto'])->name('parent.update-photo');
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
         ->name('parent.getByNik');
 

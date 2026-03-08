@@ -39,11 +39,11 @@ class AuthController extends Controller
         }
 
         $user = auth()->user();
-        if ($user->getRoleNames()[0] == 'orangtua')
+        if ($user->hasRole('orangtua'))
         {
-            $user->profile = $user->parent();
+            $user->profile = $user->parent;
         } else {
-            $user->profile = $user->staff();
+            $user->profile = $user->staff;
         }
 
         return $this->respondWithToken($token, $user);
@@ -62,8 +62,7 @@ class AuthController extends Controller
     public function me()
     {
         $user = auth()->user();
-        $role = $user->getRoleNames(); // Get user roles
-        if ($role[0] == 'orangtua') {
+        if ($user->hasRole('orangtua')) {
             $user->profile = $user->parent; // Attach parent profile if user is a parent
         } else {
             $user->profile = $user->staff; // Attach employee profile if user is a teacher

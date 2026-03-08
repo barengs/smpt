@@ -205,7 +205,17 @@ class HostelController extends Controller
             $staff = Staff::with('user')->findOrFail($validated['staff_id']);
 
             // Validasi: Cek apakah staff memiliki role 'Kepala Asrama'
-            if (!$staff->user || !$staff->user->hasRole('kepala asrama')) {
+            if (!$staff->user) {
+                return response()->json([
+                    'message' => 'Staff tidak terkait dengan akun pengguna (user)',
+                    'status' => 422
+                ], 422);
+            }
+
+            // Muat roles pengguna untuk memeriksa multiple roles
+            $staff->user->loadMissing('roles');
+            
+            if (!$staff->user->roles->contains('name', 'kepala asrama')) {
                 return response()->json([
                     'message' => 'Staff tidak memiliki role Kepala Asrama',
                     'status' => 422
