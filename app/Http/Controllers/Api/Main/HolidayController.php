@@ -118,8 +118,18 @@ class HolidayController extends Controller
         $period = HolidayPeriod::with('requirements')->find($id);
         if (!$period) return response()->json(['message' => 'Data tidak ditemukan'], 404);
 
-        // Get all active students
-        $students = Student::where('status', 'active')->get();
+        // Get students with search filter
+        $query = Student::where('status', 'active');
+        
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $query->get();
 
         $data = $students->map(function ($student) use ($period) {
             $check = StudentHolidayCheck::where('holiday_period_id', $period->id)
@@ -145,7 +155,7 @@ class HolidayController extends Controller
                 'check' => $check ? [
                     'id' => $check->id,
                     'checkout_at' => $check->checkout_at,
-                    'checkin_at' => $checkin_at = $check->checkin_at,
+                    'checkin_at' => $check->checkin_at,
                 ] : null,
                 'requirements' => $requirementStatuses,
                 'is_all_met' => $requirementStatuses->every(fn($r) => $r['is_met'])
