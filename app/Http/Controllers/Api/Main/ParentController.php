@@ -19,6 +19,8 @@ use App\Exports\ParentTemplateExport;
 use Exception;
 use App\Exports\ParentReadableExport;
 use App\Exports\ParentBackupExport;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Imagick\Driver;
 
 /**
  * @tags Parent Management
@@ -278,6 +280,74 @@ class ParentController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json('Terjadi kesalahan: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update photo only for a parent profile.
+     *
+     * Converts uploaded image to WebP (quality 80) and resizes to 800×800px
+     * using Intervention Image (Imagick driver), same as StudentController::updatePhoto.
+     *
+     * @param Request $request
+     * @param string $id User ID
+     */
+    public function updatePhoto(Request $request, string $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors'  => $validator->errors(),
+                ], 422);
+            }
+
+            $user = User::whereHas('parent')->with('parent')->where('id', $id)->firstOrFail();
+            $parentProfile = $user->parent;
+
+            if ($request->hasFile('photo')) {
+                // Delete old photo
+                if ($parentProfile->photo && Storage::disk('public')->exists($parentProfile->photo)) {
+                    Storage::disk('public')->delete($parentProfile->photo);
+                }
+
+                // Process with Intervention Image (Imagick driver)
+                $manager = new ImageManager(new Driver());
+                $photo   = $request->file('photo');
+
+                // Generate filename with .webp extension
+                $filename = time() . '_' . pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';
+
+                // Read, resize to 800×800 (cover), encode to WebP quality 80
+                $image = $manager->read($photo->getRealPath());
+                $image->cover(800, 800, 'center');
+
+                $path = 'parents/photos/' . $filename;
+                Storage::disk('public')->put($path, (string) $image->toWebp(80));
+
+                $parentProfile->update(['photo' => $path]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Foto wali santri berhasil diperbarui.',
+                    'photo'   => $path,
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada file foto yang diunggah.',
+            ], 400);
+
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['success' => false, 'message' => 'Data wali santri tidak ditemukan.'], 404);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
 
