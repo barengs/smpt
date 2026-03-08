@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('student_holiday_requirement_statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('student_holiday_check_id')->constrained('student_holiday_checks')->onDelete('cascade');
-            $table->foreignId('holiday_requirement_id')->constrained('holiday_requirements')->onDelete('cascade');
+            $table->foreignId('student_holiday_check_id')->constrained('student_holiday_checks', 'id', 'shrs_check_id_fk')->onDelete('cascade');
+            $table->foreignId('holiday_requirement_id')->constrained('holiday_requirements', 'id', 'shrs_req_id_fk')->onDelete('cascade');
             $table->boolean('is_met')->default(false);
             $table->timestamps();
         });

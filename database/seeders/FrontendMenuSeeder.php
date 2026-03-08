@@ -263,6 +263,12 @@ class FrontendMenuSeeder extends Seeder
         $p_u_leave_type = Permission::firstOrCreate(['name' => 'ubah tipe izin']);
         $p_d_leave_type = Permission::firstOrCreate(['name' => 'hapus tipe izin']);
 
+        // Holiday Management
+        $p_c_holiday = Permission::firstOrCreate(['name' => 'buat libur']);
+        $p_r_holiday = Permission::firstOrCreate(['name' => 'lihat libur']);
+        $p_u_holiday = Permission::firstOrCreate(['name' => 'ubah libur']);
+        $p_d_holiday = Permission::firstOrCreate(['name' => 'hapus libur']);
+
         // Master Data
         $p_c_occupation = Permission::firstOrCreate(['name' => 'buat pekerjaan']);
         $p_r_occupation = Permission::firstOrCreate(['name' => 'lihat pekerjaan']);
@@ -851,6 +857,32 @@ class FrontendMenuSeeder extends Seeder
                 'status' => 'active',
                 'order' => 6
             ],
+            [
+                'id_title' => 'Manajemen Libur',
+                'en_title' => 'Holiday Management',
+                'ar_title' => 'إدارة الإجازات',
+                'description' => 'Pengaturan periode libur',
+                'icon' => 'calendar',
+                'route' => '/dashboard/manajemen-kamtib/manajemen-libur',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 7
+            ],
+            [
+                'id_title' => 'Libur Santri',
+                'en_title' => 'Student Holiday',
+                'ar_title' => 'إجازة الطلاب',
+                'description' => 'Verifikasi kepulangan santri',
+                'icon' => 'printer',
+                'route' => '/dashboard/manajemen-kamtib/libur-santri',
+                'parent_id' => 8,
+                'type' => 'submenu',
+                'position' => 'sidebar',
+                'status' => 'active',
+                'order' => 8
+            ],
 
             // --- Submenus for Kepesantrenan (Parent ID: 9) ---
             [
@@ -1367,6 +1399,12 @@ class FrontendMenuSeeder extends Seeder
             if (strpos($menu['route'], '/dashboard/manajemen-kamtib/tipe-izin') !== false) {
                 $permissions_to_attach = array_merge($permissions_to_attach, [
                     $p_c_leave_type, $p_r_leave_type, $p_u_leave_type, $p_d_leave_type
+                ]);
+            }
+
+            if (strpos($menu['route'], '/dashboard/manajemen-kamtib/manajemen-libur') !== false || strpos($menu['route'], '/dashboard/manajemen-kamtib/libur-santri') !== false) {
+                $permissions_to_attach = array_merge($permissions_to_attach, [
+                    $p_c_holiday, $p_r_holiday, $p_u_holiday, $p_d_holiday
                 ]);
             }
 
