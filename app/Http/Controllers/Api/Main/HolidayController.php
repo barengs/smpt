@@ -119,12 +119,14 @@ class HolidayController extends Controller
         if (!$period) return response()->json(['message' => 'Data tidak ditemukan'], 404);
 
         // Get students with search filter
-        $query = Student::where('status', 'active');
+        // Status in database is 'Aktif', not 'active'
+        $query = Student::where('status', 'Aktif');
         
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where(function($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('nis', 'like', "%{$search}%");
             });
         }
@@ -150,7 +152,7 @@ class HolidayController extends Controller
 
             return [
                 'id' => $student->id,
-                'name' => $student->name,
+                'name' => trim($student->first_name . ' ' . $student->last_name),
                 'nis' => $student->nis,
                 'check' => $check ? [
                     'id' => $check->id,
