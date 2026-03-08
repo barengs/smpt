@@ -56,6 +56,7 @@ use App\Http\Controllers\Api\Master\SanctionController;
 use App\Http\Controllers\Api\Main\StudentViolationController;
 use App\Http\Controllers\Api\Master\LeaveTypeController;
 use App\Http\Controllers\Api\Main\StudentLeaveController;
+use App\Http\Controllers\Api\Main\HolidayController;
 use App\Http\Controllers\Api\Main\RoleMenuController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
@@ -378,4 +379,17 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('student-leave/{id}/assign-penalty', [StudentLeaveController::class, 'assignPenalty']);
     Route::post('student-leave/check-overdue', [StudentLeaveController::class, 'checkOverdueLeaves']);
     Route::apiResource('student-leave', StudentLeaveController::class);
+
+    // Holiday routes
+    Route::group(['prefix' => 'holiday'], function () {
+        Route::get('/', [HolidayController::class, 'index']);
+        Route::post('/', [HolidayController::class, 'store']);
+        Route::get('/{id}', [HolidayController::class, 'show']);
+        Route::put('/{id}', [HolidayController::class, 'update']);
+        Route::delete('/{id}', [HolidayController::class, 'destroy']);
+        Route::get('/{id}/students', [HolidayController::class, 'getStudents']);
+        Route::post('/{id}/students/{studentId}/toggle-requirement/{requirementId}', [HolidayController::class, 'toggleRequirement']);
+        Route::post('/{id}/students/{studentId}/checkout', [HolidayController::class, 'checkout']);
+        Route::post('/{id}/students/{studentId}/checkin', [HolidayController::class, 'checkin']);
+    });
 });
