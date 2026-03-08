@@ -215,7 +215,12 @@ class HostelController extends Controller
             // Muat roles pengguna untuk memeriksa multiple roles
             $staff->user->loadMissing('roles');
             
-            if (!$staff->user->roles->contains('name', 'kepala asrama')) {
+            // Lakukan pengecekan case-insensitive
+            $isKepalaAsrama = $staff->user->roles->contains(function ($role) {
+                return strtolower(trim($role->name)) === 'kepala asrama';
+            });
+            
+            if (!$isKepalaAsrama) {
                 return response()->json([
                     'message' => 'Staff tidak memiliki role Kepala Asrama',
                     'status' => 422
