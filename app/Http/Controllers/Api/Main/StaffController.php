@@ -106,7 +106,11 @@ class StaffController extends Controller
                 'address' => $request->address,
                 'nik' => $request->nik,
                 'nip' => $request->nip,
-                'gender' => $request->gender ?? 'Laki-laki',
+                'gender' => match($request->gender) {
+                    'Laki-laki', 'L' => 'L',
+                    'Perempuan', 'P' => 'P',
+                    default => 'L',
+                },
 
                 'village_id' => $request->village_id,
                 'zip_code' => $request->zip_code,
@@ -235,7 +239,12 @@ class StaffController extends Controller
                 'phone' => $request->input('phone', $staff->phone),
                 'address' => $request->input('address', $staff->address),
                 'zip_code' => $request->input('zip_code', $staff->zip_code),
-                'gender' => $request->input('gender', $staff->gender),
+                'gender' => match($request->input('gender', $staff->gender)) {
+                    'Laki-laki', 'L' => 'L',
+                    'Perempuan', 'P' => 'P',
+                    default => $staff->gender,
+                },
+
                 'village_id' => $request->input('village_id', $staff->village_id),
                 'marital_status' => $request->input('marital_status', $staff->marital_status),
                 'status' => $request->input('status', $staff->status),
