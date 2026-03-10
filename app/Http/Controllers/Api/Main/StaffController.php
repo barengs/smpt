@@ -257,10 +257,18 @@ class StaffController extends Controller
                 $staff->user->syncRoles($request->roles);
             }
 
-            // Update user if needed
+            // Update user fields if provided
+            $userUpdate = [];
             if ($request->has('email')) {
-                $staff->user->update(['email' => $request->email]);
+                $userUpdate['email'] = $request->email;
             }
+            if ($request->has('username')) {
+                $userUpdate['name'] = $request->username;
+            }
+            if (!empty($userUpdate)) {
+                $staff->user->update($userUpdate);
+            }
+
 
             // Load the user relationship
             $staff->load('user');
