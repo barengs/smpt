@@ -60,8 +60,10 @@ class StaffController extends Controller
             'address' => 'nullable|string|max:500',
             'zip_code' => 'nullable|string|max:10',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'gender' => 'nullable|string|in:Laki-laki,Perempuan,L,P',
             'roles' => 'required',
         ]);
+
 
         try {
 
@@ -104,7 +106,8 @@ class StaffController extends Controller
                 'address' => $request->address,
                 'nik' => $request->nik,
                 'nip' => $request->nip,
-                'gender' => $request->gender,
+                'gender' => $request->gender ?? 'Laki-laki',
+
                 'village_id' => $request->village_id,
                 'zip_code' => $request->zip_code,
                 'marital_status' => $request->marital_status ?? 'Belum Menikah',
