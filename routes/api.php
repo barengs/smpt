@@ -59,6 +59,7 @@ use App\Http\Controllers\Api\Main\StudentLeaveController;
 use App\Http\Controllers\Api\Main\HolidayController;
 use App\Http\Controllers\Api\Main\RoleMenuController;
 use App\Http\Controllers\Api\Main\AssessmentController;
+use App\Http\Controllers\Api\Main\ReportCardController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -365,6 +366,10 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('assessment/{detailId}', [AssessmentController::class, 'show']);
     Route::post('assessment/score', [AssessmentController::class, 'saveScore']);
     Route::get('assessment/report/{detailId}', [AssessmentController::class, 'report']);
+
+    // Report Card (Raport)
+    Route::get('report-card/class/{classGroupId}', [ReportCardController::class, 'classStudents']);
+    Route::get('report-card/student/{classGroupId}/{studentId}', [ReportCardController::class, 'studentReport']);
 
     // Tata Tertib    // Student Violations
     Route::get('student-violation/download-report', [StudentViolationController::class, 'downloadReport']);
