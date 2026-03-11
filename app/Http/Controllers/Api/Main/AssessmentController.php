@@ -102,13 +102,20 @@ class AssessmentController extends Controller
         $formula = AssessmentFormula::where('class_schedule_detail_id', $detailId)->first();
         
         if (!$formula) {
-            // Default formula Merdeka template
+            // Default formula Merdeka template using arrays of objects
             $formula = [
                 'class_schedule_detail_id' => $detailId,
                 'name' => 'Standar Merdeka',
                 'type' => 'merdeka',
-                'knowledge_formula' => ['tugas' => 30, 'uts' => 30, 'uas' => 40],
-                'skill_formula' => ['proyek' => 50, 'portfolio' => 50],
+                'knowledge_formula' => [
+                    ['name' => 'Tugas', 'weight' => 30],
+                    ['name' => 'Sumatif Tengah', 'weight' => 30],
+                    ['name' => 'Sumatif Akhir', 'weight' => 40],
+                ],
+                'skill_formula' => [
+                    ['name' => 'Proyek', 'weight' => 50],
+                    ['name' => 'Portfolio', 'weight' => 50],
+                ],
                 'attendance_weight' => 0
             ];
         }
@@ -130,19 +137,14 @@ class AssessmentController extends Controller
             'semester' => 'required|in:1,2',
             'assessments' => 'required|array',
             'assessments.*.student_id' => 'required|exists:students,id',
-            'assessments.*.tugas_score' => 'nullable|numeric|min:0|max:100',
-            'assessments.*.uh_score' => 'nullable|numeric|min:0|max:100',
-            'assessments.*.uts_score' => 'nullable|numeric|min:0|max:100',
-            'assessments.*.uas_score' => 'nullable|numeric|min:0|max:100',
-            'assessments.*.praktik_score' => 'nullable|numeric|min:0|max:100',
-            'assessments.*.proyek_score' => 'nullable|numeric|min:0|max:100',
-            'assessments.*.portfolio_score' => 'nullable|numeric|min:0|max:100',
             'assessments.*.attitude_spiritual' => 'nullable|in:A,B,C,D',
             'assessments.*.attitude_social' => 'nullable|in:A,B,C,D',
             'assessments.*.attitude_description' => 'nullable|string',
             'assessments.*.final_knowledge_score' => 'nullable|numeric',
             'assessments.*.final_skill_score' => 'nullable|numeric',
             'assessments.*.final_score' => 'nullable|numeric',
+            'assessments.*.knowledge_scores' => 'nullable|array',
+            'assessments.*.skill_scores' => 'nullable|array',
         ]);
 
         $detail = ClassScheduleDetail::with('classSchedule')->findOrFail($validated['class_schedule_detail_id']);
@@ -152,11 +154,18 @@ class AssessmentController extends Controller
         DB::beginTransaction();
         try {
             foreach ($validated['assessments'] as $assessmentData) {
-                // Remove student_id from update array to use it in match array
+                // Extract relational data
+                $knowledgeScores = $assessmentData['knowledge_scores'] ?? [];
+                $skillScores = $assessmentData['skill_scores'] ?? [];
+                
+                // Remove from main array to leave only parent fields
+                unset($assessmentData['knowledge_scores']);
+                unset($assessmentData['skill_scores']);
+                
                 $studentId = $assessmentData['student_id'];
                 unset($assessmentData['student_id']);
                 
-                StudentAssessment::updateOrCreate(
+                $studentAssessment = StudentAssessment::updateOrCreate(
                     [
                         'class_schedule_detail_id' => $detail->id,
                         'student_id' => $studentId,
@@ -164,6 +173,32 @@ class AssessmentController extends Controller
                     ],
                     array_merge($assessmentData, ['academic_year_id' => $academicYearId])
                 );
+
+                // Save or update individual component scores (Knowledge)
+                foreach ($knowledgeScores as $componentName => $scoreVal) {
+                    if ($scoreVal !== null && $scoreVal !== '') {
+                        AssessmentScore::updateOrCreate(
+                            [
+                                'student_assessment_id' => $studentAssessment->id,
+                                'component' => $componentName
+                            ],
+                            ['score' => $scoreVal]
+                        );
+                    }
+                }
+
+                // Save or update individual component scores (Skill)
+                foreach ($skillScores as $componentName => $scoreVal) {
+                    if ($scoreVal !== null && $scoreVal !== '') {
+                        AssessmentScore::updateOrCreate(
+                            [
+                                'student_assessment_id' => $studentAssessment->id,
+                                'component' => $componentName
+                            ],
+                            ['score' => $scoreVal]
+                        );
+                    }
+                }
             }
             DB::commit();
 
