@@ -18,17 +18,6 @@ return new class extends Migration
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->enum('semester', ['1', '2'])->default('1');
             
-            // Pengetahuan
-            $table->decimal('tugas_score', 5, 2)->nullable();
-            $table->decimal('uh_score', 5, 2)->nullable();
-            $table->decimal('uts_score', 5, 2)->nullable();
-            $table->decimal('uas_score', 5, 2)->nullable();
-            
-            // Keterampilan
-            $table->decimal('praktik_score', 5, 2)->nullable();
-            $table->decimal('proyek_score', 5, 2)->nullable();
-            $table->decimal('portfolio_score', 5, 2)->nullable();
-            
             // Sikap
             $table->enum('attitude_spiritual', ['A', 'B', 'C', 'D'])->nullable();
             $table->enum('attitude_social', ['A', 'B', 'C', 'D'])->nullable();
