@@ -21,7 +21,7 @@ class ReportCardController extends Controller
         $semester = $request->query('semester', '1');
 
         if (!$academicYearId) {
-            $ay = AcademicYear::where('status', 'active')->first();
+            $ay = AcademicYear::where('active', true)->first();
             $academicYearId = $ay ? $ay->id : null;
         }
 
@@ -57,7 +57,7 @@ class ReportCardController extends Controller
         $semester = $request->query('semester', '1');
 
         if (!$academicYearId) {
-            $ay = AcademicYear::where('status', 'active')->first();
+            $ay = AcademicYear::where('active', true)->first();
             $academicYearId = $ay ? $ay->id : null;
         } else {
             $ay = AcademicYear::find($academicYearId);
