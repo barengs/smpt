@@ -58,6 +58,7 @@ use App\Http\Controllers\Api\Master\LeaveTypeController;
 use App\Http\Controllers\Api\Main\StudentLeaveController;
 use App\Http\Controllers\Api\Main\HolidayController;
 use App\Http\Controllers\Api\Main\RoleMenuController;
+use App\Http\Controllers\Api\Main\AssessmentController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -356,6 +357,14 @@ Route::group(['prefix' => 'main'], function () {
     // Presence
     Route::apiResource('presence', PresenceController::class);
     Route::get('presence/statistics', [PresenceController::class, 'statistics'])->name('presence.statistics');
+
+    // Assessment
+    Route::get('assessment', [AssessmentController::class, 'index']);
+    Route::post('assessment/formula', [AssessmentController::class, 'saveFormula']);
+    Route::get('assessment/formula/{detailId}', [AssessmentController::class, 'getFormula']);
+    Route::get('assessment/{detailId}', [AssessmentController::class, 'show']);
+    Route::post('assessment/score', [AssessmentController::class, 'saveScore']);
+    Route::get('assessment/report/{detailId}', [AssessmentController::class, 'report']);
 
     // Tata Tertib    // Student Violations
     Route::get('student-violation/download-report', [StudentViolationController::class, 'downloadReport']);
