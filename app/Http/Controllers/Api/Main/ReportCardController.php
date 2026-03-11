@@ -42,6 +42,7 @@ class ReportCardController extends Controller
             'data' => [
                 'class_group' => $classGroup,
                 'students' => $students->values(),
+                'raw_student_classes' => $studentClasses,
                 'academic_year_id' => $academicYearId,
                 'semester' => $semester
             ]

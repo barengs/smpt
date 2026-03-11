@@ -408,14 +408,15 @@ class ClassGroupController extends Controller
                 'classroom:id,name',
                 'educational_institution:id,institution_name',
                 'advisor.user:id,name'
-            ])
-                ->withCount(['studentClasses as total_students']);
+            ]);
 
-            // Filter by academic year if provided
+            // Filter student count by academic year if provided
             if ($request->has('academic_year_id')) {
-                $query->whereHas('studentClasses', function ($q) use ($request) {
+                $query->withCount(['studentClasses as total_students' => function ($q) use ($request) {
                     $q->where('academic_year_id', $request->academic_year_id);
-                });
+                }]);
+            } else {
+                $query->withCount(['studentClasses as total_students']);
             }
 
             // Filter by educational institution if provided
