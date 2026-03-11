@@ -43,13 +43,12 @@ class AssessmentController extends Controller
         $classGroupId = $detail->class_group_id;
         $academicYearId = $detail->classSchedule->academic_year_id;
 
-        $studentClasses = StudentClass::with('student')
+        $studentClasses = StudentClass::with('students')
             ->where('class_group_id', $classGroupId)
             ->where('academic_year_id', $academicYearId)
-            ->where('status', 'active')
             ->get();
 
-        $students = $studentClasses->pluck('student');
+        $students = $studentClasses->pluck('students');
 
         // Get existing assessments
         $assessments = StudentAssessment::with('assessmentScores')
