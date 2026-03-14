@@ -25,8 +25,8 @@ class StudentClassController extends Controller
             $query = StudentClass::with(['academicYears:id,year', 'educations:id,institution_name', 'students:id,first_name,last_name', 'classrooms:id,name', 'classGroup:id,name']);
 
             // Filter by academic year if provided
-            if ($request->has('academic_year_id')) {
-                $query->where('academic_year_id', $request->academic_year_id);
+            if ($request->filled('academic_year_id')) {
+                $query->where('academic_year_id', $request->input('academic_year_id'));
             }
 
             // Filter by education if provided
