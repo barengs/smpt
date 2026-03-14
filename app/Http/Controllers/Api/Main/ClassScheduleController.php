@@ -23,10 +23,23 @@ class ClassScheduleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $schedules = ClassSchedule::with([
+            $query = ClassSchedule::query();
+
+            // Filter by academic year
+            if ($request->has('academic_year_id')) {
+                $query->where('academic_year_id', $request->academic_year_id);
+            } else {
+                // Default to active academic year
+                $activeYear = \App\Models\AcademicYear::where('active', 1)->first();
+                if ($activeYear) {
+                    $query->where('academic_year_id', $activeYear->id);
+                }
+            }
+
+            $schedules = $query->with([
                 'academicYear',
                 'education',
                 'details.classroom',
