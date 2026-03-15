@@ -37,15 +37,47 @@ class MenuController extends Controller
                 ], 200);
             }
 
-            // Get all menu IDs assigned to user's roles
+            // Get all menu IDs assigned to user's roles via pivot table
             $menuIds = [];
             foreach ($roles as $role) {
                 $roleMenuIds = $role->menus()->pluck('menu_id')->toArray();
                 $menuIds = array_merge($menuIds, $roleMenuIds);
             }
+
+            // Also check for menu IDs in user's permissions (scoped pattern: view_menu_{id})
+            // This ensures robustness if role_menu pivot is out of sync but permissions exist.
+            $permissionNames = $user->getAllPermissions()->pluck('name');
+            foreach ($permissionNames as $permName) {
+                if (preg_match('/^view_menu_(\d+)$/', $permName, $matches)) {
+                    $menuIds[] = (int)$matches[1];
+                }
+            }
             
             // Remove duplicates
             $menuIds = array_unique($menuIds);
+
+            // Recursively collect all parent IDs to ensure the tree can be built
+            // even if only child menus are explicitly assigned to the role
+            if (!empty($menuIds)) {
+                $allMenuIds = $menuIds;
+                $toCheck = $menuIds;
+                
+                while (!empty($toCheck)) {
+                    $parents = Menu::whereIn('id', $toCheck)
+                        ->whereNotNull('parent_id')
+                        ->pluck('parent_id')
+                        ->toArray();
+                    
+                    $newParents = array_diff($parents, $allMenuIds);
+                    if (empty($newParents)) {
+                        break;
+                    }
+                    
+                    $allMenuIds = array_merge($allMenuIds, $newParents);
+                    $toCheck = $newParents;
+                }
+                $menuIds = array_unique($allMenuIds);
+            }
 
             if (empty($menuIds)) {
                 return response()->json([
