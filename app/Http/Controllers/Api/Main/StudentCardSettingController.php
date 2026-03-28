@@ -45,10 +45,13 @@ class StudentCardSettingController extends Controller
     public function update(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'front_template' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'back_template' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'stamp' => 'nullable|image|mimes:jpeg,png,jpg,png|max:1024',
-            'signature' => 'nullable|image|mimes:jpeg,png,jpg,png|max:1024',
+            'front_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'back_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'guardian_front_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'guardian_back_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'kop_surat' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'stamp' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:1024',
+            'signature' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:1024',
         ]);
 
         if ($validator->fails()) {
@@ -72,7 +75,7 @@ class StudentCardSettingController extends Controller
         $manager = new ImageManager(new Driver());
 
         // Handle File Uploads
-        $fields = ['front_template', 'back_template', 'stamp', 'signature'];
+        $fields = ['front_template', 'back_template', 'guardian_front_template', 'guardian_back_template', 'kop_surat', 'stamp', 'signature'];
         foreach ($fields as $field) {
             if ($request->hasFile($field)) {
                 $file = $request->file($field);

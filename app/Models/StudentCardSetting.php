@@ -12,6 +12,9 @@ class StudentCardSetting extends Model
     protected $fillable = [
         'front_template',
         'back_template',
+        'guardian_front_template',
+        'guardian_back_template',
+        'kop_surat',
         'stamp',
         'signature',
         'is_active',
