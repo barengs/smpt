@@ -13,6 +13,10 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\HostelsImport;
+use App\Exports\HostelTemplateExport;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @tags Hostel Management
@@ -420,5 +424,76 @@ class HostelController extends Controller
     public function backup()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\HostelBackupExport, 'backup_asrama_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    /**
+     * Import hostels from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            $file = $request->file('file');
+            $import = new HostelsImport();
+
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => $successCount > 0,
+                'message' => $successCount > 0 ? 'Import completed' : 'Import failed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount,
+                ]
+            ];
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50);
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = $successCount > 0 ? 'Import completed with some errors' : 'Import failed with errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for hostel import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new HostelTemplateExport(),
+                'hostel_import_template.xlsx'
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -32,7 +32,7 @@ class AssessmentController extends Controller
      */
     public function show($detailId, Request $request)
     {
-        $semester = $request->query('semester', '1');
+        $quarterId = $request->query('academic_quarter_id');
         
         $detail = ClassScheduleDetail::with([
             'study', 'teacher', 'classGroup', 'classroom',
@@ -53,7 +53,9 @@ class AssessmentController extends Controller
         // Get existing assessments
         $assessments = StudentAssessment::with('assessmentScores')
             ->where('class_schedule_detail_id', $detailId)
-            ->where('semester', $semester)
+            ->when($quarterId, function($q) use ($quarterId) {
+                return $q->where('academic_quarter_id', $quarterId);
+            })
             ->get()
             ->keyBy('student_id');
 
@@ -134,7 +136,7 @@ class AssessmentController extends Controller
     {
         $validated = $request->validate([
             'class_schedule_detail_id' => 'required|exists:class_schedule_details,id',
-            'semester' => 'required|in:1,2',
+            'academic_quarter_id' => 'required|exists:academic_quarters,id',
             'assessments' => 'required|array',
             'assessments.*.student_id' => 'required|exists:students,id',
             'assessments.*.attitude_spiritual' => 'nullable|in:A,B,C,D',
@@ -149,7 +151,7 @@ class AssessmentController extends Controller
 
         $detail = ClassScheduleDetail::with('classSchedule')->findOrFail($validated['class_schedule_detail_id']);
         $academicYearId = $detail->classSchedule->academic_year_id;
-        $semester = $validated['semester'];
+        $quarterId = $validated['academic_quarter_id'];
 
         DB::beginTransaction();
         try {
@@ -169,7 +171,7 @@ class AssessmentController extends Controller
                     [
                         'class_schedule_detail_id' => $detail->id,
                         'student_id' => $studentId,
-                        'semester' => $semester
+                        'academic_quarter_id' => $quarterId
                     ],
                     array_merge($assessmentData, ['academic_year_id' => $academicYearId])
                 );
@@ -222,11 +224,13 @@ class AssessmentController extends Controller
      */
     public function report($detailId, Request $request)
     {
-        $semester = $request->query('semester', '1');
+        $quarterId = $request->query('academic_quarter_id');
         
         $assessments = StudentAssessment::with('student')
             ->where('class_schedule_detail_id', $detailId)
-            ->where('semester', $semester)
+            ->when($quarterId, function($q) use ($quarterId) {
+                return $q->where('academic_quarter_id', $quarterId);
+            })
             ->get();
 
         return response()->json([

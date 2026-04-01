@@ -524,42 +524,71 @@ class RoleMenuController extends Controller
     public function getPermissionMatrix(string $roleId)
     {
         try {
-            $role = Role::with(['menus', 'permissions'])->findOrFail($roleId);
+            $role = Role::with(['menus.permissions', 'permissions'])->findOrFail($roleId);
 
             $matrix = [];
-            $standardActions = ['CREATE', 'VIEW', 'EDIT', 'DELETE', 'APPROVE'];
-            
-            // Get all role permissions
             $rolePermissions = $role->permissions->pluck('name')->toArray();
-            // Example: ['view_menu_1', 'create_menu_1', 'view_menu_2']
 
             foreach ($role->menus as $menu) {
-                // Find permissions for this menu in the role's permission list
-                // Pattern: {action}_menu_{menuId}
                 $currentPermissions = [];
                 $customPermissions = [];
                 
-                foreach ($rolePermissions as $permName) {
-                    if (str_ends_with($permName, "_menu_{$menu->id}")) {
-                        // Extract action
-                        // "view_menu_1" -> "view"
+                // Which of the menu's permissions does the role actually have?
+                $menuPerms = $menu->permissions->pluck('name')->toArray();
+                $activePerms = array_intersect($menuPerms, $rolePermissions);
+
+                // Also add any scoped permission that ends with "_menu_{menu_id}" that the role has
+                foreach ($rolePermissions as $rp) {
+                    if (str_ends_with($rp, "_menu_{$menu->id}")) {
+                        $activePerms[] = $rp;
+                    }
+                }
+                
+                $activePerms = array_unique($activePerms);
+
+                foreach ($activePerms as $permName) {
+                    $permNameLower = strtolower($permName);
+                    
+                    // Scoped permission check (e.g. "view_menu_1")
+                    if (str_ends_with($permNameLower, "_menu_{$menu->id}")) {
                         $suffix = "_menu_{$menu->id}";
-                        $action = substr($permName, 0, strlen($permName) - strlen($suffix));
+                        $action = substr($permNameLower, 0, strlen($permNameLower) - strlen($suffix));
                         $actionUpper = strtoupper($action);
+                        $standardActions = ['CREATE', 'VIEW', 'EDIT', 'DELETE', 'APPROVE'];
                         
                         if (in_array($actionUpper, $standardActions)) {
                             $currentPermissions[] = $actionUpper;
                         } else {
-                            $customPermissions[] = $action; // keep as is (lowercase mostly)
+                            $customPermissions[] = $action;
                         }
+                        continue;
+                    }
+
+                    // Natural language check (e.g. "lihat santri")
+                    $words = explode(' ', $permNameLower);
+                    $firstWord = $words[0] ?? '';
+
+                    $actionMapped = match($firstWord) {
+                        'lihat', 'view', 'read' => 'VIEW',
+                        'buat', 'create', 'add', 'tambah' => 'CREATE',
+                        'ubah', 'edit', 'update' => 'EDIT',
+                        'hapus', 'delete', 'remove' => 'DELETE',
+                        'setuju', 'approve', 'konfirmasi', 'aktivasi' => 'APPROVE',
+                        default => null
+                    };
+
+                    if ($actionMapped) {
+                        $currentPermissions[] = $actionMapped;
+                    } else {
+                        $customPermissions[] = $permName;
                     }
                 }
 
                 $matrix[] = [
                     'menu_id' => $menu->id,
                     'menu_title' => $menu->id_title,
-                    'permissions' => $currentPermissions,
-                    'custom_permissions' => $customPermissions,
+                    'permissions' => array_values(array_unique($currentPermissions)),
+                    'custom_permissions' => array_values(array_unique($customPermissions)),
                 ];
             }
 

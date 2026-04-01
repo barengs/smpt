@@ -17,4 +17,14 @@ class AcademicYear extends Model
         'end_date' => 'date',
         'active' => 'boolean',
     ];
+
+    /**
+     * Get the quarters for the academic year.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function academicQuarters(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(AcademicQuarter::class);
+    }
 }

@@ -18,7 +18,7 @@ class ReportCardController extends Controller
     public function classStudents($classGroupId, Request $request)
     {
         $academicYearId = $request->query('academic_year_id');
-        $semester = $request->query('semester', '1');
+        $quarterId = $request->query('academic_quarter_id');
 
         if (!$academicYearId) {
             $ay = AcademicYear::where('active', true)->first();
@@ -44,7 +44,7 @@ class ReportCardController extends Controller
                 'students' => $students->values(),
                 'raw_student_classes' => $studentClasses,
                 'academic_year_id' => $academicYearId,
-                'semester' => $semester
+                'academic_quarter_id' => $quarterId
             ]
         ]);
     }
@@ -55,7 +55,7 @@ class ReportCardController extends Controller
     public function studentReport($classGroupId, $studentId, Request $request)
     {
         $academicYearId = $request->query('academic_year_id');
-        $semester = $request->query('semester', '1');
+        $quarterId = $request->query('academic_quarter_id');
 
         if (!$academicYearId) {
             $ay = AcademicYear::where('active', true)->first();
@@ -67,14 +67,16 @@ class ReportCardController extends Controller
         $student = Student::findOrFail($studentId);
         $classGroup = ClassGroup::with(['advisor', 'classroom'])->findOrFail($classGroupId);
 
-        // Get assessments for the student in this semester and academic year
+        // Get assessments for the student in this quarter
         $assessments = StudentAssessment::with([
             'classScheduleDetail.study', 
             'classScheduleDetail.teacher',
             'assessmentScores'
         ])
         ->where('student_id', $studentId)
-        ->where('semester', $semester)
+        ->when($quarterId, function($q) use ($quarterId) {
+            return $q->where('academic_quarter_id', $quarterId);
+        })
         ->whereHas('classScheduleDetail.classSchedule', function($q) use ($academicYearId) {
             $q->where('academic_year_id', $academicYearId);
         })
@@ -87,7 +89,7 @@ class ReportCardController extends Controller
                 'student' => $student,
                 'class_group' => $classGroup,
                 'academic_year' => $ay,
-                'semester' => $semester,
+                'academic_quarter_id' => $quarterId,
                 'curriculum' => 'Merdeka', // Placeholder, can be dynamic if stored in DB
                 'assessments' => $assessments
             ]

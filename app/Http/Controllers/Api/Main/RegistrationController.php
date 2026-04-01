@@ -25,6 +25,7 @@ use App\Models\AcademicYear;
 use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Http;
 
 class RegistrationController extends Controller
 {
@@ -399,15 +400,23 @@ class RegistrationController extends Controller
                 'status' => 'Tidak Aktif', // Default status
             ]);
 
-            // Create account using direct model creation instead of calling controller method
-            $account = Account::create([
-                'account_number' => $student->nis,
-                'customer_id' => $student->id,
-                'product_id' => $request->product_id,
-                'balance' => 0,
-                'status' => 'TIDAK AKTIF',
-                'open_date' => now(),
-            ]);
+            // Call Bank Santri microservice to create the account physically there
+            $bankUrl = env('BANK_SANTRI_URL', 'http://localhost:8001');
+            try {
+                $accountRes = Http::post("{$bankUrl}/api/main/account", [
+                    'account_number' => $student->nis,
+                    'customer_id'    => $student->id,
+                    'customer_name'  => $student->first_name . ' ' . $student->last_name,
+                    'product_id'     => $request->product_id,
+                ]);
+
+                if (!$accountRes->successful()) {
+                    throw new \Exception('Gagal membuat rekening di Bank Santri: ' . $accountRes->body());
+                }
+            } catch (\Exception $e) {
+                Log::error('Bank Santri Account Creation Error: ' . $e->getMessage());
+                throw $e;
+            }
 
             // get product | front-end harus mengirim id product
             $product = Product::findOrFail($request->product_id);
@@ -416,7 +425,7 @@ class RegistrationController extends Controller
             // get transaction type | front-end harus mengirim id transaction type
             // di gunakan untuk membuat transaction ledger
             $transactionType = TransactionType::findOrFail($request->transaction_type_id);
-            // Create transaction
+            // Create transaction (Pendaftaran transaction logic)
             $transaction = Transaction::create([
                 'id' => Str::uuid(),
                 'transaction_type_id' => $request->transaction_type_id,
@@ -425,7 +434,7 @@ class RegistrationController extends Controller
                 'status' => 'PENDING',
                 'reference_number' => $registration->registration_number,
                 'channel' => $request->channel,
-                'source_account' => $account->account_number,
+                'source_account' => $student->nis,
                 'destination_account' => null,
             ]);
 
