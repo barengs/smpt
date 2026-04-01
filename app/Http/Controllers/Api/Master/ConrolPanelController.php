@@ -31,6 +31,7 @@ class ConrolPanelController extends Controller
                     'app_description' => 'School Management System',
                     'app_theme' => 'system',
                     'app_language' => 'indonesia',
+                    'app_ui_style' => 'modern',
                     'is_maintenance_mode' => 'false'
                 ]);
             }
@@ -75,6 +76,7 @@ class ConrolPanelController extends Controller
                 'maintenance_message' => 'nullable|string',
                 'app_theme' => 'required|in:light,dark,system',
                 'app_language' => 'required|in:indonesia,english,arabic',
+                'app_ui_style' => 'required|in:modern,classic',
                 'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'app_favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
             ]);
@@ -193,6 +195,7 @@ class ConrolPanelController extends Controller
                 'maintenance_message' => 'nullable|string',
                 'app_theme' => 'sometimes|required|in:light,dark,system',
                 'app_language' => 'sometimes|required|in:indonesia,english,arabic',
+                'app_ui_style' => 'sometimes|required|in:modern,classic',
                 'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'app_favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
             ]);
