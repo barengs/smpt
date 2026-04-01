@@ -9,16 +9,33 @@ return new class extends Migration
 {
     public function up()
     {
-        $kamtibId = 8; // ID for Manajemen Kamtib parent menu
+        // Cari ID parent Manajemen Kamtib secara dinamis (tidak hardcode)
+        $kamtib = DB::table('menus')->where('id_title', 'Manajemen Kamtib')->first();
+
+        if (!$kamtib) {
+            // Jika menu parent belum ada, skip (akan ditangani seeder)
+            return;
+        }
+
+        $kamtibId = $kamtib->id;
+
+        // Cek apakah sudah ada (idempotent)
+        $alreadyExists = DB::table('menus')
+            ->whereIn('id_title', ['Manajemen Libur', 'Libur Santri'])
+            ->exists();
+
+        if ($alreadyExists) {
+            return;
+        }
 
         // Insert Manajemen Libur
         $managementId = DB::table('menus')->insertGetId([
-            'parent_id' => $kamtibId,
-            'id_title' => 'Manajemen Libur',
-            'route' => '/dashboard/manajemen-kamtib/manajemen-libur',
-            'icon' => 'Calendar',
-            'order' => 5,
-            'status' => 'active',
+            'parent_id'  => $kamtibId,
+            'id_title'   => 'Manajemen Libur',
+            'route'      => '/dashboard/manajemen-kamtib/manajemen-libur',
+            'icon'       => 'Calendar',
+            'order'      => 5,
+            'status'     => 'active',
             'created_at' => now(),
             'updated_at' => now(),
         ]);

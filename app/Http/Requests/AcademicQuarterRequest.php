@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AcademicYearRequest extends FormRequest
+class AcademicQuarterRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,19 +22,19 @@ class AcademicYearRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'year' => 'required|string|size:9|unique:academic_years,year',
+            'academic_year_id' => 'required|exists:academic_years,id',
+            'name' => 'required|string|max:50',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date|after_or_equal:start_date',
             'active' => 'nullable|boolean',
-            'description' => 'nullable|string|max:255',
         ];
 
         if ($this->isMethod('put') || $this->isMethod('patch')) {
-            $rules['year'] = 'sometimes|required|string|size:9|unique:academic_years,year,' . $this->route('academic_year');
+            $rules['academic_year_id'] = 'sometimes|required|exists:academic_years,id';
+            $rules['name'] = 'sometimes|required|string|max:50';
             $rules['start_date'] = 'sometimes|required|date';
-            $rules['end_date'] = 'sometimes|required|date|after:start_date';
+            $rules['end_date'] = 'sometimes|required|date|after_or_equal:start_date';
             $rules['active'] = 'sometimes|nullable|boolean';
-            $rules['description'] = 'sometimes|nullable|string|max:255';
         }
 
         return $rules;
@@ -42,24 +42,21 @@ class AcademicYearRequest extends FormRequest
 
     /**
      * Get the error messages for the defined validation rules.
-     *
-     * @return array<string, string>
      */
     public function messages(): array
     {
         return [
-            'year.required' => 'Tahun ajaran wajib diisi.',
-            'year.string' => 'Tahun ajaran harus berupa teks.',
-            'year.size' => 'Format tahun ajaran harus sesuai (contoh: 2023/2024).',
-            'year.unique' => 'Tahun ajaran sudah ada.',
+            'academic_year_id.required' => 'Tahun ajaran wajib dipilih.',
+            'academic_year_id.exists' => 'Tahun ajaran tidak valid.',
+            'name.required' => 'Nama kuartal wajib diisi.',
+            'name.string' => 'Nama kuartal harus berupa teks.',
+            'name.max' => 'Nama kuartal maksimal 50 karakter.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
             'start_date.date' => 'Tanggal mulai harus berupa tanggal yang valid.',
             'end_date.required' => 'Tanggal selesai wajib diisi.',
             'end_date.date' => 'Tanggal selesai harus berupa tanggal yang valid.',
-            'end_date.after' => 'Tanggal selesai harus setelah tanggal mulai.',
+            'end_date.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai.',
             'active.boolean' => 'Status aktif harus berupa nilai boolean.',
-            'description.string' => 'Deskripsi harus berupa teks.',
-            'description.max' => 'Deskripsi maksimal 255 karakter.',
         ];
     }
 }

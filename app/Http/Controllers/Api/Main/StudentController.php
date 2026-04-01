@@ -610,4 +610,79 @@ class StudentController extends Controller
     {
         return Excel::download(new \App\Exports\StudentBackupExport, 'backup_siswa_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
     }
+    /**
+     * Bulk move students to a room (tracks history)
+     */
+    public function bulkAssignRoom(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'student_ids' => 'required|array',
+                'student_ids.*' => 'exists:students,id',
+                'room_id' => 'required|exists:rooms,id',
+                'academic_year_id' => 'nullable|exists:academic_years,id',
+                'start_date' => 'required|date',
+                'notes' => 'nullable|string'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $room = Room::findOrFail($request->room_id);
+            $studentIds = $request->student_ids;
+            $startDate = $request->start_date;
+            $academicYearId = $request->academic_year_id;
+            $notes = $request->notes;
+
+            DB::beginTransaction();
+
+            foreach ($studentIds as $studentId) {
+                // Deactivate previous active assignment
+                DB::table('student_room_assignments')
+                    ->where('student_id', $studentId)
+                    ->where('is_active', true)
+                    ->update([
+                        'is_active' => false,
+                        'end_date' => $startDate,
+                    ]);
+
+                // Create new assignment
+                DB::table('student_room_assignments')->insert([
+                    'student_id' => $studentId,
+                    'room_id' => $room->id,
+                    'academic_year_id' => $academicYearId,
+                    'start_date' => $startDate,
+                    'end_date' => null,
+                    'is_active' => true,
+                    'notes' => $notes,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // Update student's hostel based on room
+                DB::table('students')->where('id', $studentId)->update([
+                    'hostel_id' => $room->hostel_id,
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mutasi massal berhasil diproses untuk ' . count($studentIds) . ' santri.',
+            ], 201);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mutasi massal',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

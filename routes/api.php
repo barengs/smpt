@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AuthRegisterController;
 use App\Http\Controllers\Api\Master\AcademicYearController;
+use App\Http\Controllers\Api\Master\AcademicQuarterController;
 use App\Http\Controllers\Api\Master\ClassGroupController;
 use App\Http\Controllers\Api\Master\EducationClassController;
 use App\Http\Controllers\Api\Master\EducationController;
@@ -60,6 +61,7 @@ use App\Http\Controllers\Api\Main\HolidayController;
 use App\Http\Controllers\Api\Main\RoleMenuController;
 use App\Http\Controllers\Api\Main\AssessmentController;
 use App\Http\Controllers\Api\Main\ReportCardController;
+use App\Http\Controllers\Api\Main\PesantrenReportController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -137,6 +139,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('academic-year/export', [AcademicYearController::class, 'export']);
     Route::get('academic-year/backup', [AcademicYearController::class, 'backup']);
     Route::apiResource('academic-year', AcademicYearController::class);
+    Route::get('academic-quarter/active', [AcademicQuarterController::class, 'showActiveQuarter']);
+    Route::apiResource('academic-quarter', AcademicQuarterController::class);
     Route::get('occupation/trashed', [OccupationController::class, 'trashed']);
     Route::post('occupation/{id}/restore', [OccupationController::class, 'restore']);
     Route::apiResource('occupation', OccupationController::class);
@@ -152,6 +156,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('lesson-hour', LessonHourController::class);
     Route::get('room/trashed', [RoomController::class, 'trashed']);
     Route::post('room/{id}/restore', [RoomController::class, 'restore']);
+    Route::post('room/import', [RoomController::class, 'import']);
+    Route::get('room/import/template', [RoomController::class, 'downloadTemplate']);
     Route::get('room/export', [RoomController::class, 'export']);
     Route::get('room/backup', [RoomController::class, 'backup']);
     Route::apiResource('room', RoomController::class);
@@ -164,6 +170,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('hostel/{id}/head/history', [HostelController::class, 'headHistory']);
     Route::get('hostel/export', [HostelController::class, 'export']);
     Route::get('hostel/backup', [HostelController::class, 'backup']);
+    Route::post('hostel/import', [HostelController::class, 'import']);
+    Route::get('hostel/import/template', [HostelController::class, 'downloadTemplate']);
     Route::apiResource('hostel', HostelController::class);
     Route::post('classroom/import', [ClassroomController::class, 'import']);
     Route::get('classroom/import/template', [ClassroomController::class, 'downloadTemplate']);
@@ -308,6 +316,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('student/export', [StudentController::class, 'export']);
     Route::get('student/backup', [StudentController::class, 'backup']);
     Route::get('student/import/template', [StudentController::class, 'downloadTemplate']);
+    Route::post('student/room/bulk-assign', [StudentController::class, 'bulkAssignRoom']);
     Route::post('student/{id}/room/assign', [StudentController::class, 'assignRoom']);
     Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
     Route::apiResource('student', StudentController::class);
@@ -405,5 +414,13 @@ Route::group(['prefix' => 'main'], function () {
         Route::post('/{id}/students/{studentId}/toggle-requirement/{requirementId}', [HolidayController::class, 'toggleRequirement']);
         Route::post('/{id}/students/{studentId}/checkout', [HolidayController::class, 'checkout']);
         Route::post('/{id}/students/{studentId}/checkin', [HolidayController::class, 'checkin']);
+    });
+
+    // Pesantren Reports
+    Route::group(['prefix' => 'pesantren-report'], function () {
+        Route::get('student-statistics', [PesantrenReportController::class, 'studentStatistics']);
+        Route::get('violation-report', [PesantrenReportController::class, 'violationReport']);
+        Route::get('leave-report', [PesantrenReportController::class, 'leaveReport']);
+        Route::get('attendance-statistics', [PesantrenReportController::class, 'attendanceStatistics']);
     });
 });

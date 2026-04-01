@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\RoomsImport;
+use App\Exports\RoomTemplateExport;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
@@ -280,5 +283,76 @@ class RoomController extends Controller
     public function backup()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\RoomBackupExport, 'backup_ruangan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    /**
+     * Import rooms from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            $file = $request->file('file');
+            $import = new RoomsImport();
+
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => $successCount > 0,
+                'message' => $successCount > 0 ? 'Import completed' : 'Import failed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount,
+                ]
+            ];
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50);
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = $successCount > 0 ? 'Import completed with some errors' : 'Import failed with errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for room import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new RoomTemplateExport(),
+                'room_import_template.xlsx'
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
