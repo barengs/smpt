@@ -52,8 +52,8 @@ class BankSantriMenuUpdateSeeder extends Seeder
         // Submenus for Bank Santri
         $bankSantriSubmenus = [
             ['id_title' => 'Transaksi', 'en_title' => 'Bank Transactions', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 1],
-            ['id_title' => 'Paket Pembayaran', 'en_title' => 'Payment Pkg', 'route' => '/dashboard/bank-santri/payment-package', 'icon' => 'package', 'order' => 2],
-            ['id_title' => 'Proses Pembayaran', 'en_title' => 'Exec Payment', 'route' => '/dashboard/bank-santri/payment-process', 'icon' => 'credit-card', 'order' => 3],
+            ['id_title' => 'Paket Pembayaran', 'en_title' => 'Payment Pkg', 'route' => '/dashboard/bank-santri/paket', 'icon' => 'package', 'order' => 2],
+            ['id_title' => 'Proses Pembayaran', 'en_title' => 'Exec Payment', 'route' => '/dashboard/bank-santri/pembayaran', 'icon' => 'credit-card', 'order' => 3],
             ['id_title' => 'Verifikasi Top-up', 'en_title' => 'Verify Topup', 'route' => '/dashboard/bank-santri/top-up/verifikasi', 'icon' => 'check-circle', 'order' => 4],
             ['id_title' => 'Rekening Bank', 'en_title' => 'Bank Accs', 'route' => '/dashboard/bank-santri/rekening', 'icon' => 'users', 'order' => 5],
             ['id_title' => 'Kasir Koperasi', 'en_title' => 'Coop Cashier', 'route' => '/dashboard/bank-santri/koperasi', 'icon' => 'shopping-cart', 'order' => 6],
@@ -65,11 +65,11 @@ class BankSantriMenuUpdateSeeder extends Seeder
 
         // Submenus for Laporan Keuangan
         $laporanKeuanganSubmenus = [
-            ['id_title' => 'Jurnal Umum', 'en_title' => 'General Lgr', 'route' => '/dashboard/keuangan/laporan/jurnal-umum', 'icon' => 'file-text', 'order' => 1],
-            ['id_title' => 'Mutasi Nasabah', 'en_title' => 'Customer Stmt', 'route' => '/dashboard/keuangan/laporan/mutasi-nasabah', 'icon' => 'user-check', 'order' => 2],
-            ['id_title' => 'Rekap Saldo', 'en_title' => 'Bal Summary', 'route' => '/dashboard/keuangan/laporan/rekap-saldo', 'icon' => 'landmark', 'order' => 3],
-            ['id_title' => 'Rekap Kasir', 'en_title' => 'Cash Recap', 'route' => '/dashboard/keuangan/laporan/rekap-kasir', 'icon' => 'receipt', 'order' => 4],
-            ['id_title' => 'Konfigurasi Transaksi', 'en_title' => 'Tx Config', 'route' => '/dashboard/keuangan/pengaturan-transaksi', 'icon' => 'settings', 'order' => 5],
+            ['id_title' => 'Jurnal Umum', 'en_title' => 'General Lgr', 'route' => '/dashboard/bank-santri/laporan/jurnal', 'icon' => 'file-text', 'order' => 1],
+            ['id_title' => 'Mutasi Nasabah', 'en_title' => 'Customer Stmt', 'route' => '/dashboard/bank-santri/laporan/mutasi', 'icon' => 'user-check', 'order' => 2],
+            ['id_title' => 'Rekap Saldo', 'en_title' => 'Bal Summary', 'route' => '/dashboard/bank-santri/laporan/saldo', 'icon' => 'landmark', 'order' => 3],
+            ['id_title' => 'Rekap Kasir', 'en_title' => 'Cash Recap', 'route' => '/dashboard/bank-santri/laporan/kasir', 'icon' => 'receipt', 'order' => 4],
+            ['id_title' => 'Konfigurasi Transaksi', 'en_title' => 'Tx Config', 'route' => '/dashboard/bank-santri/laporan/config', 'icon' => 'settings', 'order' => 5],
         ];
 
         $superadmin = Role::where('name', 'superadmin')->first();
