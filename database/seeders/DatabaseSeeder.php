@@ -50,6 +50,7 @@ class DatabaseSeeder extends Seeder
             DisciplineSystemSeeder::class,
             InstallmentPlanSeeder::class,
             InstallmentScheduleSeeder::class,
+            BankSantriMenuUpdateSeeder::class,
         ]);
     }
 }
