@@ -96,6 +96,29 @@ class StaffsImport implements
     }
 
     /**
+     * Transform gender to L or P
+     */
+    private function transformGender($value): string
+    {
+        if (empty($value)) {
+            return 'L';
+        }
+
+        $value = trim($value);
+        $lower = strtolower($value);
+
+        if ($lower === 'laki-laki' || $lower === 'l' || $lower === 'male' || $lower === 'man') {
+            return 'L';
+        }
+
+        if ($lower === 'perempuan' || $lower === 'p' || $lower === 'female' || $lower === 'woman') {
+            return 'P';
+        }
+
+        return 'L'; // Default
+    }
+
+    /**
      * Generate staff code
      */
     private function generateCode(): string
@@ -183,7 +206,7 @@ class StaffsImport implements
                     'job_id' => $jobId,
                     'birth_place' => $row['birth_place'] ?? null,
                     'birth_date' => $this->transformDate($row['birth_date'] ?? null),
-                    'gender' => strtoupper($row['gender'] ?? 'L'),
+                    'gender' => $this->transformGender($row['gender'] ?? 'L'),
                     'marital_status' => $row['marital_status'] ?? 'Belum Menikah',
                     'status' => $row['status'] ?? 'Aktif',
                     'photo' => null,
@@ -218,7 +241,7 @@ class StaffsImport implements
         return [
             'email' => 'required|email|max:255',
             'first_name' => 'required|string|max:255',
-            'gender' => 'required|in:L,P,l,p',
+            'gender' => 'required|in:L,P,l,p,Laki-laki,Perempuan,Laki-Laki,laki-laki,perempuan',
             'last_name' => 'nullable|string|max:255',
             'nik' => 'nullable|max:16',
             'nip' => 'nullable|max:20',
