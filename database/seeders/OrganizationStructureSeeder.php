@@ -101,17 +101,6 @@ class OrganizationStructureSeeder extends Seeder
                     'is_active' => true,
                 ]
             );
-
-            PositionAssignment::updateOrCreate(
-                ['position_id' => $adminHead->id, 'staff_id' => $staff1->id],
-                [
-                    'start_date' => '2020-01-01',
-                    'end_date' => null,
-                    'assignment_letter' => 'SK/002/2020',
-                    'notes' => 'Ditetapkan sebagai Kepala Administrasi',
-                    'is_active' => true,
-                ]
-            );
         }
     }
 }
