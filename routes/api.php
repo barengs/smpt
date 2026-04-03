@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\Master\MenuController;
 use App\Http\Controllers\Api\Master\OrganizationController;
 use App\Http\Controllers\Api\Master\PositionController;
 use App\Http\Controllers\Api\Master\PositionAssignmentController;
+use App\Http\Controllers\Api\Master\ImageProxyController;
 use App\Http\Controllers\Api\Main\ProductController;
 use App\Http\Controllers\Api\Master\StaffStudyController;
 use App\Http\Controllers\Api\Master\OccupationController;
@@ -229,6 +230,9 @@ Route::group(['prefix' => 'master'], function () {
 
     // Leave Types (Jenis Izin)
     Route::apiResource('leave-type', LeaveTypeController::class);
+
+    // Image Proxy for CORS bypass
+    Route::get('image-proxy', [ImageProxyController::class, 'proxy'])->name('image-proxy');
 });
 
 // Main routes
