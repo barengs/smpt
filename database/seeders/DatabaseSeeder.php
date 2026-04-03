@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             MenuSeeder::class,
-            StaffSeeder::class,
             ControlPanelSeeder::class,
             ProvincesSeeder::class,
             CitiesSeeder::class,
