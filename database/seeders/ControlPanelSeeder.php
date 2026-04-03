@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\ControlPanel;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class ControlPanelSeeder extends Seeder
@@ -13,7 +12,7 @@ class ControlPanelSeeder extends Seeder
      */
     public function run(): void
     {
-        ControlPanel::create([
+        $data = [
             'app_name' => 'SIAP',
             'app_version' => '1.31.592',
             'app_description' => 'Aplikasi manajemen pesantren yang terintegrasi.',
@@ -23,6 +22,14 @@ class ControlPanelSeeder extends Seeder
             'app_email' => 'admin@umediatama.com',
             'app_phone' => '1234567890',
             'app_address' => 'Jl. Contoh, Kota Contoh, Negara Contoh',
-        ]);
+        ];
+
+        $cp = ControlPanel::first();
+        
+        if ($cp) {
+            $cp->update($data);
+        } else {
+            ControlPanel::create($data);
+        }
     }
 }
