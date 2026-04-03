@@ -384,7 +384,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('student-violation/download-report', [StudentViolationController::class, 'downloadReport']);
     Route::get('student-violation/statistics', [StudentViolationController::class, 'statistics']);
     Route::get('student-violation/student/{studentId}', [StudentViolationController::class, 'reportByStudent']);
-    Route::post('student-violation/{id}/sanction', [StudentViolationController::class, 'assignSanction']);
+    Route::post('student-violation/{id}/assign-sanction', [StudentViolationController::class, 'assignSanction']);
     Route::apiResource('student-violation', StudentViolationController::class);
 
     // Student Leaves (Perizinan Santri)
@@ -414,6 +414,8 @@ Route::group(['prefix' => 'main'], function () {
         Route::post('/{id}/students/{studentId}/toggle-requirement/{requirementId}', [HolidayController::class, 'toggleRequirement']);
         Route::post('/{id}/students/{studentId}/checkout', [HolidayController::class, 'checkout']);
         Route::post('/{id}/students/{studentId}/checkin', [HolidayController::class, 'checkin']);
+        Route::post('/checkout-nis', [HolidayController::class, 'checkoutByNis']);
+        Route::post('/checkin-nis', [HolidayController::class, 'checkinByNis']);
     });
 
     // Pesantren Reports
