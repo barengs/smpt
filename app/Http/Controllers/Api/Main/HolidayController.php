@@ -196,13 +196,10 @@ class HolidayController extends Controller
 
     public function checkout(Request $request, $periodId, $studentId)
     {
-        $check = StudentHolidayCheck::where('holiday_period_id', $periodId)
-            ->where('student_id', $studentId)
-            ->first();
-
-        if (!$check) {
-            return response()->json(['message' => 'Persyaratan belum diverifikasi'], 400);
-        }
+        $check = StudentHolidayCheck::firstOrCreate([
+            'holiday_period_id' => $periodId,
+            'student_id' => $studentId
+        ]);
 
         // Check if all requirements met
         $period = HolidayPeriod::with('requirements')->find($periodId);
@@ -239,6 +236,122 @@ class HolidayController extends Controller
             'status' => 'success',
             'message' => 'Check-in berhasil dicatat',
             'checkin_at' => $check->checkin_at
+        ]);
+    }
+
+    public function checkoutByNis(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nis' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $period = HolidayPeriod::where('status', 'active')->first();
+        if (!$period) {
+            return response()->json(['message' => 'Tidak ada periode libur aktif'], 404);
+        }
+
+        $student = Student::where('nis', $request->nis)->first();
+        if (!$student) {
+            return response()->json(['message' => 'Santri dengan NIS tersebut tidak ditemukan'], 404);
+        }
+
+        $check = StudentHolidayCheck::firstOrCreate([
+            'holiday_period_id' => $period->id,
+            'student_id' => $student->id
+        ]);
+
+        if ($check->checkout_at) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Santri sudah melakukan check-out sebelumnya',
+                'data' => [
+                    'student' => $student,
+                    'checkout_at' => $check->checkout_at
+                ]
+            ]);
+        }
+
+        // Check if all requirements met
+        $metCount = StudentHolidayRequirementStatus::where('student_holiday_check_id', $check->id)
+            ->where('is_met', true)
+            ->count();
+
+        if ($metCount < $period->requirements()->count()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Semua persyaratan harus terpenuhi sebelum checkout',
+                'data' => [
+                    'student' => $student,
+                    'requirements_met' => $metCount,
+                    'total_requirements' => $period->requirements()->count()
+                ]
+            ], 400);
+        }
+
+        $check->update(['checkout_at' => now()]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Check-out berhasil dicatat',
+            'data' => [
+                'student' => $student,
+                'checkout_at' => $check->checkout_at
+            ]
+        ]);
+    }
+
+    public function checkinByNis(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'nis' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $period = HolidayPeriod::where('status', 'active')->first();
+        if (!$period) {
+            return response()->json(['message' => 'Tidak ada periode libur aktif'], 404);
+        }
+
+        $student = Student::where('nis', $request->nis)->first();
+        if (!$student) {
+            return response()->json(['message' => 'Santri dengan NIS tersebut tidak ditemukan'], 404);
+        }
+
+        $check = StudentHolidayCheck::where('holiday_period_id', $period->id)
+            ->where('student_id', $student->id)
+            ->first();
+
+        if (!$check || !$check->checkout_at) {
+            return response()->json(['message' => 'Santri belum melakukan check-out'], 400);
+        }
+
+        if ($check->checkin_at) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Santri sudah melakukan check-in sebelumnya',
+                'data' => [
+                    'student' => $student,
+                    'checkin_at' => $check->checkin_at
+                ]
+            ]);
+        }
+
+        $check->update(['checkin_at' => now()]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Check-in berhasil dicatat',
+            'data' => [
+                'student' => $student,
+                'checkin_at' => $check->checkin_at
+            ]
         ]);
     }
 }

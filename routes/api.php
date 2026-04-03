@@ -414,6 +414,8 @@ Route::group(['prefix' => 'main'], function () {
         Route::post('/{id}/students/{studentId}/toggle-requirement/{requirementId}', [HolidayController::class, 'toggleRequirement']);
         Route::post('/{id}/students/{studentId}/checkout', [HolidayController::class, 'checkout']);
         Route::post('/{id}/students/{studentId}/checkin', [HolidayController::class, 'checkin']);
+        Route::post('/checkout-nis', [HolidayController::class, 'checkoutByNis']);
+        Route::post('/checkin-nis', [HolidayController::class, 'checkinByNis']);
     });
 
     // Pesantren Reports
