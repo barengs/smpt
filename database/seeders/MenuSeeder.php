@@ -51,7 +51,9 @@ class MenuSeeder extends Seeder
             'buat izin', 'lihat izin', 'ubah izin', 'hapus izin',
             'buat navigasi', 'lihat navigasi', 'ubah navigasi', 'hapus navigasi',
             'buat profil aplikasi', 'lihat profil aplikasi', 'ubah profil aplikasi', 'hapus profil aplikasi',
-            'buat topup', 'verifikasi topup', 'lihat verifikasi libur', 'lihat pengaturan kartu'
+            'buat topup', 'verifikasi topup', 'lihat verifikasi libur', 'lihat pengaturan kartu',
+            'lihat statistik santri', 'lihat laporan kamtib', 'lihat penanggung jawab magang', 'lihat institusi tugas',
+            'buat pemetaan coa', 'lihat pemetaan coa'
         ];
 
         foreach ($permissions as $name) {
@@ -64,109 +66,150 @@ class MenuSeeder extends Seeder
             $superadmin->syncPermissions(Permission::all());
         }
 
-        // 3. Define Unified Menus (Parents and Submenus)
+        // 3. Define Unified Menus (Parents and Submenus) aligned with "SIAP" Layout
+        // USING id_title AS THE UNIQUE KEY FORupdateOrCreate
         $menusData = [
             // TOP LEVEL PARENTS
-            'dasbor' => ['id_title' => 'Dasbor', 'en_title' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => '/dashboard', 'order' => 1],
-            'bank_santri' => ['id_title' => 'Bank Santri', 'en_title' => 'Student Bank', 'icon' => 'landmark', 'route' => '#', 'order' => 10],
-            'laporan_keuangan' => ['id_title' => 'Laporan Keuangan', 'en_title' => 'Finance Report', 'icon' => 'receipt', 'route' => '#', 'order' => 11],
-            'manajemen_santri' => ['id_title' => 'Manajemen Santri', 'en_title' => 'Student Management', 'icon' => 'users', 'route' => '#', 'order' => 20],
-            'staf' => ['id_title' => 'Manajemen Staf', 'en_title' => 'Staff Management', 'icon' => 'user-tie', 'route' => '#', 'order' => 25],
-            'kurikulum' => ['id_title' => 'Kurikulum', 'en_title' => 'Curriculum', 'icon' => 'book', 'route' => '#', 'order' => 30],
-            'kamtib' => ['id_title' => 'Manajemen Kamtib', 'en_title' => 'Security & Discipline', 'icon' => 'shield-check', 'route' => '#', 'order' => 40],
-            'laporan_pesantren' => ['id_title' => 'Laporan Pesantren', 'en_title' => 'Pesantren Report', 'icon' => 'files', 'route' => '#', 'order' => 50],
-            'master' => ['id_title' => 'Data Master', 'en_title' => 'Master Data', 'icon' => 'database', 'route' => '#', 'order' => 60],
-            'pengaturan' => ['id_title' => 'Pengaturan', 'en_title' => 'Settings', 'icon' => 'settings', 'route' => '#', 'order' => 100],
+            'Dasbor' => ['en_title' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => '/dashboard', 'order' => 1],
+            'Guru Tugas' => ['en_title' => 'Assignment Teacher', 'icon' => 'chalkboard-teacher', 'route' => '#', 'order' => 5],
+            'Manajemen Staf' => ['en_title' => 'Staff Management', 'icon' => 'user-tie', 'route' => '#', 'order' => 10],
+            'Kurikulum' => ['en_title' => 'Curriculum', 'icon' => 'book', 'route' => '#', 'order' => 15],
+            'Bank Santri' => ['en_title' => 'Student Bank', 'icon' => 'landmark', 'route' => '#', 'order' => 20],
+            'Laporan Keuangan' => ['en_title' => 'Finance Report Center', 'icon' => 'receipt', 'route' => '#', 'order' => 25],
+            'Manajemen Bank' => ['en_title' => 'Bank Management', 'icon' => 'briefcase', 'route' => '#', 'order' => 30],
+            'Manajemen Kamtib' => ['en_title' => 'Security & Discipline', 'icon' => 'shield-check', 'route' => '#', 'order' => 35],
+            'Kepesantrenan' => ['en_title' => 'Islamic Boarding School', 'icon' => 'mosque', 'route' => '#', 'order' => 40],
+            'Manajemen Pendidikan' => ['en_title' => 'Education Management', 'icon' => 'graduation-cap', 'route' => '#', 'order' => 45],
+            'Informasi' => ['en_title' => 'Information', 'icon' => 'info-circle', 'route' => '#', 'order' => 50],
+            'Manajemen Santri' => ['en_title' => 'Student Management', 'icon' => 'users', 'route' => '#', 'order' => 55],
+            'Data Master' => ['en_title' => 'Master Data', 'icon' => 'database', 'route' => '#', 'order' => 60],
+            'Pengaturan' => ['en_title' => 'Settings', 'icon' => 'settings', 'route' => '#', 'order' => 100],
+            'Laporan Pesantren' => ['en_title' => 'Pesantren Report', 'icon' => 'files', 'route' => '#', 'order' => 110],
 
-            // BANK SANTRI SUBMENUS
-            'bank_transaksi' => ['parent' => 'bank_santri', 'id_title' => 'Transaksi', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 1],
-            'bank_paket' => ['parent' => 'bank_santri', 'id_title' => 'Paket Pembayaran', 'route' => '/dashboard/bank-santri/paket', 'icon' => 'package', 'order' => 2],
-            'bank_pembayaran' => ['parent' => 'bank_santri', 'id_title' => 'Proses Pembayaran', 'route' => '/dashboard/bank-santri/pembayaran', 'icon' => 'credit-card', 'order' => 3],
-            'bank_v_topup' => ['parent' => 'bank_santri', 'id_title' => 'Verifikasi Top-up', 'route' => '/dashboard/bank-santri/top-up/verifikasi', 'icon' => 'check-circle', 'order' => 4],
-            'bank_rekening' => ['parent' => 'bank_santri', 'id_title' => 'Rekening Bank', 'route' => '/dashboard/bank-santri/rekening', 'icon' => 'users', 'order' => 5],
-            'bank_koperasi' => ['parent' => 'bank_santri', 'id_title' => 'Kasir Koperasi', 'route' => '/dashboard/bank-santri/koperasi', 'icon' => 'shopping-cart', 'order' => 6],
-            'bank_dash' => ['parent' => 'bank_santri', 'id_title' => 'Dashboard Bank', 'route' => '/dashboard/bank-santri/dashboard', 'icon' => 'pie-chart', 'order' => 7],
-            'bank_cash' => ['parent' => 'bank_santri', 'id_title' => 'Top-Up / Setor Tunai', 'route' => '/dashboard/bank-santri/top-up/cash', 'icon' => 'wallet', 'order' => 8],
-            'bank_transfer' => ['parent' => 'bank_santri', 'id_title' => 'Transfer Bank', 'route' => '/dashboard/bank-santri/top-up/transfer', 'icon' => 'smartphone', 'order' => 9],
-            'bank_settings' => ['parent' => 'bank_santri', 'id_title' => 'Pengaturan Bank', 'route' => '/dashboard/bank-santri/settings', 'icon' => 'settings', 'order' => 10],
+            // 1. GURU TUGAS SUBMENUS (Used distinctive names to avoid collisions)
+            'Daftar Guru Tugas' => ['parent' => 'Guru Tugas', 'en_title' => 'Teacher Assignment List', 'route' => '/dashboard/guru-tugas', 'icon' => 'users', 'order' => 1],
+            'Penanggung Jawab' => ['parent' => 'Guru Tugas', 'en_title' => 'Responsible Person', 'route' => '/dashboard/penanggung-jawab-magang', 'icon' => 'user-check', 'order' => 2],
+            'Institusi Tugas' => ['parent' => 'Guru Tugas', 'en_title' => 'Duty Institution', 'route' => '/dashboard/institusi-tugas', 'icon' => 'building', 'order' => 3],
 
-            // LAPORAN KEUANGAN SUBMENUS
-            'keuangan_jurnal' => ['parent' => 'laporan_keuangan', 'id_title' => 'Jurnal Umum', 'route' => '/dashboard/bank-santri/laporan/jurnal', 'icon' => 'file-text', 'order' => 1],
-            'keuangan_mutasi' => ['parent' => 'laporan_keuangan', 'id_title' => 'Mutasi Nasabah', 'route' => '/dashboard/bank-santri/laporan/mutasi', 'icon' => 'user-check', 'order' => 2],
-            'keuangan_saldo' => ['parent' => 'laporan_keuangan', 'id_title' => 'Rekap Saldo', 'route' => '/dashboard/bank-santri/laporan/saldo', 'icon' => 'landmark', 'order' => 3],
-            'keuangan_kasir' => ['parent' => 'laporan_keuangan', 'id_title' => 'Rekap Kasir', 'route' => '/dashboard/bank-santri/laporan/kasir', 'icon' => 'receipt', 'order' => 4],
-            'keuangan_config' => ['parent' => 'laporan_keuangan', 'id_title' => 'Konfigurasi Transaksi', 'route' => '/dashboard/bank-santri/laporan/config', 'icon' => 'settings', 'order' => 5],
+            // 2. STAF SUBMENUS
+            'Data Staf' => ['parent' => 'Manajemen Staf', 'en_title' => 'Staff Data', 'route' => '/dashboard/staf', 'icon' => 'users', 'order' => 1],
+            'Struktur Organisasi' => ['parent' => 'Manajemen Staf', 'en_title' => 'Organizational Structure', 'route' => '/dashboard/organisasi', 'icon' => 'git-branch', 'order' => 2],
 
-            // MANAJEMEN SANTRI SUBMENUS
-            'santri_data' => ['parent' => 'manajemen_santri', 'id_title' => 'Data Santri', 'route' => '/dashboard/santri', 'icon' => 'user-graduate', 'order' => 1],
-            'santri_reg' => ['parent' => 'manajemen_santri', 'id_title' => 'Pendaftaran Santri', 'route' => '/dashboard/pendaftaran-santri', 'icon' => 'user-plus', 'order' => 2],
-            'santri_wali' => ['parent' => 'manajemen_santri', 'id_title' => 'Wali Santri', 'route' => '/dashboard/wali-santri-list', 'icon' => 'user-friends', 'order' => 3],
-            'santri_mutasi' => ['parent' => 'manajemen_santri', 'id_title' => 'Mutasi Asrama', 'route' => '/dashboard/santri/mutasi-asrama', 'icon' => 'arrow-right-left', 'order' => 10],
-            'santri_placement' => ['parent' => 'manajemen_santri', 'id_title' => 'Penempatan Kelas', 'route' => '/dashboard/manajemen-kurikulum/penempatan-kelas', 'icon' => 'user-plus', 'order' => 11],
+            // 3. KURIKULUM SUBMENUS
+            'Mata Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Subject', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 1],
+            'Jadwal Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Class Schedule', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 2],
+            'Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher', 'route' => '/dashboard/manajemen-kurikulum/guru', 'icon' => 'user-tie', 'order' => 3],
+            'Penugasan Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher Assignment', 'route' => '/dashboard/manajemen-kurikulum/penugasan-guru', 'icon' => 'clipboard-list', 'order' => 4],
+            'Jam Mengajar' => ['parent' => 'Kurikulum', 'en_title' => 'Teaching Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-mengajar', 'icon' => 'clock', 'order' => 5],
+            'Presensi' => ['parent' => 'Kurikulum', 'en_title' => 'Presence', 'route' => '/dashboard/manajemen-kurikulum/presensi', 'icon' => 'check-circle', 'order' => 6],
+            'Penilaian' => ['parent' => 'Kurikulum', 'en_title' => 'Assessment', 'route' => '/dashboard/manajemen-kurikulum/penilaian', 'icon' => 'star', 'order' => 7],
+            'E-Raport' => ['parent' => 'Kurikulum', 'en_title' => 'E-Report', 'route' => '/dashboard/manajemen-kurikulum/raport', 'icon' => 'file-text', 'order' => 8],
+            'Kenaikan Kelas' => ['parent' => 'Kurikulum', 'en_title' => 'Class Promotion', 'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas', 'icon' => 'arrow-up', 'order' => 9],
+            'Institusi Pendidikan' => ['parent' => 'Kurikulum', 'en_title' => 'Educational Institution', 'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan', 'icon' => 'school', 'order' => 10],
 
-            // KURIKULUM SUBMENUS
-            'kurikulum_mapel' => ['parent' => 'kurikulum', 'id_title' => 'Mata Pelajaran', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 1],
-            'kurikulum_jadwal' => ['parent' => 'kurikulum', 'id_title' => 'Jadwal Pelajaran', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 2],
-            'kurikulum_guru' => ['parent' => 'kurikulum', 'id_title' => 'Guru', 'route' => '/dashboard/manajemen-kurikulum/guru', 'icon' => 'user-tie', 'order' => 3],
-            'kurikulum_penugasan' => ['parent' => 'kurikulum', 'id_title' => 'Penugasan Guru', 'route' => '/dashboard/manajemen-kurikulum/penugasan-guru', 'icon' => 'clipboard-list', 'order' => 4],
-            'kurikulum_jam' => ['parent' => 'kurikulum', 'id_title' => 'Jam Mengajar', 'route' => '/dashboard/manajemen-kurikulum/jam-mengajar', 'icon' => 'clock', 'order' => 5],
-            'kurikulum_presensi' => ['parent' => 'kurikulum', 'id_title' => 'Presensi', 'route' => '/dashboard/manajemen-kurikulum/presensi', 'icon' => 'check-circle', 'order' => 6],
-            'kurikulum_promo' => ['parent' => 'kurikulum', 'id_title' => 'Kenaikan Kelas', 'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas', 'icon' => 'arrow-up', 'order' => 7],
+            // 4. BANK SANTRI SUBMENUS
+            'Dashboard Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Dashboard', 'route' => '/dashboard/bank-santri/dashboard', 'icon' => 'pie-chart', 'order' => 1],
+            'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 2],
+            'Paket Pembayaran' => ['parent' => 'Bank Santri', 'en_title' => 'Payment Package', 'route' => '/dashboard/bank-santri/paket', 'icon' => 'package', 'order' => 3],
+            'Proses Pembayaran' => ['parent' => 'Bank Santri', 'en_title' => 'Payment Process', 'route' => '/dashboard/bank-santri/pembayaran', 'icon' => 'credit-card', 'order' => 4],
+            'Verifikasi Top-up' => ['parent' => 'Bank Santri', 'en_title' => 'Top-up Verification', 'route' => '/dashboard/bank-santri/top-up/verifikasi', 'icon' => 'check-circle', 'order' => 5],
+            'Rekening Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Account', 'route' => '/dashboard/bank-santri/rekening', 'icon' => 'landmark', 'order' => 6],
+            'Kasir Koperasi' => ['parent' => 'Bank Santri', 'en_title' => 'Cooperative Cashier', 'route' => '/dashboard/bank-santri/koperasi', 'icon' => 'shopping-cart', 'order' => 7],
+            'Top-Up / Setor Tunai' => ['parent' => 'Bank Santri', 'en_title' => 'Top-up / Cash Deposit', 'route' => '/dashboard/bank-santri/top-up/cash', 'icon' => 'wallet', 'order' => 8],
+            'Transfer Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transfer', 'route' => '/dashboard/bank-santri/top-up/transfer', 'icon' => 'smartphone', 'order' => 9],
 
-            // KAMTIB SUBMENUS
-            'kamtib_p' => ['parent' => 'kamtib', 'id_title' => 'Pelanggaran', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 1],
-            'kamtib_iz' => ['parent' => 'kamtib', 'id_title' => 'Perizinan', 'route' => '/dashboard/manajemen-kamtib/perizinan', 'icon' => 'calendar-check', 'order' => 2],
-            'kamtib_v_holiday' => ['parent' => 'kamtib', 'id_title' => 'Verifikasi Libur', 'route' => '/dashboard/manajemen-kamtib/libur-verifikasi', 'icon' => 'qr-code', 'order' => 10],
+            // 5. LAPORAN KEUANGAN SUBMENUS
+            'Jurnal Umum' => ['parent' => 'Laporan Keuangan', 'en_title' => 'General Journal', 'route' => '/dashboard/bank-santri/laporan/jurnal', 'icon' => 'file-text', 'order' => 1],
+            'Mutasi Nasabah' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Customer Mutation', 'route' => '/dashboard/bank-santri/laporan/mutasi', 'icon' => 'user-check', 'order' => 2],
+            'Rekap Saldo' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Balance Recap', 'route' => '/dashboard/bank-santri/laporan/saldo', 'icon' => 'landmark', 'order' => 3],
+            'Rekap Kasir' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Cashier Recap', 'route' => '/dashboard/bank-santri/laporan/kasir', 'icon' => 'receipt', 'order' => 4],
+            'Konfigurasi Transaksi' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Transaction Configuration', 'route' => '/dashboard/bank-santri/laporan/config', 'icon' => 'settings', 'order' => 5],
 
-            // LAPORAN PESANTREN SUBMENUS
-            'laporan_stats' => ['parent' => 'laporan_pesantren', 'id_title' => 'Statistik Santri', 'route' => '/dashboard/kesantrian/laporan/statistik-santri', 'icon' => 'pie-chart', 'order' => 1],
-            'laporan_violation' => ['parent' => 'laporan_pesantren', 'id_title' => 'Laporan Pelanggaran', 'route' => '/dashboard/kesantrian/laporan/pelanggaran', 'icon' => 'alert-triangle', 'order' => 2],
-            'laporan_leave' => ['parent' => 'laporan_pesantren', 'id_title' => 'Laporan Izin', 'route' => '/dashboard/kesantrian/laporan/izin', 'icon' => 'calendar', 'order' => 3],
-            'laporan_presence' => ['parent' => 'laporan_pesantren', 'id_title' => 'Statistik Presensi', 'route' => '/dashboard/kesantrian/laporan/presensi', 'icon' => 'check-square', 'order' => 4],
+            // 6. MANAJEMEN BANK SUBMENUS
+            'Produk Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank Product', 'route' => '/dashboard/bank-santri/produk', 'icon' => 'box', 'order' => 1],
+            'COA Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank COA', 'route' => '/dashboard/bank-santri/coa', 'icon' => 'list', 'order' => 2],
+            'Jenis Transaksi Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank Transaction Type', 'route' => '/dashboard/bank-santri/jenis-transaksi', 'icon' => 'tags', 'order' => 3],
+            'Pengaturan Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank Setting', 'route' => '/dashboard/bank-santri/settings', 'icon' => 'settings', 'order' => 4],
 
-            // PENGATURAN SUBMENUS
-            'settings_card' => ['parent' => 'pengaturan', 'id_title' => 'Template Kartu Santri', 'route' => '/dashboard/settings/student-card-template', 'icon' => 'credit-card', 'order' => 10],
+            // 7. KAMTIB SUBMENUS
+            'Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 1],
+            'Kategori Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation Category', 'route' => '/dashboard/manajemen-kamtib/kategori-pelanggaran', 'icon' => 'tags', 'order' => 2],
+            'Sanksi' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Sanction', 'route' => '/dashboard/manajemen-kamtib/sanksi', 'icon' => 'gavel', 'order' => 3],
+            'Perizinan' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Permit', 'route' => '/dashboard/manajemen-kamtib/perizinan', 'icon' => 'calendar-check', 'order' => 4],
+            'Tipe Izin' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Permit Type', 'route' => '/dashboard/manajemen-kamtib/tipe-izin', 'icon' => 'clipboard', 'order' => 5],
+            'Laporan Kamtib' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Security Report', 'route' => '/dashboard/manajemen-kamtib/laporan', 'icon' => 'files', 'order' => 6],
+            'Manajemen Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Management', 'route' => '/dashboard/manajemen-kamtib/manajemen-libur', 'icon' => 'calendar', 'order' => 7],
+            'Verifikasi Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Verification', 'route' => '/dashboard/manajemen-kamtib/libur-verifikasi', 'icon' => 'qr-code', 'order' => 10],
+
+            // 8. KEPESANTRENAN SUBMENUS
+            'Asrama' => ['parent' => 'Kepesantrenan', 'en_title' => 'Hostel', 'route' => '/dashboard/pendidikan/asrama', 'icon' => 'home', 'order' => 1],
+            'Kamar' => ['parent' => 'Kepesantrenan', 'en_title' => 'Room', 'route' => '/dashboard/kepesantrenan/kamar', 'icon' => 'bed', 'order' => 2],
+
+            // 9. MANAJEMEN PENDIDIKAN SUBMENUS
+            'Program' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Program Education', 'route' => '/dashboard/pendidikan/program', 'icon' => 'bookmark', 'order' => 1],
+            'Tahun Ajaran' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Academic Year', 'route' => '/dashboard/pendidikan/tahun-ajaran', 'icon' => 'calendar', 'order' => 2],
+            'Jenjang' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Level', 'route' => '/dashboard/pendidikan/jenjang', 'icon' => 'layers', 'order' => 3],
+            'Kelas' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Room', 'route' => '/dashboard/pendidikan/kelas', 'icon' => 'layout', 'order' => 4],
+            'Rombel' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Group', 'route' => '/dashboard/pendidikan/rombel', 'icon' => 'users', 'order' => 5],
+            'Kelompok Pendidikan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Education Group', 'route' => '/dashboard/pendidikan/kelompok-pendidikan', 'icon' => 'graduation-cap', 'order' => 6],
+            'Jadwal Kegiatan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Activity Schedule', 'route' => '/dashboard/jadwal', 'icon' => 'clock', 'order' => 7],
+
+            // 10. INFORMASI SUBMENUS
+            'Berita' => ['parent' => 'Informasi', 'en_title' => 'News Feed', 'route' => '/dashboard/berita', 'icon' => 'newspaper', 'order' => 1],
+            'Pengumuman' => ['parent' => 'Informasi', 'en_title' => 'Announcement', 'route' => '/dashboard/pengumuman', 'icon' => 'bell', 'order' => 2],
+
+            // 11. MANAJEMEN SANTRI SUBMENUS
+            'Data Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Data', 'route' => '/dashboard/santri', 'icon' => 'user-graduate', 'order' => 1],
+            'Pendaftaran Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Registration', 'route' => '/dashboard/pendaftaran-santri', 'icon' => 'user-plus', 'order' => 2],
+            'Wali Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Guardian', 'route' => '/dashboard/wali-santri-list', 'icon' => 'user-friends', 'order' => 3],
+            'Mutasi Asrama' => ['parent' => 'Manajemen Santri', 'en_title' => 'Hostel Mutation', 'route' => '/dashboard/santri/mutasi-asrama', 'icon' => 'arrow-right-left', 'order' => 10],
+            'Penempatan Kelas' => ['parent' => 'Manajemen Santri', 'en_title' => 'Class Placement', 'route' => '/dashboard/manajemen-kurikulum/penempatan-kelas', 'icon' => 'user-check', 'order' => 11],
+
+            // 12. DATA MASTER SUBMENUS
+            'Pekerjaan' => ['parent' => 'Data Master', 'en_title' => 'Occupation', 'route' => '/dashboard/master-data/pekerjaan', 'icon' => 'briefcase', 'order' => 1],
+            'Provinsi' => ['parent' => 'Data Master', 'en_title' => 'Province', 'route' => '/dashboard/wilayah/provinsi', 'icon' => 'map', 'order' => 2],
+            'Kota' => ['parent' => 'Data Master', 'en_title' => 'Regency', 'route' => '/dashboard/wilayah/kota', 'icon' => 'map-pinned', 'order' => 3],
+            'Kecamatan' => ['parent' => 'Data Master', 'en_title' => 'District', 'route' => '/dashboard/wilayah/kecamatan', 'icon' => 'navigation', 'order' => 4],
+            'Desa' => ['parent' => 'Data Master', 'en_title' => 'Village', 'route' => '/dashboard/wilayah/desa', 'icon' => 'map-pin', 'order' => 5],
+
+            // 13. PENGATURAN SUBMENUS
+            'Navigasi' => ['parent' => 'Pengaturan', 'en_title' => 'Navigation Management', 'route' => '/dashboard/settings/navigation', 'icon' => 'menu', 'order' => 1],
+            'Profil Aplikasi' => ['parent' => 'Pengaturan', 'en_title' => 'App Profile', 'route' => '/dashboard/settings/app-profile', 'icon' => 'building', 'order' => 2],
+            'Template Kartu Santri' => ['parent' => 'Pengaturan', 'en_title' => 'ID Card Template', 'route' => '/dashboard/settings/student-card-template', 'icon' => 'credit-card', 'order' => 3],
+            'Peran & Izin' => ['parent' => 'Pengaturan', 'en_title' => 'Role & Permission', 'route' => '/dashboard/peran', 'icon' => 'shield', 'order' => 4],
+
+            // 14. LAPORAN PESANTREN SUBMENUS
+            'Statistik Santri' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Student Statistics', 'route' => '/dashboard/kesantrian/laporan/statistik-santri', 'icon' => 'pie-chart', 'order' => 1],
+            'Laporan Pelanggaran Pesantren' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Violation Report Pesantren', 'route' => '/dashboard/kesantrian/laporan/pelanggaran', 'icon' => 'alert-triangle', 'order' => 2],
+            'Laporan Izin Pesantren' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Leave Report Pesantren', 'route' => '/dashboard/kesantrian/laporan/izin', 'icon' => 'calendar', 'order' => 3],
+            'Statistik Presensi' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Presence Statistics', 'route' => '/dashboard/kesantrian/laporan/presensi', 'icon' => 'check-square', 'order' => 4],
         ];
 
-        // Store created menus to easily link parents
-        $createdMenus = [];
-
-        // First pass: Create main parents
-        foreach ($menusData as $key => $data) {
-            if (!isset($data['parent'])) {
-                $createdMenus[$key] = Menu::updateOrCreate(
-                    ['id_title' => $data['id_title']],
-                    [
-                        'en_title' => $data['en_title'] ?? $data['id_title'],
-                        'icon' => $data['icon'],
-                        'route' => $data['route'],
-                        'parent_id' => null,
-                        'type' => 'main',
-                        'position' => 'sidebar',
-                        'status' => 'active',
-                        'order' => $data['order'],
-                    ]
-                );
-            }
+        // First pass: Create or update menus based on id_title
+        // This avoids UniqueConstraintViolation on id_title
+        foreach ($menusData as $id_title => $data) {
+            Menu::updateOrCreate(
+                ['id_title' => $id_title],
+                [
+                    'en_title' => $data['en_title'],
+                    'icon' => $data['icon'],
+                    'route' => $data['route'],
+                    'parent_id' => null, // Temporarily set null for parents and submenus
+                    'type' => isset($data['parent']) ? 'submenu' : 'main',
+                    'position' => 'sidebar',
+                    'status' => 'active',
+                    'order' => $data['order'],
+                ]
+            );
         }
 
-        // Second pass: Create submenus linked to parents
-        foreach ($menusData as $key => $data) {
+        // Second pass: Link submenus correctly to their parents
+        foreach ($menusData as $id_title => $data) {
             if (isset($data['parent'])) {
-                $parentId = $createdMenus[$data['parent']]->id ?? null;
-                $menu = Menu::updateOrCreate(
-                    ['route' => $data['route']],
-                    [
-                        'id_title' => $data['id_title'],
-                        'en_title' => $data['en_title'] ?? $data['id_title'],
-                        'icon' => $data['icon'],
-                        'parent_id' => $parentId,
-                        'type' => 'submenu',
-                        'position' => 'sidebar',
-                        'status' => 'active',
-                        'order' => $data['order'],
-                    ]
-                );
+                $parentMenu = Menu::where('id_title', $data['parent'])->first();
+                if ($parentMenu) {
+                    Menu::where('id_title', $id_title)->update(['parent_id' => $parentMenu->id]);
+                }
             }
         }
 
