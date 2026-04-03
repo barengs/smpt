@@ -6,7 +6,7 @@ use App\Models\Menu;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Facades\DB;
 
 class MenuSeeder extends Seeder
 {
@@ -15,276 +15,169 @@ class MenuSeeder extends Seeder
      */
     public function run(): void
     {
-        // create permissions
-        $p_dashboard = Permission::create(['name' => 'lihat dashboard']);
-        $p_c_staff = Permission::create(['name' => 'buat staf']);
-        $p_r_staff = Permission::create(['name' => 'lihat staf']);
-        $p_u_staff = Permission::create(['name' => 'ubah staf']);
-        $p_d_staff = Permission::create(['name' => 'hapus staf']);
-
-        $p_c_santri = Permission::create(['name' => 'buat santri']);
-        $p_r_santri = Permission::create(['name' => 'lihat santri']);
-        $p_u_santri = Permission::create(['name' => 'ubah santri']);
-        $p_d_santri = Permission::create(['name' => 'hapus santri']);
-        $p_a_santri = Permission::create(['name' => 'aktivasi santri']);
-
-        $p_c_parent = Permission::create(['name' => 'buat wali santri']);
-        $p_r_parent = Permission::create(['name' => 'lihat wali santri']);
-        $p_u_parent = Permission::create(['name' => 'ubah wali santri']);
-        $p_d_parent = Permission::create(['name' => 'hapus wali santri']);
-
-        $p_c_pendaftaran = Permission::create(['name' => 'buat pendaftaran']);
-        $p_r_pendaftaran = Permission::create(['name' => 'lihat pendaftaran']);
-        $p_u_pendaftaran = Permission::create(['name' => 'ubah pendaftaran']);
-        $p_d_pendaftaran = Permission::create(['name' => 'hapus pendaftaran']);
-        $p_a_pendaftaran = Permission::create(['name' => 'aktivasi pendaftaran']);
-
-        $p_c_rekening = Permission::create(['name' => 'buat rekening']);
-        $p_r_rekening = Permission::create(['name' => 'lihat rekening']);
-        $p_u_rekening = Permission::create(['name' => 'ubah rekening']);
-        $p_d_rekening = Permission::create(['name' => 'hapus rekening']);
-        $p_a_rekening = Permission::create(['name' => 'aktivasi rekening']);
-
-        $p_c_transaction = Permission::create(['name' => 'buat transaksi']);
-        $p_r_transaction = Permission::create(['name' => 'lihat transaksi']);
-        $p_u_transaction = Permission::create(['name' => 'ubah transaksi']);
-        $p_d_transaction = Permission::create(['name' => 'hapus transaksi']);
-        $p_a_transaction = Permission::create(['name' => 'aktivasi transaksi']);
-
-        $p_c_matapelajaran = Permission::create(['name' => 'buat mata pelajaran']);
-        $p_r_matapelajaran = Permission::create(['name' => 'lihat mata pelajaran']);
-        $p_u_matapelajaran = Permission::create(['name' => 'ubah mata pelajaran']);
-        $p_d_matapelajaran = Permission::create(['name' => 'hapus mata pelajaran']);
-
-        $p_c_kelas = Permission::create(['name' => 'buat kelas']);
-        $p_r_kelas = Permission::create(['name' => 'lihat kelas']);
-        $p_u_kelas = Permission::create(['name' => 'ubah kelas']);
-        $p_d_kelas = Permission::create(['name' => 'hapus kelas']);
-
-        $p_c_rombel = Permission::create(['name' => 'buat rombel']);
-        $p_r_rombel = Permission::create(['name' => 'lihat rombel']);
-        $p_u_rombel = Permission::create(['name' => 'ubah rombel']);
-        $p_d_rombel = Permission::create(['name' => 'hapus rombel']);
-
-        $p_c_asrama = Permission::create(['name' => 'buat asrama']);
-        $p_r_asrama = Permission::create(['name' => 'lihat asrama']);
-        $p_u_asrama = Permission::create(['name' => 'ubah asrama']);
-        $p_d_asrama = Permission::create(['name' => 'hapus asrama']);
-
-        $p_c_program = Permission::create(['name' => 'buat program']);
-        $p_r_program = Permission::create(['name' => 'lihat program']);
-        $p_u_program = Permission::create(['name' => 'ubah program']);
-        $p_d_program = Permission::create(['name' => 'hapus program']);
-
-        $p_c_role = Permission::create(['name' => 'buat peran']);
-        $p_r_role = Permission::create(['name' => 'lihat peran']);
-        $p_u_role = Permission::create(['name' => 'ubah peran']);
-        $p_d_role = Permission::create(['name' => 'hapus peran']);
-
-        $p_c_permission = Permission::create(['name' => 'buat izin']);
-        $p_r_permission = Permission::create(['name' => 'lihat izin']);
-        $p_u_permission = Permission::create(['name' => 'ubah izin']);
-        $p_d_permission = Permission::create(['name' => 'hapus izin']);
-
-        $p_c_menu = Permission::create(['name' => 'buat menu']);
-        $p_r_menu = Permission::create(['name' => 'lihat menu']);
-        $p_u_menu = Permission::create(['name' => 'ubah menu']);
-        $p_d_menu = Permission::create(['name' => 'hapus menu']);
-
-        $p_c_setting = Permission::create(['name' => 'buat pengaturan']);
-        $p_r_setting = Permission::create(['name' => 'lihat pengaturan']);
-        $p_u_setting = Permission::create(['name' => 'ubah pengaturan']);
-        $p_d_setting = Permission::create(['name' => 'hapus pengaturan']);
-
-        $p_c_occupation = Permission::create(['name' => 'buat pekerjaan']);
-        $p_r_occupation = Permission::create(['name' => 'lihat pekerjaan']);
-        $p_u_occupation = Permission::create(['name' => 'ubah pekerjaan']);
-        $p_d_occupation = Permission::create(['name' => 'hapus pekerjaan']);
-
-        $p_c_camp = Permission::create(['name' => 'buat kamar']);
-        $p_r_camp = Permission::create(['name' => 'lihat kamar']);
-        $p_u_camp = Permission::create(['name' => 'ubah kamar']);
-        $p_d_camp = Permission::create(['name' => 'hapus kamar']);
-
-        $p_c_room = Permission::create(['name' => 'buat ruangan']);
-        $p_r_room = Permission::create(['name' => 'lihat ruangan']);
-        $p_u_room = Permission::create(['name' => 'ubah ruangan']);
-        $p_d_room = Permission::create(['name' => 'hapus ruangan']);
-
-        $p_c_year = Permission::create(['name' => 'buat tahun']);
-        $p_r_year = Permission::create(['name' => 'lihat tahun']);
-        $p_u_year = Permission::create(['name' => 'ubah tahun']);
-        $p_d_year = Permission::create(['name' => 'hapus tahun']);
-
-        $p_c_jobdesc = Permission::create(['name' => 'buat deskripsi pekerjaan']);
-        $p_r_jobdesc = Permission::create(['name' => 'lihat deskripsi pekerjaan']);
-        $p_u_jobdesc = Permission::create(['name' => 'ubah deskripsi pekerjaan']);
-        $p_d_jobdesc = Permission::create(['name' => 'hapus deskripsi pekerjaan']);
-        // role
-        $r_superadmin = Role::where('name', 'superadmin')->first();
-        $r_admin_bank = Role::create(['name' => 'admin bank']);
-        $r_admin_layanan = Role::create(['name' => 'admin layanan']);
-        $r_staf = Role::create(['name' => 'staf']);
-        $r_guru_kelas = Role::create(['name' => 'guru kelas']);
-        $r_asrama = Role::create(['name' => 'kepala asrama']);
-        $r_walikelas = Role::create(['name' => 'wali kelas']);
-        $r_orangtua = Role::where('name', 'orangtua')->first();
-        $r_santri = Role::create(['name' => 'santri']);
-        // give permission to role
-        $r_superadmin->givePermissionTo(Permission::all());
-        $r_admin_bank->givePermissionTo([$p_dashboard, $p_c_transaction, $p_r_transaction, $p_u_transaction, $p_d_transaction, $p_a_transaction]);
-        // Define the menus to be seeded
-
-        // menu menggunakan Licude icon
-        $menus = [
-            [
-                'id_title' => 'Dasbor',
-                'en_title' => 'Dashboard',
-                'ar_title' => 'لوحة القيادة',
-                'description' => 'Halaman utama dashboard',
-                'icon' => 'layout-dashboard',
-                'route' => '/dashboard',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 1
-            ],
-            [
-                'id_title' => 'Bank Santri',
-                'en_title' => 'Bank Santri',
-                'ar_title' => 'إدارة بنك الطلاب',
-                'icon' => 'landmark',
-                'route' => '#',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 2
-            ],
-            [
-                'id_title' => 'Rekening',
-                'en_title' => 'Bank Account',
-                'ar_title' => 'حساب بنك',
-                'icon' => 'landmark',
-                'route' => '/dashboard/bank-santri/rekening',
-                'parent_id' => 2,
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 3
-            ],
-            [
-                'id_title' => 'Transaksi',
-                'en_title' => 'Transaction',
-                'ar_title' => 'معاملة',
-                'icon' => 'money-bill-wave',
-                'route' => '/dashboard/bank-santri/transaksi',
-                'parent_id' => 2,
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 4
-            ],
-            [
-                'id_title' => 'Laporan',
-                'en_title' => 'Report',
-                'ar_title' => 'تقرير',
-                'icon' => '',
-                'route' => '/dashboard/bank-santri/laporan',
-                'parent_id' => 2,
-                'type' => 'submenu',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 5
-            ],
-            [
-                'id_title' => 'Manajemen Santri',
-                'en_title' => 'Santri Management',
-                'ar_title' => 'إدارة Santri',
-                'route' => '/dashboard/santri',
-                'parent_id' => null,
-                'type' => 'main',
-                'position' => 'sidebar',
-                'status' => 'active',
-                'order' => 6
-            ],
-            [
-                'id_title' => 'Pendaftaran',
-            ],
-            [
-                'id_title' => 'Wali Santri',
-            ],
-            [
-                'id_title' => 'Manajemen Staf',
-            ],
-            [
-                'id_title' => 'Staf',
-            ],
-            [
-                'id_title' => 'Hak Akses',
-            ],
-            [
-                'id_title' => 'Peran',
-            ],
+        // 1. Core Permissions creation using firstOrCreate
+        $permissions = [
+            'lihat dashboard',
+            'buat santri', 'lihat santri', 'ubah santri', 'hapus santri', 'aktivasi santri',
+            'buat staf', 'lihat staf', 'ubah staf', 'hapus staf',
+            'buat wali santri', 'lihat wali santri', 'ubah wali santri', 'hapus wali santri',
+            'buat pendaftaran', 'lihat pendaftaran', 'ubah pendaftaran', 'hapus pendaftaran', 'aktivasi pendaftaran',
+            'buat rekening', 'lihat rekening', 'ubah rekening', 'hapus rekening', 'aktivasi rekening',
+            'buat transaksi', 'lihat transaksi', 'ubah transaksi', 'hapus transaksi', 'aktivasi transaksi',
+            'buat produk', 'lihat produk', 'ubah produk', 'hapus produk',
+            'buat coa', 'lihat coa', 'ubah coa', 'hapus coa',
+            'buat jenis transaksi', 'lihat jenis transaksi', 'ubah jenis transaksi', 'hapus jenis transaksi',
+            'buat laporan', 'lihat laporan', 'ubah laporan', 'hapus laporan',
+            'buat berita', 'lihat berita', 'ubah berita', 'hapus berita',
+            'buat tugas', 'lihat tugas', 'ubah tugas', 'hapus tugas',
+            'buat institusi pendidikan', 'lihat institusi pendidikan', 'ubah institusi pendidikan', 'hapus institusi pendidikan',
+            'buat program', 'lihat program', 'ubah program', 'hapus program',
+            'buat tahun ajaran', 'lihat tahun ajaran', 'ubah tahun ajaran', 'hapus tahun ajaran',
+            'buat asrama', 'lihat asrama', 'ubah asrama', 'hapus asrama',
+            'buat jenjang pendidikan', 'lihat jenjang pendidikan', 'ubah jenjang pendidikan', 'hapus jenjang pendidikan',
+            'buat kelas', 'lihat kelas', 'ubah kelas', 'hapus kelas',
+            'buat rombel', 'lihat rombel', 'ubah rombel', 'hapus rombel',
+            'buat kamar', 'lihat kamar', 'ubah kamar', 'hapus kamar',
+            'buat mata pelajaran', 'lihat mata pelajaran', 'ubah mata pelajaran', 'hapus mata pelajaran',
+            'buat jam pelajaran', 'lihat jam pelajaran', 'ubah jam pelajaran', 'hapus jam pelajaran',
+            'buat guru', 'lihat guru', 'ubah guru', 'hapus guru',
+            'buat penugasan guru', 'lihat penugasan guru', 'ubah penugasan guru', 'hapus penugasan guru',
+            'buat presensi', 'lihat presensi', 'ubah presensi', 'hapus presensi',
+            'buat pelanggaran', 'lihat pelanggaran', 'ubah pelanggaran', 'hapus pelanggaran',
+            'buat perizinan', 'lihat perizinan', 'ubah perizinan', 'hapus perizinan',
+            'buat libur', 'lihat libur', 'ubah libur', 'hapus libur',
+            'buat pekerjaan', 'lihat pekerjaan', 'ubah pekerjaan', 'hapus pekerjaan',
+            'buat peran', 'lihat peran', 'ubah peran', 'hapus peran',
+            'buat izin', 'lihat izin', 'ubah izin', 'hapus izin',
+            'buat navigasi', 'lihat navigasi', 'ubah navigasi', 'hapus navigasi',
+            'buat profil aplikasi', 'lihat profil aplikasi', 'ubah profil aplikasi', 'hapus profil aplikasi',
+            'buat topup', 'verifikasi topup', 'lihat verifikasi libur', 'lihat pengaturan kartu'
         ];
 
-        // Insert each menu into the database
-        foreach ($menus as $index => $menu) {
-            $m_menu = Menu::create([
-                'id_title' => $menu['id_title'],
-                'en_title' => $menu['en_title'] ?? null,
-                'ar_title' => $menu['ar_title'] ?? null,
-                'description' => $menu['description'] ?? null,
-                'icon' => $menu['icon'] ?? null,
-                'route' => $menu['route'] ?? null,
-                'parent_id' => $menu['parent_id'] ?? null,
-                'type' => $menu['type'] ?? 'main',
-                'position' => $menu['position'] ?? 'sidebar',
-                'status' => $menu['status'] ?? 'active',
-                'order' => $menu['order'] ?? $index + 1,
-            ]);
+        foreach ($permissions as $name) {
+            Permission::firstOrCreate(['name' => $name, 'guard_name' => 'api']);
+        }
 
-            $m_menu->permissions()->attach([
-                $p_c_room,
-                $p_r_room,
-                $p_u_room,
-                $p_d_room,
-                $p_c_year,
-                $p_r_year,
-                $p_u_year,
-                $p_d_year,
-                $p_c_jobdesc,
-                $p_r_jobdesc,
-                $p_u_jobdesc,
-                $p_d_jobdesc,
-                $p_c_transaction,
-                $p_r_transaction,
-                $p_u_transaction,
-                $p_d_transaction,
-                $p_a_transaction,
-                $p_c_santri,
-                $p_r_santri,
-                $p_u_santri,
-                $p_d_santri,
-                $p_a_santri,
-                $p_c_parent,
-                $p_r_parent,
-                $p_u_parent,
-                $p_d_parent,
-                $p_c_staff,
-                $p_r_staff,
-                $p_u_staff,
-                $p_d_staff,
-                $p_c_permission,
-                $p_r_permission,
-                $p_u_permission,
-                $p_d_permission,
-                $p_c_role,
-                $p_r_role,
-                $p_u_role,
-                $p_d_role,
-            ]);
+        // 2. Role sync for superadmin
+        $superadmin = Role::where('name', 'superadmin')->first();
+        if ($superadmin) {
+            $superadmin->syncPermissions(Permission::all());
+        }
+
+        // 3. Define Unified Menus (Parents and Submenus)
+        $menusData = [
+            // TOP LEVEL PARENTS
+            'dasbor' => ['id_title' => 'Dasbor', 'en_title' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => '/dashboard', 'order' => 1],
+            'bank_santri' => ['id_title' => 'Bank Santri', 'en_title' => 'Student Bank', 'icon' => 'landmark', 'route' => '#', 'order' => 10],
+            'laporan_keuangan' => ['id_title' => 'Laporan Keuangan', 'en_title' => 'Finance Report', 'icon' => 'receipt', 'route' => '#', 'order' => 11],
+            'manajemen_santri' => ['id_title' => 'Manajemen Santri', 'en_title' => 'Student Management', 'icon' => 'users', 'route' => '#', 'order' => 20],
+            'staf' => ['id_title' => 'Manajemen Staf', 'en_title' => 'Staff Management', 'icon' => 'user-tie', 'route' => '#', 'order' => 25],
+            'kurikulum' => ['id_title' => 'Kurikulum', 'en_title' => 'Curriculum', 'icon' => 'book', 'route' => '#', 'order' => 30],
+            'kamtib' => ['id_title' => 'Manajemen Kamtib', 'en_title' => 'Security & Discipline', 'icon' => 'shield-check', 'route' => '#', 'order' => 40],
+            'laporan_pesantren' => ['id_title' => 'Laporan Pesantren', 'en_title' => 'Pesantren Report', 'icon' => 'files', 'route' => '#', 'order' => 50],
+            'master' => ['id_title' => 'Data Master', 'en_title' => 'Master Data', 'icon' => 'database', 'route' => '#', 'order' => 60],
+            'pengaturan' => ['id_title' => 'Pengaturan', 'en_title' => 'Settings', 'icon' => 'settings', 'route' => '#', 'order' => 100],
+
+            // BANK SANTRI SUBMENUS
+            'bank_transaksi' => ['parent' => 'bank_santri', 'id_title' => 'Transaksi', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 1],
+            'bank_paket' => ['parent' => 'bank_santri', 'id_title' => 'Paket Pembayaran', 'route' => '/dashboard/bank-santri/paket', 'icon' => 'package', 'order' => 2],
+            'bank_pembayaran' => ['parent' => 'bank_santri', 'id_title' => 'Proses Pembayaran', 'route' => '/dashboard/bank-santri/pembayaran', 'icon' => 'credit-card', 'order' => 3],
+            'bank_v_topup' => ['parent' => 'bank_santri', 'id_title' => 'Verifikasi Top-up', 'route' => '/dashboard/bank-santri/top-up/verifikasi', 'icon' => 'check-circle', 'order' => 4],
+            'bank_rekening' => ['parent' => 'bank_santri', 'id_title' => 'Rekening Bank', 'route' => '/dashboard/bank-santri/rekening', 'icon' => 'users', 'order' => 5],
+            'bank_koperasi' => ['parent' => 'bank_santri', 'id_title' => 'Kasir Koperasi', 'route' => '/dashboard/bank-santri/koperasi', 'icon' => 'shopping-cart', 'order' => 6],
+            'bank_dash' => ['parent' => 'bank_santri', 'id_title' => 'Dashboard Bank', 'route' => '/dashboard/bank-santri/dashboard', 'icon' => 'pie-chart', 'order' => 7],
+            'bank_cash' => ['parent' => 'bank_santri', 'id_title' => 'Top-Up / Setor Tunai', 'route' => '/dashboard/bank-santri/top-up/cash', 'icon' => 'wallet', 'order' => 8],
+            'bank_transfer' => ['parent' => 'bank_santri', 'id_title' => 'Transfer Bank', 'route' => '/dashboard/bank-santri/top-up/transfer', 'icon' => 'smartphone', 'order' => 9],
+            'bank_settings' => ['parent' => 'bank_santri', 'id_title' => 'Pengaturan Bank', 'route' => '/dashboard/bank-santri/settings', 'icon' => 'settings', 'order' => 10],
+
+            // LAPORAN KEUANGAN SUBMENUS
+            'keuangan_jurnal' => ['parent' => 'laporan_keuangan', 'id_title' => 'Jurnal Umum', 'route' => '/dashboard/bank-santri/laporan/jurnal', 'icon' => 'file-text', 'order' => 1],
+            'keuangan_mutasi' => ['parent' => 'laporan_keuangan', 'id_title' => 'Mutasi Nasabah', 'route' => '/dashboard/bank-santri/laporan/mutasi', 'icon' => 'user-check', 'order' => 2],
+            'keuangan_saldo' => ['parent' => 'laporan_keuangan', 'id_title' => 'Rekap Saldo', 'route' => '/dashboard/bank-santri/laporan/saldo', 'icon' => 'landmark', 'order' => 3],
+            'keuangan_kasir' => ['parent' => 'laporan_keuangan', 'id_title' => 'Rekap Kasir', 'route' => '/dashboard/bank-santri/laporan/kasir', 'icon' => 'receipt', 'order' => 4],
+            'keuangan_config' => ['parent' => 'laporan_keuangan', 'id_title' => 'Konfigurasi Transaksi', 'route' => '/dashboard/bank-santri/laporan/config', 'icon' => 'settings', 'order' => 5],
+
+            // MANAJEMEN SANTRI SUBMENUS
+            'santri_data' => ['parent' => 'manajemen_santri', 'id_title' => 'Data Santri', 'route' => '/dashboard/santri', 'icon' => 'user-graduate', 'order' => 1],
+            'santri_reg' => ['parent' => 'manajemen_santri', 'id_title' => 'Pendaftaran Santri', 'route' => '/dashboard/pendaftaran-santri', 'icon' => 'user-plus', 'order' => 2],
+            'santri_wali' => ['parent' => 'manajemen_santri', 'id_title' => 'Wali Santri', 'route' => '/dashboard/wali-santri-list', 'icon' => 'user-friends', 'order' => 3],
+            'santri_mutasi' => ['parent' => 'manajemen_santri', 'id_title' => 'Mutasi Asrama', 'route' => '/dashboard/santri/mutasi-asrama', 'icon' => 'arrow-right-left', 'order' => 10],
+            'santri_placement' => ['parent' => 'manajemen_santri', 'id_title' => 'Penempatan Kelas', 'route' => '/dashboard/manajemen-kurikulum/penempatan-kelas', 'icon' => 'user-plus', 'order' => 11],
+
+            // KURIKULUM SUBMENUS
+            'kurikulum_mapel' => ['parent' => 'kurikulum', 'id_title' => 'Mata Pelajaran', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 1],
+            'kurikulum_jadwal' => ['parent' => 'kurikulum', 'id_title' => 'Jadwal Pelajaran', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 2],
+            'kurikulum_guru' => ['parent' => 'kurikulum', 'id_title' => 'Guru', 'route' => '/dashboard/manajemen-kurikulum/guru', 'icon' => 'user-tie', 'order' => 3],
+            'kurikulum_penugasan' => ['parent' => 'kurikulum', 'id_title' => 'Penugasan Guru', 'route' => '/dashboard/manajemen-kurikulum/penugasan-guru', 'icon' => 'clipboard-list', 'order' => 4],
+            'kurikulum_jam' => ['parent' => 'kurikulum', 'id_title' => 'Jam Mengajar', 'route' => '/dashboard/manajemen-kurikulum/jam-mengajar', 'icon' => 'clock', 'order' => 5],
+            'kurikulum_presensi' => ['parent' => 'kurikulum', 'id_title' => 'Presensi', 'route' => '/dashboard/manajemen-kurikulum/presensi', 'icon' => 'check-circle', 'order' => 6],
+            'kurikulum_promo' => ['parent' => 'kurikulum', 'id_title' => 'Kenaikan Kelas', 'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas', 'icon' => 'arrow-up', 'order' => 7],
+
+            // KAMTIB SUBMENUS
+            'kamtib_p' => ['parent' => 'kamtib', 'id_title' => 'Pelanggaran', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 1],
+            'kamtib_iz' => ['parent' => 'kamtib', 'id_title' => 'Perizinan', 'route' => '/dashboard/manajemen-kamtib/perizinan', 'icon' => 'calendar-check', 'order' => 2],
+            'kamtib_v_holiday' => ['parent' => 'kamtib', 'id_title' => 'Verifikasi Libur', 'route' => '/dashboard/manajemen-kamtib/libur-verifikasi', 'icon' => 'qr-code', 'order' => 10],
+
+            // LAPORAN PESANTREN SUBMENUS
+            'laporan_stats' => ['parent' => 'laporan_pesantren', 'id_title' => 'Statistik Santri', 'route' => '/dashboard/kesantrian/laporan/statistik-santri', 'icon' => 'pie-chart', 'order' => 1],
+            'laporan_violation' => ['parent' => 'laporan_pesantren', 'id_title' => 'Laporan Pelanggaran', 'route' => '/dashboard/kesantrian/laporan/pelanggaran', 'icon' => 'alert-triangle', 'order' => 2],
+            'laporan_leave' => ['parent' => 'laporan_pesantren', 'id_title' => 'Laporan Izin', 'route' => '/dashboard/kesantrian/laporan/izin', 'icon' => 'calendar', 'order' => 3],
+            'laporan_presence' => ['parent' => 'laporan_pesantren', 'id_title' => 'Statistik Presensi', 'route' => '/dashboard/kesantrian/laporan/presensi', 'icon' => 'check-square', 'order' => 4],
+
+            // PENGATURAN SUBMENUS
+            'settings_card' => ['parent' => 'pengaturan', 'id_title' => 'Template Kartu Santri', 'route' => '/dashboard/settings/student-card-template', 'icon' => 'credit-card', 'order' => 10],
+        ];
+
+        // Store created menus to easily link parents
+        $createdMenus = [];
+
+        // First pass: Create main parents
+        foreach ($menusData as $key => $data) {
+            if (!isset($data['parent'])) {
+                $createdMenus[$key] = Menu::updateOrCreate(
+                    ['id_title' => $data['id_title']],
+                    [
+                        'en_title' => $data['en_title'] ?? $data['id_title'],
+                        'icon' => $data['icon'],
+                        'route' => $data['route'],
+                        'parent_id' => null,
+                        'type' => 'main',
+                        'position' => 'sidebar',
+                        'status' => 'active',
+                        'order' => $data['order'],
+                    ]
+                );
+            }
+        }
+
+        // Second pass: Create submenus linked to parents
+        foreach ($menusData as $key => $data) {
+            if (isset($data['parent'])) {
+                $parentId = $createdMenus[$data['parent']]->id ?? null;
+                $menu = Menu::updateOrCreate(
+                    ['route' => $data['route']],
+                    [
+                        'id_title' => $data['id_title'],
+                        'en_title' => $data['en_title'] ?? $data['id_title'],
+                        'icon' => $data['icon'],
+                        'parent_id' => $parentId,
+                        'type' => 'submenu',
+                        'position' => 'sidebar',
+                        'status' => 'active',
+                        'order' => $data['order'],
+                    ]
+                );
+            }
+        }
+
+        // Sync superadmin role menu access
+        if ($superadmin) {
+            $allMenus = Menu::all();
+            foreach ($allMenus as $m) {
+                DB::table('role_menu')->updateOrInsert(
+                    ['role_id' => $superadmin->id, 'menu_id' => $m->id]
+                );
+            }
         }
     }
 }

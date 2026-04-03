@@ -19,9 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             UserSeeder::class,
-            // MenuSeeder::class,
-            FrontendMenuSeeder::class,
-            RoleMenuSeeder::class,
+            MenuSeeder::class,
             StaffSeeder::class,
             ControlPanelSeeder::class,
             ProvincesSeeder::class,
@@ -50,7 +48,6 @@ class DatabaseSeeder extends Seeder
             DisciplineSystemSeeder::class,
             InstallmentPlanSeeder::class,
             InstallmentScheduleSeeder::class,
-            BankSantriMenuUpdateSeeder::class,
         ]);
     }
 }
