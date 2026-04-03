@@ -20,12 +20,32 @@ class AcademicYearSeeder extends Seeder
             'active' => true,
         ]);
 
-        // Seed default quarters for the academic year
+        // Seed default quarters for the academic year with required dates
         $quarters = [
-            ['name' => 'Kuartal 1', 'active' => true],
-            ['name' => 'Kuartal 2', 'active' => false],
-            ['name' => 'Kuartal 3', 'active' => false],
-            ['name' => 'Kuartal 4', 'active' => false],
+            [
+                'name' => 'Kuartal 1', 
+                'start_date' => '2025-08-01', 
+                'end_date' => '2025-10-31', 
+                'active' => true
+            ],
+            [
+                'name' => 'Kuartal 2', 
+                'start_date' => '2025-11-01', 
+                'end_date' => '2026-01-31', 
+                'active' => false
+            ],
+            [
+                'name' => 'Kuartal 3', 
+                'start_date' => '2026-02-01', 
+                'end_date' => '2026-04-30', 
+                'active' => false
+            ],
+            [
+                'name' => 'Kuartal 4', 
+                'start_date' => '2026-05-01', 
+                'end_date' => '2026-07-31', 
+                'active' => false
+            ],
         ];
 
         foreach ($quarters as $q) {
