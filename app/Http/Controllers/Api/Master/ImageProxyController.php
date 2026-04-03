@@ -7,11 +7,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
+use Intervention\Image\Laravel\Facades\Image;
 
 class ImageProxyController extends Controller
 {
     /**
-     * Proxy a storage image to bypass CORS restrictions.
+     * Proxy a storage image to bypass CORS restrictions and convert formats.
      * Path should be relative to 'public' disk (e.g., student-card/abc.webp)
      */
     public function proxy(Request $request)
@@ -31,8 +32,19 @@ class ImageProxyController extends Controller
             return response()->json(['message' => 'File not found: ' . $path], 404);
         }
 
-        $file = Storage::disk('public')->get($path);
         $type = Storage::disk('public')->mimeType($path);
+        $file = Storage::disk('public')->get($path);
+
+        // If the file is webp, convert it to png for PDF compatibility
+        if ($type === 'image/webp') {
+            try {
+                $file = Image::read($file)->toPng()->toBuffer();
+                $type = 'image/png';
+                $path = str_replace('.webp', '.png', $path);
+            } catch (\Exception $e) {
+                // If conversion fails, fall back to original file
+            }
+        }
 
         return Response::make($file, 200, [
             'Content-Type' => $type,
