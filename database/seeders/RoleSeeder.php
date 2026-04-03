@@ -20,6 +20,7 @@ class RoleSeeder extends Seeder
             'teller',
             'orangtua',
             'adminbank',
+            'staf',
         ];
 
         foreach ($roles as $roleName) {
