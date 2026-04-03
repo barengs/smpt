@@ -28,21 +28,35 @@ class ImageProxyController extends Controller
             return response()->json(['message' => 'Invalid path'], 400);
         }
 
+        // Try to get the file using the public disk
         if (!Storage::disk('public')->exists($path)) {
             return response()->json(['message' => 'File not found: ' . $path], 404);
         }
 
-        $type = Storage::disk('public')->mimeType($path);
         $file = Storage::disk('public')->get($path);
+        
+        // Use native PHP to get mime type securely without depending on 'fileinfo' extension
+        $info = @getimagesizefromstring($file);
+        $type = $info['mime'] ?? 'image/jpeg';
 
-        // If the file is webp, convert it to png for PDF compatibility
-        if ($type === 'image/webp') {
+        // Conversion using native GD (failsafe approach)
+        // This avoids dependency on the Intervention library which might be misconfigured
+        if ($type === 'image/webp' && function_exists('imagecreatefromwebp')) {
             try {
-                $file = Image::read($file)->toPng()->toBuffer();
-                $type = 'image/png';
-                $path = str_replace('.webp', '.png', $path);
-            } catch (\Exception $e) {
-                // If conversion fails, fall back to original file
+                // Read webp and convert to png
+                $im = @imagecreatefromwebp('data://image/webp;base64,' . base64_encode($file));
+                if ($im) {
+                    ob_start();
+                    imagepng($im);
+                    $processedFile = ob_get_clean();
+                    if ($processedFile) {
+                        $file = $processedFile;
+                        $type = 'image/png';
+                    }
+                    imagedestroy($im);
+                }
+            } catch (\Throwable $e) {
+                // If native conversion fails, we fall back to sending original file
             }
         }
 
