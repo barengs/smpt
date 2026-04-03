@@ -17,7 +17,7 @@ class AcademicYearController extends Controller
     public function index()
     {
         try {
-            $academicYears = AcademicYear::all();
+            $academicYears = AcademicYear::with('academicQuarters')->get();
             return new AcademicYearResource('Data tahun ajaran berhasil diambil', $academicYears, 200);
         } catch (\Exception $e) {
             Log::error('Error retrieving academic years: ' . $e->getMessage());
@@ -31,7 +31,7 @@ class AcademicYearController extends Controller
     public function showActiveAcademic()
     {
         try {
-            $academicYear = AcademicYear::where('active', '=', 1)->first();
+            $academicYear = AcademicYear::with('academicQuarters')->where('active', '=', 1)->first();
             if (!$academicYear) {
                 return new AcademicYearResource('Tidak ada tahun ajaran yang aktif', null, 404);
             }
@@ -69,7 +69,7 @@ class AcademicYearController extends Controller
     public function show(string $id)
     {
         try {
-            $academicYear = AcademicYear::findOrFail($id);
+            $academicYear = AcademicYear::with('academicQuarters')->findOrFail($id);
             return new AcademicYearResource('Data tahun ajaran berhasil diambil', $academicYear, 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return new AcademicYearResource('Tahun ajaran tidak ditemukan', null, 404);
