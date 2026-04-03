@@ -4,6 +4,18 @@
     </IfModule>
 
     RewriteEngine On
+    
+    # Handle Preflight (OPTIONS) requests
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ index.php [L]
+
+    # CORS for Static Assets (Images/PDFs) 
+    <IfModule mod_headers.c>
+        <FilesMatch "\.(jpg|jpeg|png|gif|webp|pdf)$">
+            Header set Access-Control-Allow-Origin "*"
+            Header set Access-Control-Allow-Methods "GET, OPTIONS"
+        </FilesMatch>
+    </IfModule>
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
