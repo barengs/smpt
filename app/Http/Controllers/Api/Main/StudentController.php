@@ -179,8 +179,14 @@ class StudentController extends Controller
                 $photoPath = 'students/photos/' . $filename;
             }
 
+            // Clean parent_id if present
+            $data = $request->except('photo');
+            if (isset($data['parent_id'])) {
+                $data['parent_id'] = $this->cleanNumericString($data['parent_id']);
+            }
+
             // Update student data
-            $student->update(array_merge($request->except('photo'), ['photo' => $photoPath]));
+            $student->update(array_merge($data, ['photo' => $photoPath]));
 
             // Load updated data with relationships
             $updatedStudent = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);
@@ -684,5 +690,25 @@ class StudentController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Clean numeric string field (removes whitespace, apostrophes, handles scientific notation)
+     */
+    private function cleanNumericString($value): ?string
+    {
+        if (empty($value) && $value !== '0' && $value !== 0) {
+            return null;
+        }
+
+        $cleaned = (string) $value;
+        $cleaned = ltrim($cleaned, "'");
+        $cleaned = trim($cleaned);
+
+        if (preg_match('/^[\d.]+E\+?\d+$/i', $cleaned)) {
+            $cleaned = number_format((float) $cleaned, 0, '', '');
+        }
+
+        return $cleaned !== '' ? $cleaned : null;
     }
 }
