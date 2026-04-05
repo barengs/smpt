@@ -146,6 +146,7 @@ class StudentsImport implements
                 $programId = $this->cleanNumericString($row['program_id'] ?? '') ?? '';
                 $hostelId = $this->cleanNumericString($row['hostel_id'] ?? null);
                 $roomId = $this->cleanNumericString($row['room_id'] ?? null);
+                $parentId = $this->cleanNumericString($row['parent_id'] ?? null);
 
                 // Check constraints
                 if (isset($existingNis[$nis]) || isset($processedNis[$nis])) {
@@ -165,7 +166,7 @@ class StudentsImport implements
                 DB::beginTransaction();
 
                 $student = Student::create([
-                    'parent_id'       => $row['parent_id'] ?? null,
+                    'parent_id'       => $parentId,
                     'nis'             => $nis,
                     'period'          => $row['period'] ?? null,
                     'nik'             => $nik,

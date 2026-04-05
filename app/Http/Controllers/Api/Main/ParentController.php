@@ -184,16 +184,17 @@ class ParentController extends Controller
             $user = User::whereHas('parent')->with('parent')->where('id', $id)->firstOrFail();
             $parentProfile = $user->parent;
             $oldNik = $parentProfile->nik;
-            $newNik = $request->nik;
+            $newNik = $this->cleanNumericString($request->nik);
+            $newKk = $this->cleanNumericString($request->kk);
 
             // Check if KK already exists for another parent
-            $ifKKExist = ParentProfile::where('kk', $request->kk)->where('id', '!=', $parentProfile->id)->first();
+            $ifKKExist = ParentProfile::where('kk', $newKk)->where('id', '!=', $parentProfile->id)->first();
             if ($ifKKExist) {
                 return new ParentResource('KK sudah digunakan oleh orang tua lain', null, 409);
             }
 
             // Check if NIK already exists for another parent
-            $ifNikExist = ParentProfile::where('nik', $request->nik)->where('id', '!=', $parentProfile->id)->first();
+            $ifNikExist = ParentProfile::where('nik', $newNik)->where('id', '!=', $parentProfile->id)->first();
             if ($ifNikExist) {
                 return new ParentResource('NIK sudah digunakan oleh orang tua lain', null, 409);
             }
@@ -245,8 +246,8 @@ class ParentController extends Controller
             $parentProfile->update([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
-                'nik' => $request->nik,
-                'kk' => $request->kk,
+                'nik' => $newNik,
+                'kk' => $newKk,
                 'gender' => $request->gender,
                 'parent_as' => $request->parent_as,
                 'card_address' => $request->card_address,
@@ -553,5 +554,25 @@ class ParentController extends Controller
         } catch (\Throwable $th) {
             return response()->json(['message' => 'Gagal membackup data: ' . $th->getMessage()], 500);
         }
+    }
+
+    /**
+     * Clean numeric string field (removes whitespace, apostrophes, handles scientific notation)
+     */
+    private function cleanNumericString($value): ?string
+    {
+        if (empty($value) && $value !== '0' && $value !== 0) {
+            return null;
+        }
+
+        $cleaned = (string) $value;
+        $cleaned = ltrim($cleaned, "'");
+        $cleaned = trim($cleaned);
+
+        if (preg_match('/^[\d.]+E\+?\d+$/i', $cleaned)) {
+            $cleaned = number_format((float) $cleaned, 0, '', '');
+        }
+
+        return $cleaned !== '' ? $cleaned : null;
     }
 }
