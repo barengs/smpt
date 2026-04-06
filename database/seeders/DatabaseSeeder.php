@@ -33,12 +33,10 @@ class DatabaseSeeder extends Seeder
             EducationClassSeeder::class,
             EducationSeeder::class,
             OccupationSeeder::class,
-            ChartOfAccountSeeder::class,
             // ParentProfileSeeder::class,
             // StudentSeeder::class,
             StudySeeder::class,
             LessonHourSeeder::class,
-            ProductSeeder::class,
             ProgramSeeder::class,
             AcademicYearSeeder::class,
             EducationalInstitutionSeeder::class,
@@ -46,8 +44,6 @@ class DatabaseSeeder extends Seeder
             ClassGroupAdvisorSeeder::class,
             LeaveTypeSeeder::class,
             DisciplineSystemSeeder::class,
-            InstallmentPlanSeeder::class,
-            InstallmentScheduleSeeder::class,
         ]);
     }
 }
