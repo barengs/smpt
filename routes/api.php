@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\Main\RoleController;
 use App\Http\Controllers\Api\Main\PermissionController;
 use App\Http\Controllers\Api\Main\StaffController;
 use App\Http\Controllers\Api\Main\StudentController;
+use App\Http\Controllers\Api\Main\StudentAgreementController;
 use App\Http\Controllers\Api\Main\StudentCardController;
 use App\Http\Controllers\Api\Main\StudentCardSettingController;
 use App\Http\Controllers\Api\Main\ParentController;
@@ -323,8 +324,14 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('student/room/bulk-assign', [StudentController::class, 'bulkAssignRoom']);
     Route::post('student/{id}/room/assign', [StudentController::class, 'assignRoom']);
     Route::get('student/{id}/room/history', [StudentController::class, 'roomHistory']);
+    // Student Agreements
+    Route::get('student/agreement/list', [StudentAgreementController::class, 'listAgreements']);
+    Route::get('student/{id}/agreement', [StudentAgreementController::class, 'index']);
+    Route::post('student/{id}/agreement', [StudentAgreementController::class, 'updateStep']);
+
     Route::apiResource('student', StudentController::class);
     Route::post('student/{id}/update-photo', [StudentController::class, 'updatePhoto'])->name('student.update-photo');
+
 
     // Student Card
     Route::get('student/{id}/cards', [StudentCardController::class, 'index']); // History by Student ID

@@ -12,17 +12,17 @@ class ProgramSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define the programs to be seeded
         $programs = [
             'Tibyan',
-            'Khuba'
+            'Kubar'
         ];
 
-        // Insert each program into the database
+        // Insert each program into the database using updateOrCreate for idempotency
         foreach ($programs as $program) {
-            Program::create([
-                'name' => $program,
-            ]);
+            Program::updateOrCreate(
+                ['name' => $program === 'Kubar' ? 'Khuba' : $program], // Find existing Khuba if it exists
+                ['name' => $program]
+            );
         }
     }
 }

@@ -63,4 +63,9 @@ class Student extends Model
     {
         return $this->hasOne(StudentCard::class)->where('is_active', true);
     }
+
+    public function agreement()
+    {
+        return $this->hasOne(StudentAgreement::class);
+    }
 }
