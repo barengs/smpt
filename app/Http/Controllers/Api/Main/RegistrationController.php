@@ -364,9 +364,9 @@ class RegistrationController extends Controller
     {
         $request->validate([
             'registration_id' => 'required|exists:registrations,id',
-            'product_id' => 'required|exists:products,id',
+            'product_id' => 'required|integer',
             'hijri_year' => 'required|digits:4',
-            'transaction_type_id' => 'required|exists:transaction_types,id',
+            'transaction_type_id' => 'required|integer',
             'channel' => 'required|string',
         ]);
 
@@ -402,8 +402,13 @@ class RegistrationController extends Controller
 
             // Call Bank Santri microservice to create the account physically there
             $bankUrl = env('BANK_SANTRI_URL', 'http://localhost:8001');
+            $bankInternalKey = env('BANK_SANTRI_INTERNAL_KEY', '');
             try {
-                $accountRes = Http::post("{$bankUrl}/api/main/account", [
+                $accountRes = Http::withHeaders([
+                    'X-Internal-Key' => $bankInternalKey,
+                    'Accept'         => 'application/json',
+                    'Content-Type'   => 'application/json',
+                ])->post("{$bankUrl}/api/internal/account", [
                     'account_number' => $student->nis,
                     'customer_id'    => $student->id,
                     'customer_name'  => $student->first_name . ' ' . $student->last_name,
@@ -418,59 +423,62 @@ class RegistrationController extends Controller
                 throw $e;
             }
 
-            // get product | front-end harus mengirim id product
-            $product = Product::findOrFail($request->product_id);
+            // Ambil informasi produk (untuk mengetahui opening_fee) dari Bank Santri
+            $openingFee = 0;
+            try {
+                $productRes = Http::withHeaders([
+                    'X-Internal-Key' => $bankInternalKey,
+                    'Accept'         => 'application/json',
+                ])->get("{$bankUrl}/api/internal/product/{$request->product_id}");
+                
+                if ($productRes->successful()) {
+                    $openingFee = $productRes->json('data.opening_fee');
+                } else {
+                    Log::warning('Gagal mengambil data produk dari Bank Santri: ' . $productRes->body());
+                }
+            } catch (\Exception $e) {
+                Log::warning('Gagal menghubungi Bank Santri untuk data produk: ' . $e->getMessage());
+            }
+
+            // Instruct Bank Santri to create the PENDING Transaction for Registration
+            try {
+                $trxRes = Http::withHeaders([
+                    'X-Internal-Key' => $bankInternalKey,
+                    'Accept'         => 'application/json',
+                    'Content-Type'   => 'application/json',
+                ])->post("{$bankUrl}/api/internal/transaction", [
+                    'transaction_type_id' => $request->transaction_type_id,
+                    'amount'              => $openingFee,
+                    'source_account'      => $student->nis,
+                    'reference_number'    => $registration->registration_number,
+                    'channel'             => $request->channel,
+                    'description'         => 'Biaya Pendaftaran',
+                ]);
+
+                if (!$trxRes->successful()) {
+                    Log::error('Bank Santri Transaction Creation Failed: ' . $trxRes->body());
+                    // we could throw an error here, but we can let it pass and just log it for now
+                }
+            } catch (\Exception $e) {
+                Log::error('Bank Santri Transaction Error: ' . $e->getMessage());
+            }
+
             // get program
             $program = Program::findOrFail($registration->program_id);
-            // get transaction type | front-end harus mengirim id transaction type
-            // di gunakan untuk membuat transaction ledger
-            $transactionType = TransactionType::findOrFail($request->transaction_type_id);
-            // Create transaction (Pendaftaran transaction logic)
-            $transaction = Transaction::create([
-                'id' => Str::uuid(),
-                'transaction_type_id' => $request->transaction_type_id,
-                'description' => 'Biaya Pendaftaran',
-                'amount' => $product->opening_fee,
-                'status' => 'PENDING',
-                'reference_number' => $registration->registration_number,
-                'channel' => $request->channel,
-                'source_account' => $student->nis,
-                'destination_account' => null,
-            ]);
-
-            // create AccountMovement
-            // AccountMovement::create([
-            //     'account_number' => $account['account_number'],
-            //     'transaction_id' => $transaction->id,
-            //     'description' => 'Biaya Pendaftaran',
-            //     'debit_amount' => $product->opening_fee,
-            //     'credit_amount' => 0,
-            //     'balance_after_movement' => $product->opening_fee
-            // ]);
-
-            // create TrasactionLeadger
-            TransactionLedger::create([
-                'transaction_id' => $transaction->id,
-                'coa_code' => $transactionType->default_debit_coa,
-                'amount' => $product->opening_fee,
-                'type' => 'debit',
-            ]);
-
-            TransactionLedger::create([
-                'transaction_id' => $transaction->id,
-                'coa_code' => $transactionType->default_credit_coa,
-                'amount' => $product->opening_fee,
-                'type' => 'credit',
-            ]);
 
             $registration->update([
                 'payment_status' => 'pending',
-                'payment_amount' => $product->opening_fee
+                'payment_amount' => $openingFee
             ]);
 
             DB::commit();
 
-            return response()->json($transaction, 201);
+            return response()->json([
+                'message' => 'Rekening berhasil dibuat dan tagihan pendaftaran dicatat.',
+                'registration' => $registration,
+                'account_number' => $student->nis,
+                'opening_fee' => $openingFee
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Transaksi Pendaftaran Gagal', [

@@ -149,10 +149,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('employment/trashed', [EmploymentController::class, 'trashed']);
     Route::post('employment/{id}/restore', [EmploymentController::class, 'restore']);
     Route::apiResource('employment', EmploymentController::class);
-    // Chart Of Account
-    Route::get('chart-of-account/header-accounts', [ChartOfAccountController::class, 'headerAccounts'])->name('chart-of-account.header-accounts');
-    Route::get('chart-of-account/detail-accounts', [ChartOfAccountController::class, 'detailAccounts'])->name('chart-of-account.detail-accounts');
-    Route::apiResource('chart-of-account', ChartOfAccountController::class);
+
     Route::get('lesson-hour/trashed', [LessonHourController::class, 'trashed']);
     Route::post('lesson-hour/{id}/restore', [LessonHourController::class, 'restore']);
     Route::apiResource('lesson-hour', LessonHourController::class);
@@ -199,8 +196,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('menu/{id}/permissions', [MenuController::class, 'getMenuPermissions']);
     Route::post('menu/{id}/remove-permissions', [MenuController::class, 'removeMenuPermission']);
 
-    // Product routes
-    Route::apiResource('product', ProductController::class);
+
 
     Route::apiResource('staff-study', StaffStudyController::class);
     Route::get('staff-study/teachers/all', [StaffStudyController::class, 'getAllTeachers'])->name('staff-study.teachers.all');
@@ -249,24 +245,11 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('registration/transaction', [RegistrationController::class, 'createRequestTransaction'])->name('registration.transaction');
     Route::get('registration/student/{nik}/check', [RegistrationController::class, 'checkTtl'])->name('registration.student.check');
 
-    // Transaction routes
-    Route::put('transaction/{id}/activate', [
-        TransactionController::class,
-        'activateTransaction'
-    ])->name('transaction.activate');
-    Route::apiResource('transaction', TransactionController::class);
-    Route::apiResource('transaction-type', TransactionTypeController::class);
 
-    // Account routes
-    Route::apiResource('account', AccountController::class);
-    Route::get('transaction/account/{accountNumber}/last-7-days', [
-        TransactionController::class,
-        'getLast7DaysTransactions'
-    ])->name('transaction.last-7-days');
 
-    // News routes
     Route::apiResource('news', NewsController::class);
     Route::apiResource('activity', ActivityController::class);
+    Route::put('transaction/{id}/activate', [TransactionController::class, 'activate']);
 
     // Role routes
     Route::apiResource('role', RoleController::class);
@@ -353,6 +336,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('parent/{id}/update-photo', [ParentController::class, 'updatePhoto'])->name('parent.update-photo');
     Route::get('parent/nik/{nik}/cek', [ParentController::class, 'getByNik'])
         ->name('parent.getByNik');
+    Route::get('parent/nik/{nik}', [ParentController::class, 'getByNik']);
 
     // Class Schedule
     // Class Schedule
