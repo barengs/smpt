@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'bank_santri' => [
+        'url' => env('BANK_SANTRI_URL', 'http://localhost:8001'),
+        'internal_key' => env('BANK_SANTRI_INTERNAL_KEY', 'smpt-banksantri-internal-secret-2026'),
+    ],
+
 ];

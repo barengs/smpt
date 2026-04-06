@@ -19,8 +19,8 @@ class TransactionController extends Controller
      */
     public function activate(Request $request, string $id)
     {
-        $bankUrl = env('BANK_SANTRI_URL', 'http://localhost:8001');
-        $bankInternalKey = env('BANK_SANTRI_INTERNAL_KEY', 'smpt-banksantri-internal-secret-2026');
+        $bankUrl = config('services.bank_santri.url');
+        $bankInternalKey = config('services.bank_santri.internal_key');
 
         try {
             // 1. Hubungi Bank Santri untuk aktivasi finansial
