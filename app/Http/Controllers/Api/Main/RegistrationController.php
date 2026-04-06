@@ -401,8 +401,8 @@ class RegistrationController extends Controller
             ]);
 
             // Call Bank Santri microservice to create the account physically there
-            $bankUrl = env('BANK_SANTRI_URL', 'http://localhost:8001');
-            $bankInternalKey = env('BANK_SANTRI_INTERNAL_KEY', '');
+            $bankUrl = config('services.bank_santri.url');
+            $bankInternalKey = config('services.bank_santri.internal_key');
             try {
                 $accountRes = Http::withHeaders([
                     'X-Internal-Key' => $bankInternalKey,
