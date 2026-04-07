@@ -14,6 +14,11 @@ class Registration extends Model
         return $this->belongsTo(ParentProfile::class, 'parent_id', 'nik');
     }
 
+    public function village()
+    {
+        return $this->belongsTo(\Laravolt\Indonesia\Models\Village::class, 'village_id', 'code');
+    }
+
     public function program()
     {
         return $this->belongsTo(Program::class, 'program_id', 'id');

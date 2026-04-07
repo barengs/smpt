@@ -117,14 +117,32 @@ class RegistrationController extends Controller
                     'email' => $request->wali_email,
                     'gender' => $request->wali_jenis_kelamin,
                     'parent_as' => $request->wali_sebagai,
-                    'card_address' => $request->wali_alamamat_ktp,
+                    'card_address' => $request->wali_alamat_ktp,
                     'domicile_address' => $request->wali_alamat_domisili,
                     'occupation_id' => $request->wali_pekerjaan_id,
-                    'education' => $request->wali_pendidikan_id,
+                    'education_id' => $request->wali_pendidikan_id,
                 ]);
 
                 if ($parent) {
                     $user->assignRole('orangtua');
+                }
+            } else {
+                // Parent already exists – update their profile with any new data provided
+                $updateData = [];
+                if ($request->filled('wali_nama_depan'))   $updateData['first_name']       = $request->wali_nama_depan;
+                if ($request->filled('wali_nama_belakang')) $updateData['last_name']        = $request->wali_nama_belakang;
+                if ($request->filled('wali_kk'))            $updateData['kk']               = $request->wali_kk;
+                if ($request->filled('wali_telepon'))       $updateData['phone']            = $request->wali_telepon;
+                if ($request->filled('wali_email'))         $updateData['email']            = $request->wali_email;
+                if ($request->filled('wali_jenis_kelamin')) $updateData['gender']           = $request->wali_jenis_kelamin;
+                if ($request->filled('wali_sebagai'))       $updateData['parent_as']        = $request->wali_sebagai;
+                if ($request->filled('wali_alamat_ktp'))    $updateData['card_address']     = $request->wali_alamat_ktp;
+                if ($request->filled('wali_alamat_domisili')) $updateData['domicile_address'] = $request->wali_alamat_domisili;
+                if ($request->filled('wali_pekerjaan_id'))  $updateData['occupation_id']    = $request->wali_pekerjaan_id;
+                if ($request->filled('wali_pendidikan_id')) $updateData['education_id']     = $request->wali_pendidikan_id;
+
+                if (!empty($updateData)) {
+                    $checkParent->update($updateData);
                 }
             }
 
@@ -146,7 +164,8 @@ class RegistrationController extends Controller
                 'address' => $request->santri_alamat,
                 'born_in' => $request->santri_tempat_lahir,
                 'born_at' => $request->santri_tanggal_lahir,
-                'village_id' => $request->desaId ?? null,
+                'village_id' => $request->santri_desa_code ?? null,
+                'status' => $request->status ?? 'pending',
                 'photo' => $filePath ?? null,
                 'program_id' => $request->program_id ?? null,
                 'previous_school' => $request->pendidikan_sekolah_asal,
@@ -168,6 +187,7 @@ class RegistrationController extends Controller
                 $registration->files()->create([
                     'file_name' => $ijazahFileName,
                     'file_path' => $ijazahFilePath,
+                    'file_type' => 'ijazah',
                 ]);
             }
 
@@ -179,6 +199,7 @@ class RegistrationController extends Controller
                     $registration->files()->create([
                         'file_name' => $fileName,
                         'file_path' => $filePath,
+                        'file_type' => 'optional',
                     ]);
                 }
             }
@@ -205,7 +226,7 @@ class RegistrationController extends Controller
     public function show(string $id)
     {
         try {
-            $data = Registration::with(['parent.occupation', 'parent.education', 'files', 'program'])->findOrFail($id);
+            $data = Registration::with(['parent.occupation', 'parent.education', 'files', 'program', 'village'])->findOrFail($id);
             $data->photo_url = Storage::url($data->photo);
             return new RegistrationResource('Data found', $data, 200);
         } catch (\Throwable $th) {
@@ -233,10 +254,10 @@ class RegistrationController extends Controller
                 'email' => $request->input('wali_email', $parent->email),
                 'gender' => $request->input('wali_jenis_kelamin', $parent->gender),
                 'parent_as' => $request->input('wali_sebagai', $parent->parent_as),
-                'card_address' => $request->input('wali_alamamat_ktp', $parent->card_address),
+                'card_address' => $request->input('wali_alamat_ktp', $parent->card_address),
                 'domicile_address' => $request->input('wali_alamat_domisili', $parent->domicile_address),
                 'occupation_id' => $request->input('wali_pekerjaan_id', $parent->occupation_id),
-                'education' => $request->input('wali_pendidikan_id', $parent->education),
+                'education_id' => $request->input('wali_pendidikan_id', $parent->education_id),
             ]);
 
             // Handle Santri Photo Upload
@@ -262,8 +283,9 @@ class RegistrationController extends Controller
                 'address' => $request->input('santri_alamat', $registration->address),
                 'born_in' => $request->input('santri_tempat_lahir', $registration->born_in),
                 'born_at' => $request->input('santri_tanggal_lahir', $registration->born_at),
-                'village_id' => $request->input('desaId', $registration->village_id),
+                'village_id' => $request->input('santri_desa_code', $registration->village_id),
                 'photo' => $request->hasFile('dokumen_foto_santri') ? $filePath : $registration->photo,
+                'status' => $request->input('status', $registration->status),
                 'program_id' => $request->input('program_id', $registration->program_id),
                 'previous_school' => $request->input('pendidikan_sekolah_asal', $registration->previous_school),
                 'previous_school_address' => $request->input('pendidikan_alamat_sekolah', $registration->previous_school_address),
