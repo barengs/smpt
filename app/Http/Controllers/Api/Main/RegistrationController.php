@@ -76,6 +76,15 @@ class RegistrationController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
+            // Fetch students for these registrations to provide student_id links
+            $niks = $registrations->pluck('nik')->filter()->toArray();
+            $students = Student::whereIn('nik', $niks)->get(['id', 'nik'])->keyBy('nik');
+
+            $registrations->getCollection()->transform(function ($registration) use ($students) {
+                $registration->student_id = $students->get($registration->nik)?->id;
+                return $registration;
+            });
+
             return new RegistrationResource('Registrations fetched successfully', $registrations, 200);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Failed to fetch registrations: ' . $e->getMessage()], 500);
@@ -228,6 +237,11 @@ class RegistrationController extends Controller
         try {
             $data = Registration::with(['parent.occupation', 'parent.education', 'files', 'program', 'village'])->findOrFail($id);
             $data->photo_url = Storage::url($data->photo);
+            
+            // Check if student exists for this registration NIK
+            $student = Student::where('nik', $data->nik)->first(['id']);
+            $data->student_id = $student?->id;
+
             return new RegistrationResource('Data found', $data, 200);
         } catch (\Throwable $th) {
             return response()->json('Data not found: ' . $th->getMessage(), 404);
