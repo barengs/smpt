@@ -53,7 +53,8 @@ class MenuSeeder extends Seeder
             'buat profil aplikasi', 'lihat profil aplikasi', 'ubah profil aplikasi', 'hapus profil aplikasi',
             'buat topup', 'verifikasi topup', 'lihat verifikasi libur', 'lihat pengaturan kartu',
             'lihat statistik santri', 'lihat laporan kamtib', 'lihat penanggung jawab magang', 'lihat institusi tugas',
-            'buat pemetaan coa', 'lihat pemetaan coa'
+            'buat pemetaan coa', 'lihat pemetaan coa',
+            'buat perjanjian', 'lihat perjanjian', 'ubah perjanjian', 'hapus perjanjian'
         ];
 
         foreach ($permissions as $name) {
@@ -162,6 +163,7 @@ class MenuSeeder extends Seeder
             'Data Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Data', 'route' => '/dashboard/santri', 'icon' => 'user-graduate', 'order' => 1],
             'Pendaftaran Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Registration', 'route' => '/dashboard/pendaftaran-santri', 'icon' => 'user-plus', 'order' => 2],
             'Wali Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Guardian', 'route' => '/dashboard/wali-santri-list', 'icon' => 'user-friends', 'order' => 3],
+            'Surat Perjanjian' => ['parent' => 'Manajemen Santri', 'en_title' => 'Agreement', 'route' => '/dashboard/santri/perjanjian', 'icon' => 'file-text', 'order' => 4],
             'Mutasi Asrama' => ['parent' => 'Manajemen Santri', 'en_title' => 'Hostel Mutation', 'route' => '/dashboard/santri/mutasi-asrama', 'icon' => 'arrow-right-left', 'order' => 10],
             'Penempatan Kelas' => ['parent' => 'Manajemen Santri', 'en_title' => 'Class Placement', 'route' => '/dashboard/manajemen-kurikulum/penempatan-kelas', 'icon' => 'user-check', 'order' => 11],
 

@@ -84,7 +84,7 @@ class StudentController extends Controller
     public function show(string $id)
     {
         try {
-            $student = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);
+            $student = Student::with(['program', 'hostel', 'parents', 'agreement'])->findOrFail($id);
 
             // Attach current room
             $currentRoom = DB::table('student_room_assignments as sra')
