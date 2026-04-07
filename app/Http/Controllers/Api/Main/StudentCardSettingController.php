@@ -20,7 +20,7 @@ class StudentCardSettingController extends Controller
      */
     public function show()
     {
-        $setting = StudentCardSetting::where('is_active', '=', true)->first();
+        $setting = StudentCardSetting::with(['authorizedOfficial'])->where('is_active', '=', true)->first();
 
         if (!$setting) {
             // Return empty structure or create default
@@ -49,6 +49,9 @@ class StudentCardSettingController extends Controller
             'back_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'guardian_front_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'guardian_back_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'staff_front_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'staff_back_template' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'authorized_official_id' => 'nullable|integer|exists:staff,id',
             'kop_surat' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'stamp' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:1024',
             'signature' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:1024',
@@ -75,7 +78,7 @@ class StudentCardSettingController extends Controller
         $manager = new ImageManager(new Driver());
 
         // Handle File Uploads
-        $fields = ['front_template', 'back_template', 'guardian_front_template', 'guardian_back_template', 'kop_surat', 'stamp', 'signature'];
+        $fields = ['front_template', 'back_template', 'guardian_front_template', 'guardian_back_template', 'staff_front_template', 'staff_back_template', 'kop_surat', 'stamp', 'signature'];
         foreach ($fields as $field) {
             if ($request->hasFile($field)) {
                 $file = $request->file($field);
@@ -102,6 +105,10 @@ class StudentCardSettingController extends Controller
                 // Update model
                 $setting->$field = $path;
             }
+        }
+        
+        if ($request->has('authorized_official_id')) {
+            $setting->authorized_official_id = $request->authorized_official_id;
         }
 
         $setting->save();
