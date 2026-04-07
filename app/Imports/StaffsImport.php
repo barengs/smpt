@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Models\User;
 use App\Models\Staff;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\OnEachRow;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
@@ -15,18 +16,21 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Row;
+use Throwable;
 
 class StaffsImport implements
     OnEachRow,
     WithHeadingRow,
     WithValidation,
     SkipsOnError,
-    SkipsOnFailure
+    SkipsOnFailure,
+    SkipsEmptyRows
 {
     protected $errors = [];
     protected $successCount = 0;
     protected $failureCount = 0;
     protected $lastStaffId = null;
+    protected $rowCount = 0;
 
     public function __construct()
     {
@@ -69,7 +73,7 @@ class StaffsImport implements
                 return Carbon::createFromFormat('Y-m-d', '1900-01-01')->addDays($value - 2)->format('Y-m-d');
             }
             return Carbon::parse($value)->format('Y-m-d');
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             return null;
         }
     }
@@ -111,7 +115,13 @@ class StaffsImport implements
      */
     public function onRow(Row $row)
     {
+        $this->rowCount++;
         $arrayRow = $row->toArray();
+
+        // Log progress every 50 rows
+        if ($this->rowCount % 50 === 0) {
+            Log::info("Staff import processing row {$this->rowCount}");
+        }
 
         try {
             // Clean numeric string fields
@@ -125,32 +135,35 @@ class StaffsImport implements
             $email = trim($arrayRow['email'] ?? '');
             $role = trim($arrayRow['role'] ?? 'staf');
 
-            // Skip if email already exists
-            $existingUser = User::where('email', $email)->first();
-            if ($existingUser) {
-                // If it exists, check if it's already a staff
-                $existingStaff = Staff::where('user_id', $existingUser->id)->first();
+            if (empty($email)) {
+                return; // Skip empty rows that passed SkipsEmptyRows but have no email
+            }
+
+            DB::beginTransaction();
+            try {
+                // Check if email already exists
+                $user = User::where('email', $email)->first();
+                
+                if (!$user) {
+                    // Create user
+                    $user = User::create([
+                        'name' => trim($arrayRow['first_name']) . ' ' . trim($arrayRow['last_name'] ?? ''),
+                        'email' => $email,
+                        'password' => 'password', // Auto-hashed by User model cast
+                    ]);
+                    $user->syncRoles($role);
+                }
+
+                // Check if it's already a staff
+                $existingStaff = Staff::where('user_id', $user->id)->first();
                 if ($existingStaff) {
+                    DB::rollBack();
                     $this->errors[] = "Email {$email} already exists as staff - skipped";
                     $this->failureCount++;
                     return;
                 }
-                
-                // If user exists but not staff, just link to it later (but usually we expect new users)
-                $user = $existingUser;
-            } else {
-                // Create user
-                $user = User::create([
-                    'name' => trim($arrayRow['first_name']) . ' ' . trim($arrayRow['last_name'] ?? ''),
-                    'email' => $email,
-                    'password' => Hash::make('password'),
-                ]);
-                $user->syncRoles($role);
-            }
 
-            // Create staff profile
-            DB::beginTransaction();
-            try {
+                // Create staff profile
                 Staff::create([
                     'user_id' => $user->id,
                     'code' => $this->generateCode(),
@@ -170,17 +183,20 @@ class StaffsImport implements
                     'marital_status' => $arrayRow['marital_status'] ?? 'Belum Menikah',
                     'status' => $arrayRow['status'] ?? 'Aktif',
                 ]);
+
                 DB::commit();
                 $this->successCount++;
-            } catch (\Exception $e) {
+            } catch (Throwable $e) {
                 DB::rollBack();
                 $this->errors[] = "Error for email {$email}: " . $e->getMessage();
                 $this->failureCount++;
+                Log::error("Staff import inner error for {$email}: " . $e->getMessage());
             }
 
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->errors[] = "Error processing row: " . $e->getMessage();
             $this->failureCount++;
+            Log::error("Staff import outer error: " . $e->getMessage());
         }
     }
 
