@@ -826,6 +826,7 @@ class StaffController extends Controller
      */
     public function import(Request $request)
     {
+        set_time_limit(0); // Unlimited time for import
         try {
             $validator = Validator::make($request->all(), [
                 'file' => 'required|mimes:xlsx,xls,csv|max:10240',

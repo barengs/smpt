@@ -16,7 +16,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'refresh']]);
     }
 
     /**
@@ -95,6 +95,34 @@ class AuthController extends Controller
     public function refresh()
     {
         return $this->respondWithToken(auth()->refresh(), auth()->user());
+    }
+
+    /**
+     * SSO Handover to Bank Santri.
+     * Generates a token and redirects to Bank Santri.
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    public function ssoHandover()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        // Get the primary role - optimized retrieval
+        $role = $user->getRoleNames()->first() ?? 'staff';
+
+        // Generate token with custom claims
+        $token = auth()->claims([
+            'role' => $role,
+            'name' => $user->name,
+            'email' => $user->email,
+        ])->fromUser($user);
+
+        $bankUrl = config('app.bank_santri_url', env('BANK_SANTRI_URL', 'http://localhost:8001'));
+        
+        return redirect()->away($bankUrl . '/auth/sso?token=' . $token);
     }
 
     /**
