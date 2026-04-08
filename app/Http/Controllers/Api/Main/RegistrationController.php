@@ -225,7 +225,7 @@ class RegistrationController extends Controller
             return response()->json('Data not found', 404);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json('An error occurred: ' . $e->getMessage(), 500);
+            return response()->json(['message' => 'Gagal menyimpan data pendaftaran', 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -452,7 +452,11 @@ class RegistrationController extends Controller
                 ]);
 
                 if (!$accountRes->successful()) {
-                    throw new \Exception('Gagal membuat rekening di Bank Santri: ' . $accountRes->body());
+                    $errorData = $accountRes->json();
+                    if (isset($errorData['errors']['account_number'])) {
+                        throw new \Exception('Nomor NIS sudah terdaftar di Bank Santri.');
+                    }
+                    throw new \Exception('Gagal membuat rekening di Bank Santri: ' . ($errorData['message'] ?? $accountRes->body()));
                 }
             } catch (\Exception $e) {
                 Log::error('Bank Santri Account Creation Error: ' . $e->getMessage());

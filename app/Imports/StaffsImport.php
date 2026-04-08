@@ -31,12 +31,16 @@ class StaffsImport implements
     protected $failureCount = 0;
     protected $lastStaffId = null;
     protected $rowCount = 0;
+    protected $hashedPassword;
 
     public function __construct()
     {
         // Get the last staff ID for code generation
         $lastStaff = Staff::orderBy('id', 'desc')->first();
         $this->lastStaffId = $lastStaff ? $lastStaff->id : 0;
+        
+        // Pre-hash password for performance
+        $this->hashedPassword = Hash::make('password');
     }
 
     /**
@@ -149,7 +153,7 @@ class StaffsImport implements
                     $user = User::create([
                         'name' => trim($arrayRow['first_name']) . ' ' . trim($arrayRow['last_name'] ?? ''),
                         'email' => $email,
-                        'password' => 'password', // Auto-hashed by User model cast
+                        'password' => $this->hashedPassword,
                     ]);
                     $user->syncRoles($role);
                 }
