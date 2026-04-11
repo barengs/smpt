@@ -69,12 +69,12 @@ class RegistrationController extends Controller
      *   }
      * }
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             $registrations = Registration::with(['parent.occupation', 'parent.education', 'program'])
                 ->orderBy('created_at', 'desc')
-                ->paginate(10);
+                ->paginate($request->query('per_page', 10));
 
             // Fetch students for these registrations to provide student_id links
             $niks = $registrations->pluck('nik')->filter()->toArray();
@@ -376,13 +376,13 @@ class RegistrationController extends Controller
         }
         return $registrationNumber;
     }
-    public function getByCurrentYear()
+    public function getByCurrentYear(Request $request)
     {
         try {
             $registrations = Registration::with(['parent.occupation', 'parent.education'])
                 ->whereYear('created_at', date('Y'))
                 ->orderBy('created_at', 'desc')
-                ->paginate(10);
+                ->paginate($request->query('per_page', 10));
 
             return new RegistrationResource('Registrations for the current year fetched successfully', $registrations, 200);
         } catch (\Exception $e) {
