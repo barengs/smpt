@@ -311,7 +311,29 @@ class RegistrationController extends Controller
                 'madrasah_level_id' => $request->input('madrasah_jenjang_sebelumnya', $registration->madrasah_level_id),
             ]);
             $registration->save();
+            
+            // Sync with Student record if exists
+            $student = Student::where('nik', $registration->nik)->first();
+            if ($student) {
+                $student->update([
+                    'first_name' => $registration->first_name,
+                    'last_name' => $registration->last_name,
+                    'gender' => $registration->gender,
+                    'address' => $registration->address,
+                    'born_in' => $registration->born_in,
+                    'born_at' => $registration->born_at,
+                    'village_id' => $registration->village_id,
+                    'photo' => $registration->photo,
+                    'program_id' => $registration->program_id,
+                    'education_type_id' => $registration->education_level_id,
+                    'kk' => $registration->kk,
+                    // If NIK was changed in registration, it might not find the student next time 
+                    // unless we also update parent_id if needed.
+                    'parent_id' => $registration->parent_id,
+                ]);
+            }
 
+            DB::commit();
 
             // Handle Ijazah Upload
             if ($request->hasFile('dokumen_ijazah')) {
