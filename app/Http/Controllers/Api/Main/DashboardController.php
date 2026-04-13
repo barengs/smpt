@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Main;
 use App\Models\Staff;
 use App\Models\Student;
 use App\Models\Transaction;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -21,16 +22,28 @@ class DashboardController extends Controller
             $asatidz = Staff::count();
             $tugasan = Student::where("status", 'Tugas')->count();
             $alumni = Student::where("status", 'Alumni')->count();
+            
+            // Get active academic year for santri baru count
+            $activeYear = AcademicYear::where('active', true)->first()?->year;
+            $activeYearAlt = $activeYear ? str_replace('/', '-', $activeYear) : null;
+            $activeYearAlt2 = $activeYear ? str_replace('-', '/', $activeYear) : null;
+
+            $santriBaru = 0;
+            if ($activeYear) {
+                $santriBaru = Student::whereIn('period', [$activeYear, $activeYearAlt, $activeYearAlt2])
+                    ->where('status', 'Aktif')
+                    ->count();
+            }
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Dashboard data retrieved successfully',
                 'data' => [
-                    // Existing data for pesantren system
                     'santri' => $santri,
                     'asatidz' => $asatidz,
                     'tugasan' => $tugasan,
                     'alumni' => $alumni,
+                    'santri_baru' => $santriBaru,
                 ]
             ], 200);
         } catch (\Throwable $th) {
@@ -119,10 +132,20 @@ class DashboardController extends Controller
     public function studentStatisticsByPeriod(Request $request)
     {
         try {
-            $statistics = Student::select('period', DB::raw('count(*) as total'))
-                ->groupBy('period')
-                ->orderBy('period', 'asc')
-                ->get();
+            // Standardize period string to handle inconsistencies between '-' and '/'
+            $statistics = Student::select(
+                    DB::raw("REPLACE(period, '/', '-') as standardized_period"), 
+                    DB::raw('count(*) as total')
+                )
+                ->groupBy('standardized_period')
+                ->orderBy('standardized_period', 'asc')
+                ->get()
+                ->map(function($item) {
+                    return [
+                        'period' => $item->standardized_period,
+                        'total' => $item->total,
+                    ];
+                });
 
             return response()->json([
                 'status' => 'success',
