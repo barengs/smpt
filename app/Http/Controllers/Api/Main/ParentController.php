@@ -20,7 +20,7 @@ use Exception;
 use App\Exports\ParentReadableExport;
 use App\Exports\ParentBackupExport;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * @tags Parent Management
@@ -288,7 +288,7 @@ class ParentController extends Controller
      * Update photo only for a parent profile.
      *
      * Converts uploaded image to WebP (quality 80) and resizes to 800×800px
-     * using Intervention Image (Imagick driver), same as StudentController::updatePhoto.
+     * using Intervention Image (GD driver), same as StudentController::updatePhoto.
      *
      * @param Request $request
      * @param string $id User ID
@@ -317,7 +317,7 @@ class ParentController extends Controller
                     Storage::disk('public')->delete($parentProfile->photo);
                 }
 
-                // Process with Intervention Image (Imagick driver)
+                // Process with Intervention Image (GD driver)
                 $manager = new ImageManager(new Driver());
                 $photo   = $request->file('photo');
 

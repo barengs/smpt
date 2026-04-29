@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\Drivers\Gd\Driver;
 use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
@@ -139,7 +139,7 @@ class StudentController extends Controller
                 'born_in' => 'nullable|string|max:255',
                 'born_at' => 'nullable|date',
                 'last_education' => 'nullable|string|max:255',
-                'village_id' => 'nullable|exists:indonesia_villages,id',
+                'village_id' => 'nullable|string', // Relaxed to handle code or ID
                 'village' => 'nullable|string|max:255',
                 'district' => 'nullable|string|max:255',
                 'postal_code' => 'nullable|string|max:10',
@@ -147,7 +147,7 @@ class StudentController extends Controller
                 'hostel_id' => 'nullable|exists:hostels,id',
                 'program_id' => 'required|exists:programs,id',
                 'status' => 'required|in:Tidak Aktif,Aktif,Tugas,Lulus,Dikeluarkan',
-                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'photo' => $request->hasFile('photo') ? 'image|mimes:jpeg,png,jpg,gif|max:2048' : 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -158,12 +158,30 @@ class StudentController extends Controller
                 ], 422);
             }
 
+            // Handle village_id resolution from code
+            $data = $request->except('photo');
+            if ($request->filled('village_id')) {
+                $village = DB::table('indonesia_villages')
+                    ->where('id', $request->village_id)
+                    ->orWhere('code', $request->village_id)
+                    ->first();
+                if ($village) {
+                    $data['village_id'] = $village->id;
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Validasi gagal',
+                        'errors' => ['village_id' => ['ID atau Kode Desa tidak ditemukan.']]
+                    ], 422);
+                }
+            }
+
             // Handle photo upload with Intervention Image
             $photoPath = $student->photo; // Keep existing photo by default
             if ($request->hasFile('photo')) {
                 // Delete old photo if it exists
-                if ($student->photo && Storage::disk('public')->exists('students/photos/' . $student->photo)) {
-                    Storage::disk('public')->delete('students/photos/' . $student->photo);
+                if ($student->photo && Storage::disk('public')->exists($student->photo)) {
+                    Storage::disk('public')->delete($student->photo);
                 }
 
                 // Upload and resize new photo using Intervention Image
@@ -180,7 +198,6 @@ class StudentController extends Controller
             }
 
             // Clean parent_id if present
-            $data = $request->except('photo');
             if (isset($data['parent_id'])) {
                 $data['parent_id'] = $this->cleanNumericString($data['parent_id']);
             }
