@@ -31,14 +31,32 @@ class StudentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Fetch all students from the database
-            $students = Student::with(['program', 'hostel', 'parents'])->orderBy('created_at', 'desc')->get();
+            $search = $request->query('search');
+            $perPage = $request->query('per_page', 25);
+            $sortBy = $request->query('sort_by', 'created_at');
+            $sortOrder = $request->query('sort_order', 'desc');
 
-            // Attach current room for each student
-            $students->each(function ($student) {
+            $query = Student::with(['program', 'hostel', 'parents']);
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%{$search}%")
+                      ->orWhere('last_name', 'like', "%{$search}%")
+                      ->orWhere('nis', 'like', "%{$search}%")
+                      ->orWhere('nik', 'like', "%{$search}%");
+                });
+            }
+
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Use paginate to provide metadata and consistent data.data structure
+            $students = $query->paginate($perPage);
+
+            // Attach current room for each student in the current page
+            $students->getCollection()->each(function ($student) {
                 $currentRoom = DB::table('student_room_assignments as sra')
                     ->join('rooms as r', 'r.id', '=', 'sra.room_id')
                     ->join('hostels as h', 'h.id', '=', 'r.hostel_id')

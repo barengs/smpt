@@ -31,9 +31,38 @@ class StaffController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = User::whereHas('staff')->with(['staff', 'roles'])->get();
+            $search = $request->query('search');
+            $perPage = $request->query('per_page', 25);
+            $sortBy = $request->query('sort_by', 'created_at');
+            $sortOrder = $request->query('sort_order', 'desc');
 
-            return new StaffResource('Data berhasil diambil', $query, 200);
+            $query = User::whereHas('staff')->with(['staff', 'roles']);
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhereHas('staff', function ($sq) use ($search) {
+                          $sq->where('first_name', 'like', "%{$search}%")
+                             ->orWhere('last_name', 'like', "%{$search}%")
+                             ->orWhere('nik', 'like', "%{$search}%")
+                             ->orWhere('nip', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            // Correctly handle sort_by if it's a staff field
+            if (in_array($sortBy, ['first_name', 'last_name', 'nik', 'nip'])) {
+                $query->join('staff', 'users.id', '=', 'staff.user_id')
+                      ->select('users.*')
+                      ->orderBy('staff.' . $sortBy, $sortOrder);
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $staff = $query->paginate($perPage);
+
+            return new StaffResource('Data berhasil diambil', $staff, 200);
         } catch (QueryException $e) {
             return new StaffResource('Database error occurred while fetching staff members', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
