@@ -20,7 +20,7 @@ use Exception;
 use App\Exports\ParentReadableExport;
 use App\Exports\ParentBackupExport;
 use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * @tags Parent Management
@@ -33,11 +33,41 @@ class ParentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $user = User::whereHas('parent')->with(['parent', 'roles'])->get();
-            return new ParentResource('data ditemukan', $user, 200);
+            $search = $request->query('search');
+            $perPage = $request->query('per_page', 25);
+            $sortBy = $request->query('sort_by', 'created_at');
+            $sortOrder = $request->query('sort_order', 'desc');
+
+            $query = User::whereHas('parent')->with(['parent', 'roles']);
+
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhereHas('parent', function ($pq) use ($search) {
+                          $pq->where('first_name', 'like', "%{$search}%")
+                             ->orWhere('last_name', 'like', "%{$search}%")
+                             ->orWhere('nik', 'like', "%{$search}%")
+                             ->orWhere('kk', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            // Handle sort_by if it's a parent field
+            if (in_array($sortBy, ['first_name', 'last_name', 'nik', 'kk'])) {
+                $query->join('parant_profiles', 'users.id', '=', 'parant_profiles.user_id')
+                      ->select('users.*')
+                      ->orderBy('parant_profiles.' . $sortBy, $sortOrder);
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $parents = $query->paginate($perPage);
+
+            return new ParentResource('data ditemukan', $parents, 200);
         } catch (ModelNotFoundException $e) {
             return response()->json('data tidak ada', 404);
         } catch (\Throwable $th) {
@@ -288,7 +318,7 @@ class ParentController extends Controller
      * Update photo only for a parent profile.
      *
      * Converts uploaded image to WebP (quality 80) and resizes to 800×800px
-     * using Intervention Image (Imagick driver), same as StudentController::updatePhoto.
+     * using Intervention Image (GD driver), same as StudentController::updatePhoto.
      *
      * @param Request $request
      * @param string $id User ID
@@ -317,7 +347,7 @@ class ParentController extends Controller
                     Storage::disk('public')->delete($parentProfile->photo);
                 }
 
-                // Process with Intervention Image (Imagick driver)
+                // Process with Intervention Image (GD driver)
                 $manager = new ImageManager(new Driver());
                 $photo   = $request->file('photo');
 
