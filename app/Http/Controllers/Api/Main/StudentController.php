@@ -221,7 +221,11 @@ class StudentController extends Controller
             }
 
             // Update student data
-            $student->update(array_merge($data, ['photo' => $photoPath]));
+            $updateData = $data;
+            if ($photoPath) {
+                $updateData['photo'] = $photoPath;
+            }
+            $student->update($updateData);
 
             // Load updated data with relationships
             $updatedStudent = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);

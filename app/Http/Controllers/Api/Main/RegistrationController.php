@@ -298,7 +298,7 @@ class RegistrationController extends Controller
                 'born_in' => $request->input('santri_tempat_lahir', $registration->born_in),
                 'born_at' => $request->input('santri_tanggal_lahir', $registration->born_at),
                 'village_id' => $request->input('santri_desa_code', $registration->village_id),
-                'photo' => $request->hasFile('dokumen_foto_santri') ? $filePath : $registration->photo,
+                'photo' => $request->hasFile('dokumen_foto_santri') ? $filePath : ($registration->photo ?? null),
                 'status' => $request->input('status', $registration->status),
                 'program_id' => $request->input('program_id', $registration->program_id),
                 'previous_school' => $request->input('pendidikan_sekolah_asal', $registration->previous_school),
