@@ -426,6 +426,7 @@ class RegistrationController extends Controller
             'hijri_year' => 'required|digits:4',
             'transaction_type_id' => 'required|integer',
             'channel' => 'required|string',
+            'card_number' => 'nullable|string',
         ]);
 
         DB::beginTransaction();
@@ -471,6 +472,7 @@ class RegistrationController extends Controller
                     'customer_id'    => $student->id,
                     'customer_name'  => $student->first_name . ' ' . $student->last_name,
                     'product_id'     => $request->product_id,
+                    'card_number'    => $request->card_number,
                 ]);
 
                 if (!$accountRes->successful()) {
