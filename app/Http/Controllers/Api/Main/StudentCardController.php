@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class StudentCardController extends Controller
 {
@@ -137,6 +139,21 @@ class StudentCardController extends Controller
 
             DB::commit();
 
+            // Notify Bank Santri
+            try {
+                $bankUrl = config('services.bank_santri.url');
+                $bankInternalKey = config('services.bank_santri.internal_key');
+                
+                Http::withHeaders([
+                    'X-Internal-Key' => $bankInternalKey,
+                    'Accept'         => 'application/json',
+                ])->put("{$bankUrl}/api/internal/account/{$student->nis}", [
+                    'card_number' => $cardNumber,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to notify Bank Santri of new card: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Student card created successfully',
@@ -161,11 +178,25 @@ class StudentCardController extends Controller
     public function deactivate($id)
     {
         $card = StudentCard::findOrFail($id);
-        
-        $card->update([
-            'is_active' => false,
-            'remarks' => $card->remarks . ' (Deactivated)',
-        ]);
+        $card->is_active = false;
+        $card->remarks = $card->remarks . ' (Deactivated)';
+        $card->save();
+
+        try {
+            $student = $card->student;
+            if ($student && $student->nis) {
+                $bankUrl = config('services.bank_santri.url');
+                $bankInternalKey = config('services.bank_santri.internal_key');
+                Http::withHeaders([
+                    'X-Internal-Key' => $bankInternalKey,
+                    'Accept' => 'application/json',
+                ])->put("{$bankUrl}/api/internal/account/{$student->nis}", [
+                    'card_number' => null,
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to notify Bank Santri of card deactivation: ' . $e->getMessage());
+        }
 
         return response()->json([
             'status' => 'success',
