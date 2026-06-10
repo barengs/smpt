@@ -101,7 +101,7 @@ class RegistrationsImport implements
         $dataArray = is_array($data) ? $data : (method_exists($data, 'toArray') ? $data->toArray() : (array)$data);
 
         $mapping = [
-            'wali_nik' => ['wali_nik', 'nik_wali', 'no_nik_wali', 'nik_orang_tua', 'nik_orangtua'],
+            'wali_nik' => ['wali_nik', 'parent_id', 'nik_wali', 'no_nik_wali', 'nik_orang_tua', 'nik_orangtua'],
             'wali_nama_depan' => ['wali_nama_depan', 'nama_depan_wali', 'nama_wali', 'nama_lengkap_wali', 'nama_depan_orang_tua', 'nama_orangtua'],
             'wali_nama_belakang' => ['wali_nama_belakang', 'nama_belakang_wali', 'nama_belakang_orang_tua'],
             'wali_kk' => ['wali_kk', 'kk_wali', 'no_kk_wali', 'kartu_keluarga_wali'],
@@ -113,17 +113,17 @@ class RegistrationsImport implements
             'wali_alamat_domisili' => ['wali_alamat_domisili', 'alamat_domisili_wali', 'alamat_domisili_orangtua'],
             'wali_pekerjaan_id' => ['wali_pekerjaan_id', 'pekerjaan_wali_id', 'pekerjaan_id_wali'],
             'wali_pendidikan_id' => ['wali_pendidikan_id', 'pendidikan_wali_id', 'pendidikan_id_wali'],
-            'santri_nisn' => ['santri_nisn', 'nisn_santri', 'nis_santri', 'nisn', 'nis', 'no_induk_santri', 'no_induk'],
-            'santri_nama_depan' => ['santri_nama_depan', 'nama_depan_santri', 'nama_santri', 'nama_lengkap_santri', 'nama_depan'],
-            'santri_nama_belakang' => ['santri_nama_belakang', 'nama_belakang_santri', 'nama_belakang'],
-            'santri_nik' => ['santri_nik', 'nik_santri', 'no_nik_santri', 'nik_anak'],
-            'santri_jenis_kelamin' => ['santri_jenis_kelamin', 'jk_santri', 'jenis_kelamin_santri', 'jenis_kelamin', 'jk'],
-            'santri_alamat' => ['santri_alamat', 'alamat_santri', 'alamat'],
-            'santri_tempat_lahir' => ['santri_tempat_lahir', 'tempat_lahir_santri', 'tempat_lahir', 'tmp_lahir'],
-            'santri_tanggal_lahir' => ['santri_tanggal_lahir', 'tanggal_lahir_santri', 'tanggal_lahir', 'tgl_lahir'],
-            'santri_desa_code' => ['santri_desa_code', 'desa_code_santri', 'kode_desa_santri', 'kode_desa', 'village_id', 'village_code', 'desa_id'],
-            'santri_telepon' => ['santri_telepon', 'telepon_santri', 'no_telp_santri', 'no_hp_santri', 'hp_santri', 'no_telepon_santri', 'phone', 'telepon'],
-            'santri_kode_pos' => ['santri_kode_pos', 'kode_pos_santri', 'kode_pos', 'kodepos', 'postal_code'],
+            'santri_nisn' => ['santri_nisn', 'nis', 'nisn_santri', 'nis_santri', 'nisn', 'no_induk_santri', 'no_induk'],
+            'santri_nama_depan' => ['santri_nama_depan', 'first_name', 'nama_depan_santri', 'nama_santri', 'nama_lengkap_santri', 'nama_depan'],
+            'santri_nama_belakang' => ['santri_nama_belakang', 'last_name', 'nama_belakang_santri', 'nama_belakang'],
+            'santri_nik' => ['santri_nik', 'nik', 'nik_santri', 'no_nik_santri', 'nik_anak'],
+            'santri_jenis_kelamin' => ['santri_jenis_kelamin', 'gender', 'jk_santri', 'jenis_kelamin_santri', 'jenis_kelamin', 'jk'],
+            'santri_alamat' => ['santri_alamat', 'address', 'alamat_santri', 'alamat'],
+            'santri_tempat_lahir' => ['santri_tempat_lahir', 'born_in', 'tempat_lahir_santri', 'tempat_lahir', 'tmp_lahir'],
+            'santri_tanggal_lahir' => ['santri_tanggal_lahir', 'born_at', 'tanggal_lahir_santri', 'tanggal_lahir', 'tgl_lahir'],
+            'santri_desa_code' => ['santri_desa_code', 'village_id', 'desa_code_santri', 'kode_desa_santri', 'kode_desa', 'village_code', 'desa_id'],
+            'santri_telepon' => ['santri_telepon', 'phone', 'telepon_santri', 'no_telp_santri', 'no_hp_santri', 'hp_santri', 'no_telepon_santri', 'telepon'],
+            'santri_kode_pos' => ['santri_kode_pos', 'postal_code', 'kode_pos_santri', 'kode_pos', 'kodepos'],
             'program_id' => ['program_id', 'id_program'],
             'period' => ['period', 'periode', 'tahun_ajaran'],
             'status' => ['status', 'status_pendaftaran']
@@ -155,7 +155,7 @@ class RegistrationsImport implements
             }
         }
 
-        // Clean parent NIK, KK, etc.
+        // Clean NIK, KK, etc.
         if (isset($mapped['wali_nik'])) {
             $mapped['wali_nik'] = $this->cleanNumericString($mapped['wali_nik']);
         }
@@ -179,6 +179,33 @@ class RegistrationsImport implements
         }
         if (isset($mapped['santri_desa_code'])) {
             $mapped['santri_desa_code'] = $this->cleanNumericString($mapped['santri_desa_code']);
+        }
+
+        // Auto-resolve parent name/details if missing but NIK is available
+        if (empty($mapped['wali_nama_depan'])) {
+            $parentNik = $mapped['wali_nik'] ?? null;
+            $resolvedName = null;
+            if ($parentNik) {
+                $parentProfile = DB::table('parent_profiles')->where('nik', $parentNik)->first();
+                if ($parentProfile) {
+                    $resolvedName = $parentProfile->first_name;
+                    $mapped['wali_nama_belakang'] = $parentProfile->last_name;
+                    $mapped['wali_kk'] = $parentProfile->kk;
+                    $mapped['wali_telepon'] = $parentProfile->phone;
+                    $mapped['wali_email'] = $parentProfile->email;
+                    $mapped['wali_jenis_kelamin'] = $parentProfile->gender;
+                    $mapped['wali_sebagai'] = $parentProfile->parent_as;
+                    $mapped['wali_alamat_ktp'] = $parentProfile->card_address;
+                    $mapped['wali_alamat_domisili'] = $parentProfile->domicile_address;
+                    $mapped['wali_pekerjaan_id'] = $parentProfile->occupation_id;
+                    $mapped['wali_pendidikan_id'] = $parentProfile->education_id;
+                }
+            }
+            if (empty($resolvedName)) {
+                $santriFirstName = $mapped['santri_nama_depan'] ?? null;
+                $resolvedName = 'Wali ' . ($santriFirstName ?? 'Santri');
+            }
+            $mapped['wali_nama_depan'] = $resolvedName;
         }
 
         return $mapped;

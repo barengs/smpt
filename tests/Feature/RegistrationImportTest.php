@@ -88,4 +88,32 @@ class RegistrationImportTest extends TestCase
             'parent_id' => '3528061508860021',
         ]);
     }
+
+    /** @test */
+    public function it_can_import_registrations_with_raw_database_export_format()
+    {
+        $program = Program::factory()->create();
+
+        // Using raw database export columns
+        $header = 'id,registration_number,registration_date,status,parent_id,nis,period,nik,kk,first_name,last_name,gender,address,born_in,born_at,village_id,postal_code,phone,photo,program_id,payment_status,payment_amount,previous_school,previous_school_address,certificate_number,education_level_id,previous_madrasah,previous_madrasah_address,certificate_madrasah,madrasah_level_id,deleted_at,created_at,updated_at,student_id,parent,program';
+        
+        $row = "177,REG2026162,,pending,3527140505870007,0148425432,,3527142004140002,3527141801180015,KANZUL,KAROMI,L,Alamat,Sampang,2014-04-20,3527142002,60111,081234567890,,{$program->id},payment_status,payment_amount,previous_school,previous_school_address,certificate_number,1,previous_madrasah,previous_madrasah_address,certificate_madrasah,1,,2026-06-10T06:21:29.000000Z,2026-06-10T06:21:29.000000Z,student_id,parent,program";
+
+        $content = implode("\n", [$header, $row]);
+        $file = UploadedFile::fake()->createWithContent('calon_santri_test.csv', $content);
+
+        $response = $this->postJson('/api/main/registration/import', [
+            'file' => $file,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.success_count', 1)
+            ->assertJsonPath('data.failure_count', 0);
+
+        $this->assertDatabaseHas('registrations', [
+            'nis' => '0148425432',
+            'first_name' => 'KANZUL',
+            'parent_id' => '3527140505870007',
+        ]);
+    }
 }
