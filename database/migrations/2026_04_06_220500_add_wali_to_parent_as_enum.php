@@ -14,7 +14,9 @@ return new class extends Migration
     {
         // Enums in MySQL are tricky to update via Blueprint in older Laravel versions, 
         // so we use a raw statement for better compatibility and reliability.
-        DB::statement("ALTER TABLE parent_profiles MODIFY COLUMN parent_as ENUM('ayah', 'ibu', 'wali') DEFAULT 'ayah'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE parent_profiles MODIFY COLUMN parent_as ENUM('ayah', 'ibu', 'wali') DEFAULT 'ayah'");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE parent_profiles MODIFY COLUMN parent_as ENUM('ayah', 'ibu') DEFAULT 'ayah'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE parent_profiles MODIFY COLUMN parent_as ENUM('ayah', 'ibu') DEFAULT 'ayah'");
+        }
     }
 };

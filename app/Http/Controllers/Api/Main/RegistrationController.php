@@ -442,6 +442,26 @@ class RegistrationController extends Controller
             $activeAcademicYear = AcademicYear::where('active', true)->first();
             $academicYear = $activeAcademicYear ? $activeAcademicYear->year : $request->hijri_year;
 
+            // Resolve village and district names from village_id
+            $villageIdVal = $registration->getRawOriginal('village_id');
+            $resolvedVillage = null;
+            $resolvedDistrict = null;
+            if ($villageIdVal) {
+                $villageRow = DB::table('indonesia_villages')
+                    ->where('id', $villageIdVal)
+                    ->orWhere('code', $villageIdVal)
+                    ->first();
+                if ($villageRow) {
+                    $resolvedVillage = $villageRow->name;
+                    $districtRow = DB::table('indonesia_districts')
+                        ->where('code', $villageRow->district_code)
+                        ->first();
+                    if ($districtRow) {
+                        $resolvedDistrict = $districtRow->name;
+                    }
+                }
+            }
+
             // Create student
             $student = Student::create([
                 'parent_id' => $registration->parent_id,
@@ -455,7 +475,9 @@ class RegistrationController extends Controller
                 'kk' => $registration->kk,
                 'born_in' => $registration->born_in,
                 'born_at' => $registration->born_at,
-                'village_id' => $registration->getRawOriginal('village_id'),
+                'village_id' => $villageIdVal,
+                'village' => $resolvedVillage,
+                'district' => $resolvedDistrict,
                 'postal_code' => $registration->postal_code,
                 'phone' => $registration->phone,
                 'photo' => $registration->photo,

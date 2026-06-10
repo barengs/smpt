@@ -62,6 +62,26 @@ class TransactionController extends Controller
                             $activeYear = AcademicYear::where('active', true)->first();
                             $year = $activeYear ? $activeYear->year : date('Y');
                             
+                            // Resolve village and district names from village_id
+                            $villageIdVal = $registration->village_id;
+                            $resolvedVillage = null;
+                            $resolvedDistrict = null;
+                            if ($villageIdVal) {
+                                $villageRow = DB::table('indonesia_villages')
+                                    ->where('id', $villageIdVal)
+                                    ->orWhere('code', $villageIdVal)
+                                    ->first();
+                                if ($villageRow) {
+                                    $resolvedVillage = $villageRow->name;
+                                    $districtRow = DB::table('indonesia_districts')
+                                        ->where('code', $villageRow->district_code)
+                                        ->first();
+                                    if ($districtRow) {
+                                        $resolvedDistrict = $districtRow->name;
+                                    }
+                                }
+                            }
+
                             $student = Student::create([
                                 'parent_id' => $registration->parent_id,
                                 'nis' => $this->generateNis($year),
@@ -75,6 +95,10 @@ class TransactionController extends Controller
                                 'born_in' => $registration->born_in,
                                 'born_at' => $registration->born_at,
                                 'village_id' => $registration->village_id,
+                                'village' => $resolvedVillage,
+                                'district' => $resolvedDistrict,
+                                'postal_code' => $registration->postal_code,
+                                'phone' => $registration->phone,
                                 'photo' => $registration->photo,
                                 'program_id' => $registration->program_id,
                                 'user_id' => Auth::id(),
@@ -151,6 +175,26 @@ class TransactionController extends Controller
                         $activeYear = AcademicYear::where('active', true)->first();
                         $year = $activeYear ? $activeYear->year : date('Y');
                         
+                        // Resolve village and district names from village_id
+                        $villageIdVal = $registration->village_id;
+                        $resolvedVillage = null;
+                        $resolvedDistrict = null;
+                        if ($villageIdVal) {
+                            $villageRow = DB::table('indonesia_villages')
+                                ->where('id', $villageIdVal)
+                                ->orWhere('code', $villageIdVal)
+                                ->first();
+                            if ($villageRow) {
+                                $resolvedVillage = $villageRow->name;
+                                $districtRow = DB::table('indonesia_districts')
+                                    ->where('code', $villageRow->district_code)
+                                    ->first();
+                                if ($districtRow) {
+                                    $resolvedDistrict = $districtRow->name;
+                                }
+                            }
+                        }
+
                         $student = Student::create([
                             'parent_id' => $registration->parent_id,
                             'nis' => $this->generateNis($year),
@@ -164,6 +208,10 @@ class TransactionController extends Controller
                             'born_in' => $registration->born_in,
                             'born_at' => $registration->born_at,
                             'village_id' => $registration->village_id,
+                            'village' => $resolvedVillage,
+                            'district' => $resolvedDistrict,
+                            'postal_code' => $registration->postal_code,
+                            'phone' => $registration->phone,
                             'photo' => $registration->photo,
                             'program_id' => $registration->program_id,
                             'user_id' => null, // Backend service-to-service callback

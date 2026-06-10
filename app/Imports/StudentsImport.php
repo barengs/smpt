@@ -84,6 +84,27 @@ class StudentsImport implements
     }
 
     /**
+     * Get a value from a row supporting multiple synonym keys
+     */
+    private function getValueByKeys($row, array $keys, $default = null)
+    {
+        $rowArray = is_array($row) ? $row : (method_exists($row, 'toArray') ? $row->toArray() : (array)$row);
+        foreach ($keys as $key) {
+            if (isset($rowArray[$key])) {
+                return $rowArray[$key];
+            }
+            $normalizedKey = strtolower(str_replace([' ', '_', '.', '-'], '', $key));
+            foreach ($rowArray as $rowKey => $rowVal) {
+                $normalizedRowKey = strtolower(str_replace([' ', '_', '.', '-'], '', $rowKey));
+                if ($normalizedRowKey === $normalizedKey) {
+                    return $rowVal;
+                }
+            }
+        }
+        return $default;
+    }
+
+    /**
      * @param \Illuminate\Support\Collection $rows
      */
     public function collection(\Illuminate\Support\Collection $rows)
@@ -95,8 +116,8 @@ class StudentsImport implements
 
         foreach ($rows as $index => $row) {
             // Clean fields
-            $nis = $this->cleanNumericString($row['nis'] ?? '') ?? '';
-            $nik = $this->cleanNumericString($row['nik'] ?? null);
+            $nis = $this->cleanNumericString($this->getValueByKeys($row, ['nis', 'no_induk', 'nomor_induk']) ?? '') ?? '';
+            $nik = $this->cleanNumericString($this->getValueByKeys($row, ['nik', 'no_nik', 'nomor_nik']));
             
             // Store prepared data to avoid re-cleaning
             $preparedRows[$index] = [
@@ -139,14 +160,14 @@ class StudentsImport implements
             $nik = $data['cleaned_nik'];
             
             try {
-                $kk = $this->cleanNumericString($row['kk'] ?? null);
-                $phone = $this->cleanNumericString($row['phone'] ?? null);
-                $postalCode = $this->cleanNumericString($row['postal_code'] ?? null);
-                $villageId = $this->cleanNumericString($row['village_id'] ?? null);
-                $programId = $this->cleanNumericString($row['program_id'] ?? '') ?? '';
-                $hostelId = $this->cleanNumericString($row['hostel_id'] ?? null);
-                $roomId = $this->cleanNumericString($row['room_id'] ?? null);
-                $parentId = $this->cleanNumericString($row['parent_id'] ?? null);
+                $kk = $this->cleanNumericString($this->getValueByKeys($row, ['kk', 'no_kk', 'nomor_kk']));
+                $phone = $this->cleanNumericString($this->getValueByKeys($row, ['phone', 'no_phone', 'no_telp', 'no_telepon', 'telepon', 'no_hp', 'hp']));
+                $postalCode = $this->cleanNumericString($this->getValueByKeys($row, ['postal_code', 'kode_pos', 'kodepos', 'zip_code', 'zipcode']));
+                $villageId = $this->cleanNumericString($this->getValueByKeys($row, ['village_id', 'santri_desa_code']));
+                $programId = $this->cleanNumericString($this->getValueByKeys($row, ['program_id']) ?? '') ?? '';
+                $hostelId = $this->cleanNumericString($this->getValueByKeys($row, ['hostel_id']));
+                $roomId = $this->cleanNumericString($this->getValueByKeys($row, ['room_id']));
+                $parentId = $this->cleanNumericString($this->getValueByKeys($row, ['parent_id']));
 
                 // Check constraints
                 if (isset($existingNis[$nis]) || isset($processedNis[$nis])) {
@@ -163,29 +184,55 @@ class StudentsImport implements
 
                 // KK Duplicates are ALLOWED (No check performed)
 
+                // Resolve village name & district name from village_id if not provided
+                $village = $this->getValueByKeys($row, ['village', 'desa', 'kelurahan', 'desa_kelurahan']);
+                $district = $this->getValueByKeys($row, ['district', 'kecamatan']);
+                
+                if (empty($village) || empty($district)) {
+                    if ($villageId) {
+                        $villageRow = DB::table('indonesia_villages')
+                            ->where('id', $villageId)
+                            ->orWhere('code', $villageId)
+                            ->first();
+                        if ($villageRow) {
+                            if (empty($village)) {
+                                $village = $villageRow->name;
+                            }
+                            if (empty($district)) {
+                                $districtRow = DB::table('indonesia_districts')
+                                    ->where('code', $villageRow->district_code)
+                                    ->first();
+                                if ($districtRow) {
+                                    $district = $districtRow->name;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 DB::beginTransaction();
 
                 $student = Student::create([
                     'parent_id'       => $parentId,
                     'nis'             => $nis,
-                    'period'          => $row['period'] ?? null,
+                    'period'          => $this->getValueByKeys($row, ['period']) ?? null,
                     'nik'             => $nik,
                     'kk'              => $kk,
-                    'first_name'      => $row['first_name'],
-                    'last_name'       => $row['last_name'] ?? null,
-                    'gender'          => strtoupper($row['gender']),
-                    'address'         => $row['address'] ?? null,
-                    'born_in'         => $row['born_in'] ?? null,
-                    'born_at'         => $this->transformDate($row['born_at'] ?? null),
-                    'last_education'  => $row['last_education'] ?? null,
+                    'first_name'      => $this->getValueByKeys($row, ['first_name', 'nama_depan', 'nama']),
+                    'last_name'       => $this->getValueByKeys($row, ['last_name', 'nama_belakang']) ?? null,
+                    'gender'          => strtoupper($this->getValueByKeys($row, ['gender', 'jenis_kelamin', 'jk'])),
+                    'address'         => $this->getValueByKeys($row, ['address', 'alamat']) ?? null,
+                    'born_in'         => $this->getValueByKeys($row, ['born_in', 'tempat_lahir', 'tmp_lahir']) ?? null,
+                    'born_at'         => $this->transformDate($this->getValueByKeys($row, ['born_at', 'tanggal_lahir', 'tgl_lahir']) ?? null),
+                    'last_education'  => $this->getValueByKeys($row, ['last_education', 'pendidikan_terakhir', 'pendidikan']) ?? null,
                     'village_id'      => $villageId,
-                    'village'         => $row['village'] ?? null,
-                    'district'        => $row['district'] ?? null,
+                    'village'         => $village,
+                    'district'        => $district,
                     'postal_code'     => $postalCode,
                     'phone'           => $phone,
                     'hostel_id'       => $hostelId,
                     'program_id'      => $programId,
-                    'status'          => $row['status'] ?? 'Aktif',
+                    'status'          => $this->getValueByKeys($row, ['status']) ?? 'Aktif',
                     'photo'           => null,
                     'user_id'         => Auth::id() ?? 1,
                 ]);

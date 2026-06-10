@@ -46,6 +46,27 @@ class DistrictController extends Controller
     }
 
     /**
+     * Find district by NIK prefix (first 6 digits = district code).
+     */
+    public function showByNik(string $nik)
+    {
+        try {
+            $code = substr($nik, 0, 6);
+            $district = District::where('code', $code)->first();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $district
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)

@@ -106,6 +106,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('village', VillageController::class);
     Route::get('village/{id}/district', [VillageController::class, 'showByDistrict']);
     Route::get('village/{nik}/nik', [VillageController::class, 'showByNik']);
+    Route::get('district/{nik}/nik', [DistrictController::class, 'showByNik']);
     Route::get('profession/trashed', [ProfessionController::class, 'trashed'])->name('profession.trashed');
     Route::post('profession/{id}/restore', [ProfessionController::class, 'restore']);
     Route::apiResource('profession', ProfessionController::class);
