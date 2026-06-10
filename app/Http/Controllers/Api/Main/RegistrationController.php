@@ -26,6 +26,9 @@ use App\Http\Resources\RegistrationResource;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Http;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\RegistrationsImport;
+use App\Exports\RegistrationTemplateExport;
 
 class RegistrationController extends Controller
 {
@@ -174,6 +177,8 @@ class RegistrationController extends Controller
                 'born_in' => $request->santri_tempat_lahir,
                 'born_at' => $request->santri_tanggal_lahir,
                 'village_id' => $request->santri_desa_code ?? null,
+                'postal_code' => $request->santri_kode_pos ?? null,
+                'phone' => $request->santri_telepon ?? null,
                 'status' => $request->status ?? 'pending',
                 'photo' => $filePath ?? null,
                 'program_id' => $request->program_id ?? null,
@@ -185,7 +190,6 @@ class RegistrationController extends Controller
                 'previous_madrasah_address' => $request->madrasah_alamat_sekolah,
                 'certificate_madrasah' => $request->madrasah_nomor_ijazah,
                 'madrasah_level_id' => $request->madrasah_jenjang_sebelumnya,
-
             ]);
 
             if ($request->hasFile('dokumen_ijazah')) {
@@ -451,7 +455,9 @@ class RegistrationController extends Controller
                 'kk' => $registration->kk,
                 'born_in' => $registration->born_in,
                 'born_at' => $registration->born_at,
-                'village_id' => $registration->village_id,
+                'village_id' => $registration->getRawOriginal('village_id'),
+                'postal_code' => $registration->postal_code,
+                'phone' => $registration->phone,
                 'photo' => $registration->photo,
                 'program_id' => $registration->program_id,
                 'user_id' => Auth::id(),
@@ -652,6 +658,93 @@ class RegistrationController extends Controller
                 'success' => false,
                 'message' => 'Error memproses NIK: ' . $e->getMessage()
             ];
+        }
+    }
+
+    /**
+     * Import registrations from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        try {
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $file = $request->file('file');
+            $import = new RegistrationsImport();
+
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $warnings = $import->getWarnings();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+            $skippedCount = $import->getSkippedCount();
+
+            $response = [
+                'success' => true,
+                'message' => 'Import completed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'skipped_count' => $skippedCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount + $skippedCount,
+                ]
+            ];
+
+            if (count($warnings) > 0) {
+                $response['data']['warnings'] = array_slice($warnings, 0, 50);
+                $response['data']['total_warnings'] = count($warnings);
+            }
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50);
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = 'Import completed with some errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data pendaftaran',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for registration import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new RegistrationTemplateExport(),
+                'template_pendaftaran_santri_baru.xlsx'
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

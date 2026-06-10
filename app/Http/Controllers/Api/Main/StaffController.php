@@ -91,6 +91,8 @@ class StaffController extends Controller
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'gender' => 'nullable|string|in:Laki-laki,Perempuan,L,P',
             'roles' => 'required',
+            'birth_place' => 'nullable|string|max:255',
+            'birth_date' => 'nullable|date',
         ]);
 
 
@@ -135,6 +137,8 @@ class StaffController extends Controller
                 'address' => $request->address,
                 'nik' => $request->nik,
                 'nip' => $request->nip,
+                'birth_place' => $request->birth_place,
+                'birth_date' => $request->birth_date,
                 'gender' => match($request->gender) {
                     'Laki-laki', 'L' => 'L',
                     'Perempuan', 'P' => 'P',
@@ -222,6 +226,8 @@ class StaffController extends Controller
                 'marital_status' => 'sometimes|required|in:Single,Married,Divorced,Widowed,Belum Menikah,Menikah,Cerai,Duda/Janda',
                 'status' => 'sometimes|required|in:Aktif,Tidak Aktif',
                 'roles' => 'sometimes|required',
+                'birth_place' => 'nullable|string|max:255',
+                'birth_date' => 'nullable|date',
             ]);
 
             // Return validation errors if any
@@ -264,6 +270,8 @@ class StaffController extends Controller
                 'last_name' => $request->input('last_name', $staff->last_name),
                 'nip' => $request->input('nip', $staff->nip),
                 'nik' => $request->input('nik', $staff->nik),
+                'birth_place' => $request->input('birth_place', $staff->birth_place),
+                'birth_date' => $request->input('birth_date', $staff->birth_date),
                 'email' => $request->input('email', $staff->email),
                 'phone' => $request->input('phone', $staff->phone),
                 'address' => $request->input('address', $staff->address),

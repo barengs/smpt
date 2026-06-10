@@ -184,14 +184,10 @@ class StudentController extends Controller
                     ->orWhere('code', $request->village_id)
                     ->first();
                 if ($village) {
+                    // Resolve to proper ID if found in the reference table
                     $data['village_id'] = $village->id;
-                } else {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Validasi gagal',
-                        'errors' => ['village_id' => ['ID atau Kode Desa tidak ditemukan.']]
-                    ], 422);
                 }
+                // If not found, keep the raw value so existing data can still be saved
             }
 
             // Handle photo upload with Intervention Image
