@@ -93,6 +93,98 @@ class RegistrationsImport implements
     }
 
     /**
+     * Prepare data for validation by mapping synonyms and cleaning strings
+     */
+    public function prepareForValidation($data, $index)
+    {
+        $mapped = [];
+        $dataArray = is_array($data) ? $data : (method_exists($data, 'toArray') ? $data->toArray() : (array)$data);
+
+        $mapping = [
+            'wali_nik' => ['wali_nik', 'nik_wali', 'no_nik_wali', 'nik_orang_tua', 'nik_orangtua'],
+            'wali_nama_depan' => ['wali_nama_depan', 'nama_depan_wali', 'nama_wali', 'nama_lengkap_wali', 'nama_depan_orang_tua', 'nama_orangtua'],
+            'wali_nama_belakang' => ['wali_nama_belakang', 'nama_belakang_wali', 'nama_belakang_orang_tua'],
+            'wali_kk' => ['wali_kk', 'kk_wali', 'no_kk_wali', 'kartu_keluarga_wali'],
+            'wali_telepon' => ['wali_telepon', 'telepon_wali', 'no_telp_wali', 'no_hp_wali', 'hp_wali', 'no_telepon_wali'],
+            'wali_email' => ['wali_email', 'email_wali'],
+            'wali_jenis_kelamin' => ['wali_jenis_kelamin', 'jk_wali', 'jenis_kelamin_wali'],
+            'wali_sebagai' => ['wali_sebagai', 'hubungan_wali', 'status_wali'],
+            'wali_alamat_ktp' => ['wali_alamat_ktp', 'alamat_ktp_wali', 'alamat_ktp_orangtua'],
+            'wali_alamat_domisili' => ['wali_alamat_domisili', 'alamat_domisili_wali', 'alamat_domisili_orangtua'],
+            'wali_pekerjaan_id' => ['wali_pekerjaan_id', 'pekerjaan_wali_id', 'pekerjaan_id_wali'],
+            'wali_pendidikan_id' => ['wali_pendidikan_id', 'pendidikan_wali_id', 'pendidikan_id_wali'],
+            'santri_nisn' => ['santri_nisn', 'nisn_santri', 'nis_santri', 'nisn', 'nis', 'no_induk_santri', 'no_induk'],
+            'santri_nama_depan' => ['santri_nama_depan', 'nama_depan_santri', 'nama_santri', 'nama_lengkap_santri', 'nama_depan'],
+            'santri_nama_belakang' => ['santri_nama_belakang', 'nama_belakang_santri', 'nama_belakang'],
+            'santri_nik' => ['santri_nik', 'nik_santri', 'no_nik_santri', 'nik_anak'],
+            'santri_jenis_kelamin' => ['santri_jenis_kelamin', 'jk_santri', 'jenis_kelamin_santri', 'jenis_kelamin', 'jk'],
+            'santri_alamat' => ['santri_alamat', 'alamat_santri', 'alamat'],
+            'santri_tempat_lahir' => ['santri_tempat_lahir', 'tempat_lahir_santri', 'tempat_lahir', 'tmp_lahir'],
+            'santri_tanggal_lahir' => ['santri_tanggal_lahir', 'tanggal_lahir_santri', 'tanggal_lahir', 'tgl_lahir'],
+            'santri_desa_code' => ['santri_desa_code', 'desa_code_santri', 'kode_desa_santri', 'kode_desa', 'village_id', 'village_code', 'desa_id'],
+            'santri_telepon' => ['santri_telepon', 'telepon_santri', 'no_telp_santri', 'no_hp_santri', 'hp_santri', 'no_telepon_santri', 'phone', 'telepon'],
+            'santri_kode_pos' => ['santri_kode_pos', 'kode_pos_santri', 'kode_pos', 'kodepos', 'postal_code'],
+            'program_id' => ['program_id', 'id_program'],
+            'period' => ['period', 'periode', 'tahun_ajaran'],
+            'status' => ['status', 'status_pendaftaran']
+        ];
+
+        foreach ($mapping as $targetKey => $synonyms) {
+            foreach ($synonyms as $synonym) {
+                if (isset($dataArray[$synonym])) {
+                    $mapped[$targetKey] = $dataArray[$synonym];
+                    continue 2;
+                }
+                
+                // Normalization check
+                $normalizedSynonym = strtolower(str_replace([' ', '_', '.', '-'], '', $synonym));
+                foreach ($dataArray as $rowKey => $rowVal) {
+                    $normalizedRowKey = strtolower(str_replace([' ', '_', '.', '-'], '', $rowKey));
+                    if ($normalizedRowKey === $normalizedSynonym) {
+                        $mapped[$targetKey] = $rowVal;
+                        continue 3;
+                    }
+                }
+            }
+        }
+        
+        // Retain any other fields not explicitly mapped
+        foreach ($dataArray as $k => $v) {
+            if (!isset($mapped[$k])) {
+                $mapped[$k] = $v;
+            }
+        }
+
+        // Clean parent NIK, KK, etc.
+        if (isset($mapped['wali_nik'])) {
+            $mapped['wali_nik'] = $this->cleanNumericString($mapped['wali_nik']);
+        }
+        if (isset($mapped['wali_kk'])) {
+            $mapped['wali_kk'] = $this->cleanNumericString($mapped['wali_kk']);
+        }
+        if (isset($mapped['wali_telepon'])) {
+            $mapped['wali_telepon'] = $this->cleanNumericString($mapped['wali_telepon']);
+        }
+        if (isset($mapped['santri_nisn'])) {
+            $mapped['santri_nisn'] = $this->cleanNumericString($mapped['santri_nisn']);
+        }
+        if (isset($mapped['santri_nik'])) {
+            $mapped['santri_nik'] = $this->cleanNumericString($mapped['santri_nik']);
+        }
+        if (isset($mapped['santri_telepon'])) {
+            $mapped['santri_telepon'] = $this->cleanNumericString($mapped['santri_telepon']);
+        }
+        if (isset($mapped['santri_kode_pos'])) {
+            $mapped['santri_kode_pos'] = $this->cleanNumericString($mapped['santri_kode_pos']);
+        }
+        if (isset($mapped['santri_desa_code'])) {
+            $mapped['santri_desa_code'] = $this->cleanNumericString($mapped['santri_desa_code']);
+        }
+
+        return $mapped;
+    }
+
+    /**
      * @param \Illuminate\Support\Collection $rows
      */
     public function collection(\Illuminate\Support\Collection $rows)
@@ -102,13 +194,15 @@ class RegistrationsImport implements
         $nikList = [];
 
         foreach ($rows as $index => $row) {
-            $nis = $this->cleanNumericString($row['santri_nisn'] ?? '') ?? '';
-            $nik = $this->cleanNumericString($row['santri_nik'] ?? null);
+            // Normalize row keys using prepareForValidation
+            $normalizedRow = $this->prepareForValidation($row, $index);
+            $nis = $this->cleanNumericString($normalizedRow['santri_nisn'] ?? '') ?? '';
+            $nik = $this->cleanNumericString($normalizedRow['santri_nik'] ?? null);
             
             $preparedRows[$index] = [
                 'cleaned_nis' => $nis,
                 'cleaned_nik' => $nik,
-                'original_row' => $row,
+                'original_row' => $normalizedRow,
             ];
 
             if ($nis) $nisList[] = $nis;
