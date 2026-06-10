@@ -104,7 +104,7 @@ class RegistrationsImport implements
             'wali_nik' => ['wali_nik', 'parent_id', 'nik_wali', 'no_nik_wali', 'nik_orang_tua', 'nik_orangtua'],
             'wali_nama_depan' => ['wali_nama_depan', 'nama_depan_wali', 'nama_wali', 'nama_lengkap_wali', 'nama_depan_orang_tua', 'nama_orangtua'],
             'wali_nama_belakang' => ['wali_nama_belakang', 'nama_belakang_wali', 'nama_belakang_orang_tua'],
-            'wali_kk' => ['wali_kk', 'kk_wali', 'no_kk_wali', 'kartu_keluarga_wali'],
+            'wali_kk' => ['wali_kk', 'kk_wali', 'no_kk_wali', 'kartu_keluarga_wali', 'kk'],
             'wali_telepon' => ['wali_telepon', 'telepon_wali', 'no_telp_wali', 'no_hp_wali', 'hp_wali', 'no_telepon_wali'],
             'wali_email' => ['wali_email', 'email_wali'],
             'wali_jenis_kelamin' => ['wali_jenis_kelamin', 'jk_wali', 'jenis_kelamin_wali'],
@@ -126,7 +126,15 @@ class RegistrationsImport implements
             'santri_kode_pos' => ['santri_kode_pos', 'postal_code', 'kode_pos_santri', 'kode_pos', 'kodepos'],
             'program_id' => ['program_id', 'id_program'],
             'period' => ['period', 'periode', 'tahun_ajaran'],
-            'status' => ['status', 'status_pendaftaran']
+            'status' => ['status', 'status_pendaftaran'],
+            'pendidikan_sekolah_asal' => ['pendidikan_sekolah_asal', 'previous_school', 'sekolah_asal'],
+            'pendidikan_alamat_sekolah' => ['pendidikan_alamat_sekolah', 'previous_school_address', 'alamat_sekolah_asal'],
+            'pendidikan_nomor_ijazah' => ['pendidikan_nomor_ijazah', 'certificate_number', 'no_ijazah'],
+            'pendidikan_jenjang_sebelumnya' => ['pendidikan_jenjang_sebelumnya', 'education_level_id', 'jenjang_sekolah_asal'],
+            'madrasah_sekolah_asal' => ['madrasah_sekolah_asal', 'previous_madrasah', 'madrasah_asal'],
+            'madrasah_alamat_sekolah' => ['madrasah_alamat_sekolah', 'previous_madrasah_address', 'alamat_madrasah_asal'],
+            'madrasah_nomor_ijazah' => ['madrasah_nomor_ijazah', 'certificate_madrasah', 'no_ijazah_madrasah'],
+            'madrasah_jenjang_sebelumnya' => ['madrasah_jenjang_sebelumnya', 'madrasah_level_id', 'jenjang_madrasah_asal']
         ];
 
         foreach ($mapping as $targetKey => $synonyms) {

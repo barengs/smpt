@@ -114,6 +114,16 @@ class RegistrationImportTest extends TestCase
             'nis' => '0148425432',
             'first_name' => 'KANZUL',
             'parent_id' => '3527140505870007',
+            'kk' => '3527141801180015',
+            'previous_school' => 'previous_school',
+            'education_level_id' => '1',
+            'previous_madrasah' => 'previous_madrasah',
+            'madrasah_level_id' => '1',
+        ]);
+
+        $this->assertDatabaseHas('parent_profiles', [
+            'nik' => '3527140505870007',
+            'kk' => '3527141801180015',
         ]);
     }
 }
