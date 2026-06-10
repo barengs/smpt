@@ -422,3 +422,7 @@ Route::group(['prefix' => 'main'], function () {
         Route::get('attendance-statistics', [PesantrenReportController::class, 'attendanceStatistics']);
     });
 });
+
+// Internal callback route for Bank Santri notifications
+Route::post('internal/transaction/activate-callback', [TransactionController::class, 'activateCallback']);
+

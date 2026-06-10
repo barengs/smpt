@@ -109,6 +109,95 @@ class TransactionController extends Controller
     }
 
     /**
+     * Callback dari Bank Santri setelah transaksi berhasil diaktivasi secara internal
+     */
+    public function activateCallback(Request $request)
+    {
+        $expectedKey = config('services.bank_santri.internal_key');
+        $providedKey = $request->header('X-Internal-Key');
+
+        if (empty($expectedKey) || $providedKey !== $expectedKey) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: Invalid Internal API Key.',
+            ], 401);
+        }
+
+        $request->validate([
+            'reference_number' => 'required|string',
+            'amount' => 'required|numeric',
+        ]);
+
+        $ref = $request->reference_number;
+
+        if ($ref && str_starts_with($ref, 'REG')) {
+            DB::beginTransaction();
+            try {
+                $registration = Registration::where('registration_number', $ref)->first();
+                Log::info('Found registration record in callback', ['ref' => $ref, 'found' => !!$registration]);
+                
+                if ($registration) {
+                    $registration->update([
+                        'payment_status' => 'completed',
+                        'status'         => 'accepted'
+                    ]);
+                    
+                    // Cek Santri terkait
+                    $student = Student::where('nik', $registration->nik)->first();
+                    
+                    if (!$student) {
+                        Log::info('Student record missing, creating now...', ['nik' => $registration->nik]);
+                        
+                        $activeYear = AcademicYear::where('active', true)->first();
+                        $year = $activeYear ? $activeYear->year : date('Y');
+                        
+                        $student = Student::create([
+                            'parent_id' => $registration->parent_id,
+                            'nis' => $this->generateNis($year),
+                            'period' => $year,
+                            'first_name' => $registration->first_name,
+                            'last_name' => $registration->last_name,
+                            'gender' => $registration->gender,
+                            'address' => $registration->address,
+                            'nik' => $registration->nik,
+                            'kk' => $registration->kk,
+                            'born_in' => $registration->born_in,
+                            'born_at' => $registration->born_at,
+                            'village_id' => $registration->village_id,
+                            'photo' => $registration->photo,
+                            'program_id' => $registration->program_id,
+                            'user_id' => null, // Backend service-to-service callback
+                            'education_type_id' => $registration->education_level_id,
+                            'status' => 'Aktif',
+                        ]);
+                    } else {
+                        Log::info('Student record found, activating...', ['nik' => $registration->nik]);
+                        $student->update(['status' => 'Aktif']);
+                    }
+                }
+                DB::commit();
+                
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Status pendaftaran dan santri berhasil diperbarui.'
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::error('Callback: Gagal update status pendaftaran/santri: ' . $e->getMessage());
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal update status pendaftaran/santri: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Invalid reference number'
+        ], 400);
+    }
+
+    /**
      * Copy of generateNis from RegistrationController to ensure consistency
      */
     private function generateNis($year)
