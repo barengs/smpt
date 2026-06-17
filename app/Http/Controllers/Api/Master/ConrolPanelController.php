@@ -433,8 +433,8 @@ class ConrolPanelController extends Controller
     {
         $fileName = $file->getClientOriginalName();
 
-        // Store favicon in public/uploads/logos directory to match frontend expectations
-        $file->storeAs('public/uploads/logos', $fileName);
+        // Store favicon in public/uploads/logos directory on the public disk to match frontend expectations
+        $file->storeAs('uploads/logos', $fileName, 'public');
 
         return $fileName;
     }
