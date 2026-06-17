@@ -244,8 +244,8 @@ Route::group(['prefix' => 'main'], function () {
     // Registration routes
     Route::post('registration/import', [RegistrationController::class, 'import']);
     Route::get('registration/import/template', [RegistrationController::class, 'downloadTemplate']);
+    Route::get('registration/current-year', [RegistrationController::class, 'getByCurrentYear'])->name('registration.current-year');
     Route::apiResource('registration', RegistrationController::class);
-    Route::get('registration/curent-year', [RegistrationController::class, 'getByCurrentYear'])->name('registration.current-year');
     Route::post('registration/transaction', [RegistrationController::class, 'createRequestTransaction'])->name('registration.transaction');
     Route::get('registration/student/{nik}/check', [RegistrationController::class, 'checkTtl'])->name('registration.student.check');
 

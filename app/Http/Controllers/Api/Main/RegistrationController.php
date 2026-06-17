@@ -75,8 +75,19 @@ class RegistrationController extends Controller
     public function index(Request $request)
     {
         try {
-            $registrations = Registration::with(['parent.occupation', 'parent.education', 'program'])
-                ->orderBy('created_at', 'desc')
+            $query = Registration::with(['parent.occupation', 'parent.education', 'program']);
+
+            $user = auth()->user();
+            if ($user && $user->hasRole('orangtua')) {
+                $parent = $user->parent;
+                if ($parent) {
+                    $query->where('parent_id', $parent->nik);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            }
+
+            $registrations = $query->orderBy('created_at', 'desc')
                 ->paginate($request->query('per_page', 10));
 
             // Fetch students for these registrations to provide student_id links
@@ -240,6 +251,15 @@ class RegistrationController extends Controller
     {
         try {
             $data = Registration::with(['parent.occupation', 'parent.education', 'files', 'program', 'village'])->findOrFail($id);
+            
+            $user = auth()->user();
+            if ($user && $user->hasRole('orangtua')) {
+                $parent = $user->parent;
+                if (!$parent || $data->parent_id !== $parent->nik) {
+                    return response()->json(['error' => 'Forbidden'], 403);
+                }
+            }
+
             $data->photo_url = Storage::url($data->photo);
             
             // Check if student exists for this registration NIK
@@ -261,6 +281,15 @@ class RegistrationController extends Controller
 
         try {
             $registration = Registration::findOrFail($id);
+
+            $user = auth()->user();
+            if ($user && $user->hasRole('orangtua')) {
+                $parent = $user->parent;
+                if (!$parent || $registration->parent_id !== $parent->nik) {
+                    return response()->json(['error' => 'Forbidden'], 403);
+                }
+            }
+
             $parent = ParentProfile::where('nik', $registration->parent_id)->firstOrFail();
 
             // Update Parent Profile
@@ -405,9 +434,20 @@ class RegistrationController extends Controller
     public function getByCurrentYear(Request $request)
     {
         try {
-            $registrations = Registration::with(['parent.occupation', 'parent.education'])
-                ->whereYear('created_at', date('Y'))
-                ->orderBy('created_at', 'desc')
+            $query = Registration::with(['parent.occupation', 'parent.education'])
+                ->whereYear('created_at', date('Y'));
+
+            $user = auth()->user();
+            if ($user && $user->hasRole('orangtua')) {
+                $parent = $user->parent;
+                if ($parent) {
+                    $query->where('parent_id', $parent->nik);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+            }
+
+            $registrations = $query->orderBy('created_at', 'desc')
                 ->paginate($request->query('per_page', 10));
 
             return new RegistrationResource('Registrations for the current year fetched successfully', $registrations, 200);
