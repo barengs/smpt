@@ -93,7 +93,7 @@ class ConrolPanelController extends Controller
 
             // Handle logo upload
             if ($request->hasFile('app_logo')) {
-                $this->uploadImage($request->file('app_logo'), $validatedData, 'app_logo');
+                $this->uploadImage($request->file('app_logo'), $data, 'app_logo');
             }
 
             // Handle favicon upload
@@ -214,7 +214,8 @@ class ConrolPanelController extends Controller
             if ($request->hasFile('app_logo')) {
                 // Delete old logo if exists
                 if ($controlPanel->app_logo) {
-                    Storage::disk('public')->delete($controlPanel->app_logo);
+                    Storage::disk('public')->delete('uploads/logos/large/' . $controlPanel->app_logo);
+                    Storage::disk('public')->delete('uploads/logos/small/' . $controlPanel->app_logo);
                 }
                 $this->uploadImage($request->file('app_logo'), $data, 'app_logo');
             }
@@ -223,7 +224,7 @@ class ConrolPanelController extends Controller
             if ($request->hasFile('app_favicon')) {
                 // Delete old favicon if exists
                 if ($controlPanel->app_favicon) {
-                    Storage::disk('public')->delete($controlPanel->app_favicon);
+                    Storage::disk('public')->delete('uploads/logos/' . $controlPanel->app_favicon);
                 }
                 $data['app_favicon'] = $this->uploadFavicon($request->file('app_favicon'));
             }
@@ -273,10 +274,11 @@ class ConrolPanelController extends Controller
 
             // Delete logo and favicon files if they exist
             if ($controlPanel->app_logo) {
-                Storage::disk('public')->delete($controlPanel->app_logo);
+                Storage::disk('public')->delete('uploads/logos/large/' . $controlPanel->app_logo);
+                Storage::disk('public')->delete('uploads/logos/small/' . $controlPanel->app_logo);
             }
             if ($controlPanel->app_favicon) {
-                Storage::disk('public')->delete($controlPanel->app_favicon);
+                Storage::disk('public')->delete('uploads/logos/' . $controlPanel->app_favicon);
             }
 
             $controlPanel->delete();
@@ -431,8 +433,8 @@ class ConrolPanelController extends Controller
     {
         $fileName = $file->getClientOriginalName();
 
-        // Store favicon in a separate directory without resizing
-        $file->storeAs('public/uploads/favicons', $fileName);
+        // Store favicon in public/uploads/logos directory to match frontend expectations
+        $file->storeAs('public/uploads/logos', $fileName);
 
         return $fileName;
     }
