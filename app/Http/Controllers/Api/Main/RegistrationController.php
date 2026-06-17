@@ -117,7 +117,7 @@ class RegistrationController extends Controller
                 $user = User::create([
                     'name' => $request->wali_nama_depan,
                     'email' => $request->wali_email ?? $request->wali_nik,
-                    'password' => bcrypt('password'),
+                    'password' => bcrypt($request->wali_nik),
                 ]);
 
                 $parent = $user->parent()->create([

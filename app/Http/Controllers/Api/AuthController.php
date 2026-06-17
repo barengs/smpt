@@ -31,10 +31,36 @@ class AuthController extends Controller
         $login = $request->input('login');
         $password = $request->input('password');
 
-        // Check if the login input is an email, numeric (nik stored in email), or name
-        $field = (filter_var($login, FILTER_VALIDATE_EMAIL) || is_numeric($login)) ? 'email' : 'name';
-        // Attempt to authenticate with email, name or nik
-        if (! $token = auth()->attempt([$field => $login, 'password' => $password])) {
+        $user = null;
+        if (is_numeric($login)) {
+            // 1. Try to find user by email (in case email column stores NIK)
+            $user = User::where('email', $login)->first();
+            
+            // 2. Try to find user by parent NIK
+            if (!$user) {
+                $user = User::whereHas('parent', function ($query) use ($login) {
+                    $query->where('nik', $login);
+                })->first();
+            }
+
+            // 3. Try to find user by staff NIK
+            if (!$user) {
+                $user = User::whereHas('staff', function ($query) use ($login) {
+                    $query->where('nik', $login);
+                })->first();
+            }
+        }
+
+        // If a user is resolved, attempt login with their email
+        if ($user) {
+            $token = auth()->attempt(['email' => $user->email, 'password' => $password]);
+        } else {
+            // Fallback to original logic if no user found
+            $field = (filter_var($login, FILTER_VALIDATE_EMAIL) || is_numeric($login)) ? 'email' : 'name';
+            $token = auth()->attempt([$field => $login, 'password' => $password]);
+        }
+
+        if (! $token) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 

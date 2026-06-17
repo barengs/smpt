@@ -117,6 +117,47 @@ class AuthLoginTest extends TestCase
     }
 
     /**
+     * Test successful login with parent NIK
+     *
+     * @return void
+     */
+    public function test_user_can_login_with_nik()
+    {
+        $nik = '1234567890123456';
+        $user = User::factory()->create([
+            'name' => 'Wali Santri',
+            'email' => 'wali@example.com',
+            'password' => bcrypt($nik),
+        ]);
+
+        // Create ParentProfile linked to user
+        $user->parent()->create([
+            'nik' => $nik,
+            'kk' => '1234567890123456',
+            'first_name' => 'Wali',
+            'last_name' => 'Santri',
+            'parent_as' => 'ayah',
+            'gender' => 'L',
+        ]);
+
+        $response = $this->postJson('/api/auth/login', [
+            'login' => $nik,
+            'password' => $nik,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'access_token',
+                'user'
+            ])
+            ->assertJson([
+                'user' => [
+                    'email' => 'wali@example.com',
+                ]
+            ]);
+    }
+
+    /**
      * Test that the login field is required
      *
      * @return void

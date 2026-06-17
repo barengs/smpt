@@ -58,9 +58,9 @@ class ParentController extends Controller
 
             // Handle sort_by if it's a parent field
             if (in_array($sortBy, ['first_name', 'last_name', 'nik', 'kk'])) {
-                $query->join('parant_profiles', 'users.id', '=', 'parant_profiles.user_id')
+                $query->join('parent_profiles', 'users.id', '=', 'parent_profiles.user_id')
                       ->select('users.*')
-                      ->orderBy('parant_profiles.' . $sortBy, $sortOrder);
+                      ->orderBy('parent_profiles.' . $sortBy, $sortOrder);
             } else {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -83,7 +83,7 @@ class ParentController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
-            'nik' => 'required|string|unique:parant_profiles,nik|max:16',
+            'nik' => 'required|string|unique:parent_profiles,nik|max:16',
             'kk' => 'required|string|max:16',
             'gender' => 'required|in:L,P',
             'parent_as' => 'required|in:ayah,ibu',

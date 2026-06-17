@@ -78,7 +78,7 @@ class ConrolPanelController extends Controller
                 'app_language' => 'required|in:indonesia,english,arabic',
                 'app_ui_style' => 'required|in:modern,classic',
                 'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-                'app_favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
+                'app_favicon' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -197,7 +197,7 @@ class ConrolPanelController extends Controller
                 'app_language' => 'sometimes|required|in:indonesia,english,arabic',
                 'app_ui_style' => 'sometimes|required|in:modern,classic',
                 'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-                'app_favicon' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
+                'app_favicon' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -367,7 +367,7 @@ class ConrolPanelController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'app_favicon' => 'required|image|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
+                'app_favicon' => 'required|file|mimes:jpeg,png,jpg,gif,svg,ico|max:2048',
             ]);
 
             if ($validator->fails()) {

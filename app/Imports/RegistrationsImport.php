@@ -134,7 +134,8 @@ class RegistrationsImport implements
             'madrasah_sekolah_asal' => ['madrasah_sekolah_asal', 'previous_madrasah', 'madrasah_asal'],
             'madrasah_alamat_sekolah' => ['madrasah_alamat_sekolah', 'previous_madrasah_address', 'alamat_madrasah_asal'],
             'madrasah_nomor_ijazah' => ['madrasah_nomor_ijazah', 'certificate_madrasah', 'no_ijazah_madrasah'],
-            'madrasah_jenjang_sebelumnya' => ['madrasah_jenjang_sebelumnya', 'madrasah_level_id', 'jenjang_madrasah_asal']
+            'madrasah_jenjang_sebelumnya' => ['madrasah_jenjang_sebelumnya', 'madrasah_level_id', 'jenjang_madrasah_asal'],
+            'registration_number' => ['registration_number', 'no_pendaftaran', 'nomor_pendaftaran', 'no_registrasi', 'nomor_registrasi']
         ];
 
         foreach ($mapping as $targetKey => $synonyms) {
@@ -308,7 +309,7 @@ class RegistrationsImport implements
                     $user = User::create([
                         'name' => $waliNamaDepan,
                         'email' => $email,
-                        'password' => bcrypt('password'),
+                        'password' => bcrypt($waliNik),
                     ]);
 
                     $parent = $user->parent()->create([
@@ -350,8 +351,13 @@ class RegistrationsImport implements
                 }
 
                 // 2. Create Registration
+                $registrationNumber = $row['registration_number'] ?? null;
+                if (empty($registrationNumber)) {
+                    $registrationNumber = $this->generateRegistNumber();
+                }
+
                 $registration = Registration::create([
-                    'registration_number' => $this->generateRegistNumber(),
+                    'registration_number' => $registrationNumber,
                     'registration_date' => now(),
                     'parent_id' => $waliNik,
                     'nis' => $nis,

@@ -114,6 +114,7 @@ class RegistrationImportTest extends TestCase
             'nis' => '0148425432',
             'first_name' => 'KANZUL',
             'parent_id' => '3527140505870007',
+            'registration_number' => 'REG2026162',
             'kk' => '3527141801180015',
             'previous_school' => 'previous_school',
             'education_level_id' => '1',
