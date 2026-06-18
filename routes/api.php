@@ -117,6 +117,8 @@ Route::group(['prefix' => 'master'], function () {
     Route::post('study/{id}/restore', [StudyController::class, 'restore']);
     Route::get('study/export', [StudyController::class, 'export']);
     Route::get('study/backup', [StudyController::class, 'backup']);
+    Route::post('study/import', [StudyController::class, 'import']);
+    Route::get('study/import/template', [StudyController::class, 'downloadTemplate']);
     Route::apiResource('study', StudyController::class);
     Route::get('class-group/trashed', [ClassGroupController::class, 'trashed']);
     Route::post('class-group/{id}/restore', [ClassGroupController::class, 'restore']);

@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Exception;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\StudyImport;
+use App\Exports\StudyTemplateExport;
 
 class StudyController extends Controller
 {
@@ -272,5 +275,76 @@ class StudyController extends Controller
     public function backup()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\StudyBackupExport, 'backup_studi_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    /**
+     * Import study from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv|max:10240', // Max 10MB
+            ]);
+
+            $file = $request->file('file');
+            $import = new StudyImport();
+
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => true,
+                'message' => 'Import completed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'total' => $successCount + $failureCount,
+                ]
+            ];
+
+            if (count($errors) > 0) {
+                $response['data']['errors'] = array_slice($errors, 0, 50);
+                $response['data']['total_errors'] = count($errors);
+                $response['message'] = 'Import completed with some errors';
+            }
+
+            return response()->json($response, 200);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengimpor data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for study import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new StudyTemplateExport(),
+                'study_import_template.xlsx'
+            );
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
