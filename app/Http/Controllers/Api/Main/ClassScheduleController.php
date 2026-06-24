@@ -42,6 +42,7 @@ class ClassScheduleController extends Controller
             $schedules = $query->with([
                 'academicYear',
                 'education',
+                'lessonSession',
                 'details.classroom',
                 'details.classGroup',
                 'details.lessonHour',
@@ -73,7 +74,7 @@ class ClassScheduleController extends Controller
             $schedule = ClassSchedule::create($request->only([
                 'academic_year_id',
                 'educational_institution_id',
-                'session',
+                'lesson_session_id',
                 'status'
             ]));
 
@@ -113,6 +114,7 @@ class ClassScheduleController extends Controller
             $schedule->load([
                 'academicYear',
                 'education',
+                'lessonSession',
                 'details.classroom',
                 'details.classGroup',
                 'details.lessonHour',
@@ -144,6 +146,7 @@ class ClassScheduleController extends Controller
             $schedule = ClassSchedule::with([
                 'academicYear',
                 'education',
+                'lessonSession',
                 'details.classroom',
                 'details.classGroup',
                 'details.lessonHour',
@@ -220,7 +223,7 @@ class ClassScheduleController extends Controller
             $schedule->update($request->only([
                 'academic_year_id',
                 'educational_institution_id',
-                'session',
+                'lesson_session_id',
                 'status'
             ]));
 
@@ -268,6 +271,7 @@ class ClassScheduleController extends Controller
             $schedule->load([
                 'academicYear',
                 'education',
+                'lessonSession',
                 'details.classroom',
                 'details.classGroup',
                 'details.lessonHour',
@@ -360,7 +364,7 @@ class ClassScheduleController extends Controller
                         'conflicting_schedule' => [
                             'id' => $conflictDetail->classSchedule->id,
                             'day' => $conflictDetail->day,
-                            'session' => $conflictDetail->classSchedule->session,
+                            'lesson_session_id' => $conflictDetail->classSchedule->lesson_session_id,
                             'classroom' => $conflictDetail->classroom->name ?? null,
                             'class_group' => $conflictDetail->classGroup->name ?? null,
                         ],

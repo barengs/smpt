@@ -98,15 +98,17 @@ class MenuSeeder extends Seeder
 
             // 3. KURIKULUM SUBMENUS
             'Mata Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Subject', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 1],
-            'Jadwal Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Class Schedule', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 2],
-            'Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher', 'route' => '/dashboard/manajemen-kurikulum/guru', 'icon' => 'user-tie', 'order' => 3],
-            'Penugasan Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher Assignment', 'route' => '/dashboard/manajemen-kurikulum/penugasan-guru', 'icon' => 'clipboard-list', 'order' => 4],
-            'Jam Mengajar' => ['parent' => 'Kurikulum', 'en_title' => 'Teaching Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-mengajar', 'icon' => 'clock', 'order' => 5],
-            'Presensi' => ['parent' => 'Kurikulum', 'en_title' => 'Presence', 'route' => '/dashboard/manajemen-kurikulum/presensi', 'icon' => 'check-circle', 'order' => 6],
-            'Penilaian' => ['parent' => 'Kurikulum', 'en_title' => 'Assessment', 'route' => '/dashboard/manajemen-kurikulum/penilaian', 'icon' => 'star', 'order' => 7],
-            'E-Raport' => ['parent' => 'Kurikulum', 'en_title' => 'E-Report', 'route' => '/dashboard/manajemen-kurikulum/raport', 'icon' => 'file-text', 'order' => 8],
-            'Kenaikan Kelas' => ['parent' => 'Kurikulum', 'en_title' => 'Class Promotion', 'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas', 'icon' => 'arrow-up', 'order' => 9],
-            'Institusi Pendidikan' => ['parent' => 'Kurikulum', 'en_title' => 'Educational Institution', 'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan', 'icon' => 'school', 'order' => 10],
+            'Jam Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Lesson Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-pelajaran', 'icon' => 'clock', 'order' => 2],
+            'Sesi Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Lesson Session', 'route' => '/dashboard/manajemen-kurikulum/sesi-pelajaran', 'icon' => 'sun', 'order' => 3],
+            'Jadwal Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Class Schedule', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 4],
+            'Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher', 'route' => '/dashboard/manajemen-kurikulum/guru', 'icon' => 'user-tie', 'order' => 5],
+            'Penugasan Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher Assignment', 'route' => '/dashboard/manajemen-kurikulum/penugasan-guru', 'icon' => 'clipboard-list', 'order' => 6],
+            'Jam Mengajar' => ['parent' => 'Kurikulum', 'en_title' => 'Teaching Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-mengajar', 'icon' => 'clock', 'order' => 7],
+            'Presensi' => ['parent' => 'Kurikulum', 'en_title' => 'Presence', 'route' => '/dashboard/manajemen-kurikulum/presensi', 'icon' => 'check-circle', 'order' => 8],
+            'Penilaian' => ['parent' => 'Kurikulum', 'en_title' => 'Assessment', 'route' => '/dashboard/manajemen-kurikulum/penilaian', 'icon' => 'star', 'order' => 9],
+            'E-Raport' => ['parent' => 'Kurikulum', 'en_title' => 'E-Report', 'route' => '/dashboard/manajemen-kurikulum/raport', 'icon' => 'file-text', 'order' => 10],
+            'Kenaikan Kelas' => ['parent' => 'Kurikulum', 'en_title' => 'Class Promotion', 'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas', 'icon' => 'arrow-up', 'order' => 11],
+            'Institusi Pendidikan' => ['parent' => 'Kurikulum', 'en_title' => 'Educational Institution', 'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan', 'icon' => 'school', 'order' => 12],
 
             // 4. BANK SANTRI SUBMENUS
             'Dashboard Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Dashboard', 'route' => '/dashboard/bank-santri/dashboard', 'icon' => 'pie-chart', 'order' => 1],

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Master\EducationClassController;
 use App\Http\Controllers\Api\Master\EducationController;
 use App\Http\Controllers\Api\Master\EducationTypeController;
 use App\Http\Controllers\Api\Master\LessonHourController;
+use App\Http\Controllers\Api\Master\LessonSessionController;
 use App\Http\Controllers\Api\Master\ProvinceController;
 use App\Http\Controllers\Api\Master\CityController;
 use App\Http\Controllers\Api\Master\DistrictController;
@@ -157,6 +158,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('lesson-hour/trashed', [LessonHourController::class, 'trashed']);
     Route::post('lesson-hour/{id}/restore', [LessonHourController::class, 'restore']);
     Route::apiResource('lesson-hour', LessonHourController::class);
+    Route::apiResource('lesson-session', LessonSessionController::class);
     Route::get('room/trashed', [RoomController::class, 'trashed']);
     Route::post('room/{id}/restore', [RoomController::class, 'restore']);
     Route::post('room/import', [RoomController::class, 'import']);

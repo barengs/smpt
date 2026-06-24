@@ -27,4 +27,9 @@ class ClassSchedule extends Model
     {
         return $this->hasMany(ClassScheduleDetail::class);
     }
+
+    public function lessonSession()
+    {
+        return $this->belongsTo(LessonSession::class, 'lesson_session_id');
+    }
 }
