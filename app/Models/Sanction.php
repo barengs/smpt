@@ -20,4 +20,9 @@ class Sanction extends Model
     {
         return $this->hasMany(StudentSanction::class, 'sanction_id');
     }
+
+    public function sanctionType()
+    {
+        return $this->belongsTo(SanctionType::class);
+    }
 }

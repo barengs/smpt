@@ -18,7 +18,7 @@ class OrganizationController extends Controller
     public function index()
     {
         try {
-            $organizations = Organization::with(['parent', 'children', 'positions'])->get();
+            $organizations = Organization::with(['parent', 'children', 'positions', 'educationalInstitution'])->get();
             return new OrganizationResource('Data organisasi berhasil diambil', $organizations, 200);
         } catch (Exception $e) {
             return new OrganizationResource('Terjadi kesalahan: ' . $e->getMessage(), null, 500);
@@ -36,6 +36,7 @@ class OrganizationController extends Controller
                 'description' => 'nullable|string',
                 'code' => 'nullable|string|max:50|unique:organizations',
                 'parent_id' => 'nullable|exists:organizations,id',
+                'educational_institution_id' => 'nullable|exists:educational_institutions,id',
                 'level' => 'required|integer|min:1',
                 'is_active' => 'boolean',
             ]);
@@ -61,7 +62,7 @@ class OrganizationController extends Controller
     public function show(string $id)
     {
         try {
-            $organization = Organization::with(['parent', 'children.positions.assignments.official'])->findOrFail($id);
+            $organization = Organization::with(['parent', 'children.positions.assignments.official', 'educationalInstitution'])->findOrFail($id);
             return new OrganizationResource('Data organisasi berhasil diambil', $organization, 200);
         } catch (Exception $e) {
             return new OrganizationResource('Data organisasi tidak ditemukan', null, 404);
@@ -81,6 +82,7 @@ class OrganizationController extends Controller
                 'description' => 'nullable|string',
                 'code' => 'nullable|string|max:50|unique:organizations,code,' . $id,
                 'parent_id' => 'nullable|exists:organizations,id',
+                'educational_institution_id' => 'nullable|exists:educational_institutions,id',
                 'level' => 'required|integer|min:1',
                 'is_active' => 'boolean',
             ]);
@@ -90,7 +92,7 @@ class OrganizationController extends Controller
             }
 
             $organization->update($request->all());
-            $organization->load(['parent', 'children']);
+            $organization->load(['parent', 'children', 'educationalInstitution']);
 
             return new OrganizationResource('Organisasi berhasil diperbarui', $organization, 200);
         } catch (Exception $e) {

@@ -93,6 +93,8 @@ class StaffController extends Controller
             'roles' => 'required',
             'birth_place' => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
+            'educational_institution_ids' => 'nullable|array',
+            'educational_institution_ids.*' => 'exists:educational_institutions,id',
         ]);
 
 
@@ -152,6 +154,10 @@ class StaffController extends Controller
                 'job_id' => $request->job_id,
                 'photo' => $fileName ?? null,
             ]);
+
+            if ($request->has('educational_institution_ids')) {
+                $staff->educationalInstitutions()->sync($request->educational_institution_ids);
+            }
 
             DB::commit();
 
@@ -228,6 +234,8 @@ class StaffController extends Controller
                 'roles' => 'sometimes|required',
                 'birth_place' => 'nullable|string|max:255',
                 'birth_date' => 'nullable|date',
+                'educational_institution_ids' => 'nullable|array',
+                'educational_institution_ids.*' => 'exists:educational_institutions,id',
             ]);
 
             // Return validation errors if any
@@ -284,10 +292,14 @@ class StaffController extends Controller
 
                 'village_id' => $request->input('village_id', $staff->village_id),
                 'marital_status' => $request->input('marital_status', $staff->marital_status),
-                'status' => $request->input('status', $staff->status),
-                'job_id' => $request->input('job_id', $staff->job_id),
+                'status' => $request->status ?? $staff->status,
+                'job_id' => $request->job_id ?? $staff->job_id,
                 'photo' => $photoPath,
             ]);
+
+            if ($request->has('educational_institution_ids')) {
+                $staff->educationalInstitutions()->sync($request->educational_institution_ids);
+            }
 
             // Update roles if provided
             if ($request->has('roles')) {

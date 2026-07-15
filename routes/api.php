@@ -208,9 +208,9 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('staff-study/teachers/all', [StaffStudyController::class, 'getAllTeachers'])->name('staff-study.teachers.all');
 
     // Organization routes
-    Route::apiResource('organization', OrganizationController::class);
     Route::get('organization/root', [OrganizationController::class, 'getRootOrganizations']);
     Route::get('organization/hierarchy', [OrganizationController::class, 'getHierarchy']);
+    Route::apiResource('organization', OrganizationController::class);
 
     // Position routes
     Route::apiResource('position', PositionController::class);
@@ -229,6 +229,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('violation', ViolationController::class);
 
     // Tata Tertib - Sanctions
+    Route::apiResource('sanction-type', \App\Http\Controllers\Api\Master\SanctionTypeController::class);
     Route::apiResource('sanction', SanctionController::class);
 
     // Leave Types (Jenis Izin)

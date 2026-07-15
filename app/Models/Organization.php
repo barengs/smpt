@@ -30,4 +30,9 @@ class Organization extends Model
     {
         return $this->hasMany(Position::class);
     }
+
+    public function educationalInstitution()
+    {
+        return $this->belongsTo(EducationalInstitution::class, 'educational_institution_id');
+    }
 }

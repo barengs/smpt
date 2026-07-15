@@ -3,52 +3,42 @@
 namespace App\Http\Controllers\Api\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sanction;
 use Illuminate\Http\Request;
+use App\Models\SanctionType;
 use Illuminate\Support\Facades\Validator;
 use Exception;
 
-class SanctionController extends Controller
+class SanctionTypeController extends Controller
 {
     /**
-     * List sanctions
+     * Display a listing of the resource.
      */
     public function index()
     {
         try {
-            $sanctions = Sanction::with('sanctionType')->get();
-
+            $sanctionTypes = SanctionType::orderBy('name', 'asc')->get();
             return response()->json([
                 'success' => true,
-                'message' => 'Data sanksi berhasil diambil',
-                'data' => $sanctions
-            ], 200);
+                'message' => 'Daftar jenis sanksi berhasil diambil',
+                'data' => $sanctionTypes
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil data sanksi',
+                'message' => 'Terjadi kesalahan saat mengambil daftar jenis sanksi',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Create a sanction
-     *
-     * Body:
-     * - name: string (required)
-     * - description: string (optional)
-     * - type: enum(peringatan,skorsing,pembinaan,denda,lainnya) (required)
-     * - duration_days: integer (optional)
-     * - is_active: boolean (optional)
+     * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'sanction_type_id' => 'required|exists:sanction_types,id',
-            'duration_days' => 'nullable|integer|min:1',
             'is_active' => 'boolean'
         ]);
 
@@ -61,66 +51,49 @@ class SanctionController extends Controller
         }
 
         try {
-            $sanction = Sanction::create($request->all());
-
+            $sanctionType = SanctionType::create($request->all());
             return response()->json([
                 'success' => true,
-                'message' => 'Sanksi berhasil ditambahkan',
-                'data' => $sanction
+                'message' => 'Jenis sanksi berhasil ditambahkan',
+                'data' => $sanctionType
             ], 201);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan sanksi',
+                'message' => 'Terjadi kesalahan saat menambahkan jenis sanksi',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Get a sanction by ID
-     *
-     * Path:
-     * - id: integer (required)
+     * Display the specified resource.
      */
     public function show(string $id)
     {
         try {
-            $sanction = Sanction::with('sanctionType')->findOrFail($id);
-
+            $sanctionType = SanctionType::findOrFail($id);
             return response()->json([
                 'success' => true,
-                'message' => 'Data sanksi berhasil diambil',
-                'data' => $sanction
-            ], 200);
+                'message' => 'Data jenis sanksi berhasil diambil',
+                'data' => $sanctionType
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sanksi tidak ditemukan',
-                'error' => $e->getMessage()
+                'message' => 'Jenis sanksi tidak ditemukan',
             ], 404);
         }
     }
 
     /**
-     * Update a sanction
-     *
-     * Path:
-     * - id: integer (required)
-     * Body:
-     * - name: string (required)
-     * - description: string (optional)
-     * - type: enum(peringatan,skorsing,pembinaan,denda,lainnya) (required)
-     * - duration_days: integer (optional)
-     * - is_active: boolean (optional)
+     * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'sanction_type_id' => 'required|exists:sanction_types,id',
-            'duration_days' => 'nullable|integer|min:1',
             'is_active' => 'boolean'
         ]);
 
@@ -133,43 +106,47 @@ class SanctionController extends Controller
         }
 
         try {
-            $sanction = Sanction::findOrFail($id);
-            $sanction->update($request->all());
-
+            $sanctionType = SanctionType::findOrFail($id);
+            $sanctionType->update($request->all());
             return response()->json([
                 'success' => true,
-                'message' => 'Sanksi berhasil diperbarui',
-                'data' => $sanction
-            ], 200);
+                'message' => 'Jenis sanksi berhasil diperbarui',
+                'data' => $sanctionType
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui sanksi',
+                'message' => 'Terjadi kesalahan saat memperbarui jenis sanksi',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Delete a sanction by ID
-     *
-     * Path:
-     * - id: integer (required)
+     * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
         try {
-            $sanction = Sanction::findOrFail($id);
-            $sanction->delete();
+            $sanctionType = SanctionType::findOrFail($id);
+            
+            // Check if there are related sanctions
+            if ($sanctionType->sanctions()->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tidak dapat menghapus jenis sanksi karena sudah digunakan pada data sanksi',
+                ], 422);
+            }
 
+            $sanctionType->delete();
             return response()->json([
                 'success' => true,
-                'message' => 'Sanksi berhasil dihapus'
-            ], 200);
+                'message' => 'Jenis sanksi berhasil dihapus'
+            ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus sanksi',
+                'message' => 'Terjadi kesalahan saat menghapus jenis sanksi',
                 'error' => $e->getMessage()
             ], 500);
         }

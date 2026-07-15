@@ -76,8 +76,6 @@ class MenuSeeder extends Seeder
             'Manajemen Staf' => ['en_title' => 'Staff Management', 'icon' => 'user-tie', 'route' => '#', 'order' => 10],
             'Kurikulum' => ['en_title' => 'Curriculum', 'icon' => 'book', 'route' => '#', 'order' => 15],
             'Bank Santri' => ['en_title' => 'Student Bank', 'icon' => 'landmark', 'route' => '#', 'order' => 20],
-            'Laporan Keuangan' => ['en_title' => 'Finance Report Center', 'icon' => 'receipt', 'route' => '#', 'order' => 25],
-            'Manajemen Bank' => ['en_title' => 'Bank Management', 'icon' => 'briefcase', 'route' => '#', 'order' => 30],
             'Manajemen Kamtib' => ['en_title' => 'Security & Discipline', 'icon' => 'shield-check', 'route' => '#', 'order' => 35],
             'Kepesantrenan' => ['en_title' => 'Islamic Boarding School', 'icon' => 'mosque', 'route' => '#', 'order' => 40],
             'Manajemen Pendidikan' => ['en_title' => 'Education Management', 'icon' => 'graduation-cap', 'route' => '#', 'order' => 45],
@@ -111,28 +109,7 @@ class MenuSeeder extends Seeder
             'Institusi Pendidikan' => ['parent' => 'Kurikulum', 'en_title' => 'Educational Institution', 'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan', 'icon' => 'school', 'order' => 12],
 
             // 4. BANK SANTRI SUBMENUS
-            'Dashboard Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Dashboard', 'route' => '/dashboard/bank-santri/dashboard', 'icon' => 'pie-chart', 'order' => 1],
-            'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 2],
-            'Paket Pembayaran' => ['parent' => 'Bank Santri', 'en_title' => 'Payment Package', 'route' => '/dashboard/bank-santri/paket', 'icon' => 'package', 'order' => 3],
-            'Proses Pembayaran' => ['parent' => 'Bank Santri', 'en_title' => 'Payment Process', 'route' => '/dashboard/bank-santri/pembayaran', 'icon' => 'credit-card', 'order' => 4],
-            'Verifikasi Top-up' => ['parent' => 'Bank Santri', 'en_title' => 'Top-up Verification', 'route' => '/dashboard/bank-santri/top-up/verifikasi', 'icon' => 'check-circle', 'order' => 5],
-            'Rekening Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Account', 'route' => '/dashboard/bank-santri/rekening', 'icon' => 'landmark', 'order' => 6],
-            'Kasir Koperasi' => ['parent' => 'Bank Santri', 'en_title' => 'Cooperative Cashier', 'route' => '/dashboard/bank-santri/koperasi', 'icon' => 'shopping-cart', 'order' => 7],
-            'Top-Up / Setor Tunai' => ['parent' => 'Bank Santri', 'en_title' => 'Top-up / Cash Deposit', 'route' => '/dashboard/bank-santri/top-up/cash', 'icon' => 'wallet', 'order' => 8],
-            'Transfer Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transfer', 'route' => '/dashboard/bank-santri/top-up/transfer', 'icon' => 'smartphone', 'order' => 9],
-
-            // 5. LAPORAN KEUANGAN SUBMENUS
-            'Jurnal Umum' => ['parent' => 'Laporan Keuangan', 'en_title' => 'General Journal', 'route' => '/dashboard/bank-santri/laporan/jurnal', 'icon' => 'file-text', 'order' => 1],
-            'Mutasi Nasabah' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Customer Mutation', 'route' => '/dashboard/bank-santri/laporan/mutasi', 'icon' => 'user-check', 'order' => 2],
-            'Rekap Saldo' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Balance Recap', 'route' => '/dashboard/bank-santri/laporan/saldo', 'icon' => 'landmark', 'order' => 3],
-            'Rekap Kasir' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Cashier Recap', 'route' => '/dashboard/bank-santri/laporan/kasir', 'icon' => 'receipt', 'order' => 4],
-            'Konfigurasi Transaksi' => ['parent' => 'Laporan Keuangan', 'en_title' => 'Transaction Configuration', 'route' => '/dashboard/bank-santri/laporan/config', 'icon' => 'settings', 'order' => 5],
-
-            // 6. MANAJEMEN BANK SUBMENUS
-            'Produk Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank Product', 'route' => '/dashboard/bank-santri/produk', 'icon' => 'box', 'order' => 1],
-            'COA Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank COA', 'route' => '/dashboard/bank-santri/coa', 'icon' => 'list', 'order' => 2],
-            'Jenis Transaksi Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank Transaction Type', 'route' => '/dashboard/bank-santri/jenis-transaksi', 'icon' => 'tags', 'order' => 3],
-            'Pengaturan Bank' => ['parent' => 'Manajemen Bank', 'en_title' => 'Bank Setting', 'route' => '/dashboard/bank-santri/settings', 'icon' => 'settings', 'order' => 4],
+            'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 1],
 
             // 7. KAMTIB SUBMENUS
             'Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 1],

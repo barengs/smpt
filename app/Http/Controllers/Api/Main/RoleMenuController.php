@@ -537,10 +537,16 @@ class RoleMenuController extends Controller
                 $menuPerms = $menu->permissions->pluck('name')->toArray();
                 $activePerms = array_intersect($menuPerms, $rolePermissions);
 
-                // Also add any scoped permission that ends with "_menu_{menu_id}" that the role has
+                // Also add any scoped permission that ends with "_menu_{$menu->id}" that the role has
                 foreach ($rolePermissions as $rp) {
                     if (str_ends_with($rp, "_menu_{$menu->id}")) {
                         $activePerms[] = $rp;
+                    } else {
+                        // Match legacy permission: Action + Menu Slug
+                        $menuSlug = \Illuminate\Support\Str::slug($menu->en_title ?? $menu->id_title);
+                        if (str_ends_with($rp, " {$menuSlug}")) {
+                            $activePerms[] = $rp;
+                        }
                     }
                 }
                 

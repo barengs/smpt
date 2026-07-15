@@ -87,4 +87,9 @@ class Staff extends Model
     {
         return $this->hasOne(PositionAssignment::class, 'staff_id')->where('is_active', true);
     }
+
+    public function educationalInstitutions()
+    {
+        return $this->belongsToMany(EducationalInstitution::class, 'staff_educational_institutions', 'staff_id', 'educational_institution_id');
+    }
 }
