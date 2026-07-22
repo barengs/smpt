@@ -92,7 +92,10 @@ class MenuSeeder extends Seeder
 
             // 2. STAF SUBMENUS
             'Data Staf' => ['parent' => 'Manajemen Staf', 'en_title' => 'Staff Data', 'route' => '/dashboard/staf', 'icon' => 'users', 'order' => 1],
-            'Struktur Organisasi' => ['parent' => 'Manajemen Staf', 'en_title' => 'Organizational Structure', 'route' => '/dashboard/organisasi', 'icon' => 'git-branch', 'order' => 2],
+            'Struktur Organisasi' => ['parent' => 'Manajemen Staf', 'en_title' => 'Organizational Structure', 'route' => '#', 'icon' => 'git-branch', 'order' => 2],
+            'Lembaga' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Institution', 'route' => '/dashboard/organisasi/lembaga', 'icon' => 'building', 'order' => 1],
+            'Jabatan' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Position', 'route' => '/dashboard/organisasi/jabatan', 'icon' => 'briefcase', 'order' => 2],
+            'Kepengurusan' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Management', 'route' => '/dashboard/organisasi/kepengurusan', 'icon' => 'users', 'order' => 3],
 
             // 3. KURIKULUM SUBMENUS
             'Mata Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Subject', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 1],
