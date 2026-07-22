@@ -115,6 +115,7 @@ class PositionAssignmentController extends Controller
             ]);
 
             if ($validator->fails()) {
+                \Log::error('Validation Failed PositionAssignment: ', $validator->errors()->toArray());
                 return new PositionAssignmentResource('Validasi gagal', $validator->errors(), 422);
             }
 
