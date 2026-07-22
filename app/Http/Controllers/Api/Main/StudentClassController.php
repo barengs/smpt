@@ -29,6 +29,11 @@ class StudentClassController extends Controller
                 $query->where('academic_year_id', $request->input('academic_year_id'));
             }
 
+            // Filter by student if provided
+            if ($request->has('student_id')) {
+                $query->where('student_id', $request->student_id);
+            }
+
             // Filter by education if provided
             if ($request->has('educational_institution_id')) {
                 $query->where('educational_institution_id', $request->educational_institution_id);
