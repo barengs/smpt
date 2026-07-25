@@ -39,6 +39,8 @@ class AssessmentController extends Controller
             'classSchedule.academicYear'
         ])->findOrFail($detailId);
 
+        $repDetailId = $detail->getRepresentativeDetailId();
+
         // Get students built from StudentClass
         $classGroupId = $detail->class_group_id;
         $academicYearId = $detail->classSchedule->academic_year_id;
@@ -52,7 +54,7 @@ class AssessmentController extends Controller
 
         // Get existing assessments
         $assessments = StudentAssessment::with('assessmentScores')
-            ->where('class_schedule_detail_id', $detailId)
+            ->where('class_schedule_detail_id', $repDetailId)
             ->when($quarterId, function($q) use ($quarterId) {
                 return $q->where('academic_quarter_id', $quarterId);
             })
@@ -84,9 +86,12 @@ class AssessmentController extends Controller
             'attendance_weight' => 'nullable|numeric|min:0|max:100',
         ]);
 
+        $detail = ClassScheduleDetail::findOrFail($validated['class_schedule_detail_id']);
+        $repDetailId = $detail->getRepresentativeDetailId();
+
         $formula = AssessmentFormula::updateOrCreate(
-            ['class_schedule_detail_id' => $validated['class_schedule_detail_id']],
-            $validated
+            ['class_schedule_detail_id' => $repDetailId],
+            array_merge($validated, ['class_schedule_detail_id' => $repDetailId])
         );
 
         return response()->json([
@@ -101,12 +106,15 @@ class AssessmentController extends Controller
      */
     public function getFormula($detailId)
     {
-        $formula = AssessmentFormula::where('class_schedule_detail_id', $detailId)->first();
+        $detail = ClassScheduleDetail::findOrFail($detailId);
+        $repDetailId = $detail->getRepresentativeDetailId();
+
+        $formula = AssessmentFormula::where('class_schedule_detail_id', $repDetailId)->first();
         
         if (!$formula) {
             // Default formula Merdeka template using arrays of objects
             $formula = [
-                'class_schedule_detail_id' => $detailId,
+                'class_schedule_detail_id' => $repDetailId,
                 'name' => 'Standar Merdeka',
                 'type' => 'merdeka',
                 'knowledge_formula' => [
@@ -150,6 +158,7 @@ class AssessmentController extends Controller
         ]);
 
         $detail = ClassScheduleDetail::with('classSchedule')->findOrFail($validated['class_schedule_detail_id']);
+        $repDetailId = $detail->getRepresentativeDetailId();
         $academicYearId = $detail->classSchedule->academic_year_id;
         $quarterId = $validated['academic_quarter_id'];
 
@@ -169,7 +178,7 @@ class AssessmentController extends Controller
                 
                 $studentAssessment = StudentAssessment::updateOrCreate(
                     [
-                        'class_schedule_detail_id' => $detail->id,
+                        'class_schedule_detail_id' => $repDetailId,
                         'student_id' => $studentId,
                         'academic_quarter_id' => $quarterId
                     ],
@@ -226,8 +235,11 @@ class AssessmentController extends Controller
     {
         $quarterId = $request->query('academic_quarter_id');
         
+        $detail = ClassScheduleDetail::findOrFail($detailId);
+        $repDetailId = $detail->getRepresentativeDetailId();
+
         $assessments = StudentAssessment::with('student')
-            ->where('class_schedule_detail_id', $detailId)
+            ->where('class_schedule_detail_id', $repDetailId)
             ->when($quarterId, function($q) use ($quarterId) {
                 return $q->where('academic_quarter_id', $quarterId);
             })

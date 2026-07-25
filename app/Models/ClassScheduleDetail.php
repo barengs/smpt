@@ -45,4 +45,23 @@ class ClassScheduleDetail extends Model
     {
         return $this->hasMany(MeetingSchedule::class, 'class_schedule_detail_id', 'id');
     }
+
+    public function getRepresentativeDetailId()
+    {
+        $academicYearId = $this->classSchedule?->academic_year_id;
+        
+        if (!$academicYearId) {
+            return $this->id;
+        }
+
+        $representative = self::where('class_group_id', $this->class_group_id)
+            ->where('study_id', $this->study_id)
+            ->whereHas('classSchedule', function ($query) use ($academicYearId) {
+                $query->where('academic_year_id', $academicYearId);
+            })
+            ->orderBy('id', 'asc')
+            ->first();
+
+        return $representative ? $representative->id : $this->id;
+    }
 }
