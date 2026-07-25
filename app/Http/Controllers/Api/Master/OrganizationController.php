@@ -34,7 +34,7 @@ class OrganizationController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'code' => 'nullable|string|max:50|unique:organizations',
+                'code' => 'nullable|string|max:50|unique:organizations,code,NULL,id,deleted_at,NULL',
                 'parent_id' => 'nullable|exists:organizations,id',
                 'educational_institution_id' => 'nullable|exists:educational_institutions,id',
                 'level' => 'required|integer|min:1',
@@ -80,7 +80,7 @@ class OrganizationController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'code' => 'nullable|string|max:50|unique:organizations,code,' . $id,
+                'code' => 'nullable|string|max:50|unique:organizations,code,' . $id . ',id,deleted_at,NULL',
                 'parent_id' => 'nullable|exists:organizations,id',
                 'educational_institution_id' => 'nullable|exists:educational_institutions,id',
                 'level' => 'required|integer|min:1',
