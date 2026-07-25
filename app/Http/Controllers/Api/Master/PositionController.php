@@ -33,7 +33,7 @@ class PositionController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'code' => 'required|string|max:50|unique:positions',
+                'code' => 'required|string|max:50|unique:positions,code,NULL,id,deleted_at,NULL',
                 'description' => 'nullable|string',
                 'organization_id' => 'required|exists:organizations,id',
                 'parent_id' => 'nullable|exists:positions,id',
@@ -79,7 +79,7 @@ class PositionController extends Controller
 
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'code' => 'required|string|max:50|unique:positions,code,' . $id,
+                'code' => 'required|string|max:50|unique:positions,code,' . $id . ',id,deleted_at,NULL',
                 'description' => 'nullable|string',
                 'organization_id' => 'required|exists:organizations,id',
                 'parent_id' => 'nullable|exists:positions,id',
