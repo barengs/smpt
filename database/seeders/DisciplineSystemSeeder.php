@@ -70,6 +70,23 @@ class DisciplineSystemSeeder extends Seeder
         }
 
         // Seed Sanctions
+        $types = ['peringatan', 'skorsing', 'pembinaan', 'denda', 'lainnya'];
+        $typeMap = [];
+        foreach ($types as $typeStr) {
+            $existing = DB::table('sanction_types')->where('name', ucfirst($typeStr))->first();
+            if ($existing) {
+                $typeMap[$typeStr] = $existing->id;
+            } else {
+                $typeMap[$typeStr] = DB::table('sanction_types')->insertGetId([
+                    'name' => ucfirst($typeStr),
+                    'description' => 'Jenis sanksi ' . $typeStr,
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+        }
+
         $sanctions = [
             [
                 'name' => 'Peringatan Lisan',
@@ -128,6 +145,10 @@ class DisciplineSystemSeeder extends Seeder
         ];
 
         foreach ($sanctions as $sanction) {
+            $typeStr = $sanction['type'];
+            unset($sanction['type']);
+            $sanction['sanction_type_id'] = $typeMap[$typeStr] ?? null;
+
             DB::table('sanctions')->insert(array_merge($sanction, [
                 'is_active' => true,
                 'created_at' => now(),
