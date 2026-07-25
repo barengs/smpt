@@ -48,25 +48,19 @@ class PositionAssignmentController extends Controller
                 return new PositionAssignmentResource('Validasi gagal', $validator->errors(), 422);
             }
 
-            // Check if staff already has an active assignment
+            // Check if staff already has an active assignment for the SAME position
             if ($request->is_active) {
                 $existingActiveAssignment = PositionAssignment::where('staff_id', $request->staff_id)
+                    ->where('position_id', $request->position_id)
                     ->where('is_active', true)
                     ->first();
 
                 if ($existingActiveAssignment) {
-                    return new PositionAssignmentResource('Staff ini sudah memiliki penugasan aktif', null, 409);
+                    return new PositionAssignmentResource('Staff ini sudah memiliki penugasan aktif untuk jabatan tersebut', null, 409);
                 }
             }
 
             DB::beginTransaction();
-
-            // If this assignment is active, deactivate any previous active assignment for this staff
-            if ($request->is_active) {
-                PositionAssignment::where('staff_id', $request->staff_id)
-                    ->where('is_active', true)
-                    ->update(['is_active' => false]);
-            }
 
             $assignment = PositionAssignment::create($request->all());
             $assignment->load(['position.organization', 'staff']);
@@ -119,27 +113,20 @@ class PositionAssignmentController extends Controller
                 return new PositionAssignmentResource('Validasi gagal', $validator->errors(), 422);
             }
 
-            // Check if staff already has an active assignment (excluding current assignment)
-            if ($request->is_active && $request->staff_id != $assignment->staff_id) {
+            // Check if staff already has an active assignment for the SAME position (excluding current assignment)
+            if ($request->is_active) {
                 $existingActiveAssignment = PositionAssignment::where('staff_id', $request->staff_id)
+                    ->where('position_id', $request->position_id)
                     ->where('is_active', true)
                     ->where('id', '!=', $id)
                     ->first();
 
                 if ($existingActiveAssignment) {
-                    return new PositionAssignmentResource('Staff ini sudah memiliki penugasan aktif', null, 409);
+                    return new PositionAssignmentResource('Staff ini sudah memiliki penugasan aktif untuk jabatan tersebut', null, 409);
                 }
             }
 
             DB::beginTransaction();
-
-            // If this assignment is being activated, deactivate any previous active assignment for this staff
-            if ($request->is_active && !$assignment->is_active) {
-                PositionAssignment::where('staff_id', $request->staff_id)
-                    ->where('is_active', true)
-                    ->where('id', '!=', $id)
-                    ->update(['is_active' => false]);
-            }
 
             $assignment->update($request->all());
             $assignment->load(['position.organization', 'staff']);
