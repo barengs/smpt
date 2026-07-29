@@ -19,6 +19,7 @@ use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentsImport;
 use App\Exports\StudentTemplateExport;
+use Illuminate\Support\Facades\Http;
 
 /**
  * @tags Student Management
@@ -745,5 +746,65 @@ class StudentController extends Controller
         }
 
         return $cleaned !== '' ? $cleaned : null;
+    }
+
+    /**
+     * Get student finance account and transaction history.
+     */
+    public function getFinanceInfo(string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+            $nis = $student->nis;
+            
+            if (!$nis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NIS santri tidak ditemukan.'
+                ], 404);
+            }
+
+            $bankUrl = config('services.bank_santri.url');
+            $bankInternalKey = config('services.bank_santri.internal_key');
+
+            // 1. Ambil info rekening
+            $accountRes = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/account/{$nis}");
+
+            $accountData = null;
+            if ($accountRes->successful()) {
+                $accountData = $accountRes->json('data');
+            }
+
+            // 2. Ambil riwayat transaksi
+            $transactionsRes = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/account/{$nis}/transactions", [
+                'per_page' => 100 // Ambil 100 transaksi terakhir
+            ]);
+
+            $transactionsData = [];
+            if ($transactionsRes->successful()) {
+                $transactionsData = $transactionsRes->json('data.data') ?? [];
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Informasi keuangan berhasil diambil.',
+                'data' => [
+                    'account' => $accountData,
+                    'transactions' => $transactionsData
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data keuangan dari Bank Santri: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

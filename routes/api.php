@@ -324,6 +324,7 @@ Route::group(['prefix' => 'main'], function () {
 
     Route::apiResource('student', StudentController::class);
     Route::post('student/{id}/update-photo', [StudentController::class, 'updatePhoto'])->name('student.update-photo');
+    Route::get('student/{id}/finance', [StudentController::class, 'getFinanceInfo'])->name('student.finance');
 
 
     // Student Card
