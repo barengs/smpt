@@ -94,11 +94,11 @@ class StaffsImport implements
         $value = trim($value);
         $lower = strtolower($value);
 
-        if ($lower === 'laki-laki' || $lower === 'l' || $lower === 'male' || $lower === 'man' || str_contains($lower, 'laki')) {
+        if ($lower === 'laki-laki' || $lower === 'l' || $lower === 'pria' || $lower === 'p' || $lower === 'male' || $lower === 'man' || str_contains($lower, 'laki')) {
             return 'L';
         }
 
-        if ($lower === 'perempuan' || $lower === 'p' || $lower === 'female' || $lower === 'woman' || str_contains($lower, 'perempuan')) {
+        if ($lower === 'perempuan' || $lower === 'wanita' || $lower === 'w' || $lower === 'female' || $lower === 'woman' || str_contains($lower, 'perempuan')) {
             return 'P';
         }
 
