@@ -260,7 +260,9 @@ class StudentViolationController extends Controller
     public function assignSanction(Request $request, string $id)
     {
         $validator = Validator::make($request->all(), [
-            'sanction_id' => 'required|exists:sanctions,id',
+            'sanction_id' => 'required_without:sanction_ids|exists:sanctions,id',
+            'sanction_ids' => 'required_without:sanction_id|array',
+            'sanction_ids.*' => 'exists:sanctions,id',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'notes' => 'nullable|string',
@@ -279,15 +281,32 @@ class StudentViolationController extends Controller
 
             DB::beginTransaction();
 
-            $sanction = StudentSanction::create([
-                'student_violation_id' => $violation->id,
-                'sanction_id' => $request->sanction_id,
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'status' => 'active',
-                'notes' => $request->notes,
-                'assigned_by' => Auth::user()->staff->id ?? null,
-            ]);
+            $staffId = Auth::user()->staff->id ?? null;
+            $createdSanctions = [];
+
+            if ($request->has('sanction_ids')) {
+                foreach ($request->sanction_ids as $sanctionId) {
+                    $createdSanctions[] = StudentSanction::create([
+                        'student_violation_id' => $violation->id,
+                        'sanction_id' => $sanctionId,
+                        'start_date' => $request->start_date,
+                        'end_date' => $request->end_date,
+                        'status' => 'active',
+                        'notes' => $request->notes,
+                        'assigned_by' => $staffId,
+                    ]);
+                }
+            } else {
+                $createdSanctions[] = StudentSanction::create([
+                    'student_violation_id' => $violation->id,
+                    'sanction_id' => $request->sanction_id,
+                    'start_date' => $request->start_date,
+                    'end_date' => $request->end_date,
+                    'status' => 'active',
+                    'notes' => $request->notes,
+                    'assigned_by' => $staffId,
+                ]);
+            }
 
             // Update status pelanggaran jadi processed
             $violation->update(['status' => 'processed']);
@@ -297,7 +316,7 @@ class StudentViolationController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Sanksi berhasil diberikan',
-                'data' => $sanction->load(['sanction', 'assignedBy'])
+                'data' => count($createdSanctions) === 1 ? $createdSanctions[0]->load(['sanction', 'assignedBy']) : $createdSanctions
             ], 201);
         } catch (Exception $e) {
             DB::rollBack();
