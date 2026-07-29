@@ -54,7 +54,8 @@ class MenuSeeder extends Seeder
             'buat topup', 'verifikasi topup', 'lihat verifikasi libur', 'lihat pengaturan kartu',
             'lihat statistik santri', 'lihat laporan kamtib', 'lihat penanggung jawab magang', 'lihat institusi tugas',
             'buat pemetaan coa', 'lihat pemetaan coa',
-            'buat perjanjian', 'lihat perjanjian', 'ubah perjanjian', 'hapus perjanjian'
+            'buat perjanjian', 'lihat perjanjian', 'ubah perjanjian', 'hapus perjanjian',
+            'buat boyong', 'lihat boyong', 'ubah boyong', 'hapus boyong'
         ];
 
         foreach ($permissions as $name) {
@@ -148,6 +149,7 @@ class MenuSeeder extends Seeder
             'Surat Perjanjian' => ['parent' => 'Manajemen Santri', 'en_title' => 'Agreement', 'route' => '/dashboard/santri/perjanjian', 'icon' => 'file-text', 'order' => 4],
             'Mutasi Asrama' => ['parent' => 'Manajemen Santri', 'en_title' => 'Hostel Mutation', 'route' => '/dashboard/santri/mutasi-asrama', 'icon' => 'arrow-right-left', 'order' => 10],
             'Penempatan Kelas' => ['parent' => 'Manajemen Santri', 'en_title' => 'Class Placement', 'route' => '/dashboard/manajemen-kurikulum/penempatan-kelas', 'icon' => 'user-check', 'order' => 11],
+            'Pengajuan Boyong' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Resignation', 'route' => '/dashboard/santri/boyong', 'icon' => 'log-out', 'order' => 12],
 
             // 12. DATA MASTER SUBMENUS
             'Pekerjaan' => ['parent' => 'Data Master', 'en_title' => 'Occupation', 'route' => '/dashboard/master-data/pekerjaan', 'icon' => 'briefcase', 'order' => 1],

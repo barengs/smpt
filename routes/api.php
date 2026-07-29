@@ -48,6 +48,7 @@ use App\Http\Controllers\Api\Main\StudentCardController;
 use App\Http\Controllers\Api\Main\StudentCardSettingController;
 use App\Http\Controllers\Api\Main\ParentController;
 use App\Http\Controllers\Api\Main\ClassScheduleController;
+use App\Http\Controllers\Api\Main\StudentResignationController;
 use App\Http\Controllers\Api\Main\StudentClassController;
 use App\Http\Controllers\Api\Main\EducationalInstitutionController;
 use App\Http\Controllers\Api\Main\TransactionTypeController;
@@ -348,10 +349,12 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('parent/nik/{nik}', [ParentController::class, 'getByNik']);
 
     // Class Schedule
-    // Class Schedule
     Route::get('class-schedule/export', [ClassScheduleController::class, 'export']);
     Route::get('class-schedule/backup', [ClassScheduleController::class, 'backup']);
     Route::apiResource('class-schedule', ClassScheduleController::class);
+
+    // Student Resignation (Boyong)
+    Route::apiResource('student-resignations', StudentResignationController::class);
 
     // Student Class
     Route::get('student-class/class-group/{classGroupId}/students', [StudentClassController::class, 'getStudentsMappedToClassGroups']);

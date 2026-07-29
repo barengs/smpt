@@ -68,4 +68,9 @@ class Student extends Model
     {
         return $this->hasOne(StudentAgreement::class);
     }
+
+    public function resignations()
+    {
+        return $this->hasMany(StudentResignation::class);
+    }
 }
