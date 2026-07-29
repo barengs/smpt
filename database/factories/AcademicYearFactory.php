@@ -30,8 +30,6 @@ class AcademicYearFactory extends Factory
 
         return [
             'year' => $year . '/' . ($year + 1),
-            'type' => fake()->randomElement(['semester', 'triwulan']),
-            'periode' => fake()->randomElement(['ganjil', 'genap', 'pendek', 'cawu 1', 'cawu 2', 'cawu 3']),
             'start_date' => $startDate,
             'end_date' => $endDate,
             'active' => fake()->boolean(),

@@ -217,6 +217,10 @@ class ClassScheduleController extends Controller
         try {
             $schedule = ClassSchedule::findOrFail($id);
 
+            if ($schedule->status === 'active') {
+                return new ClassScheduleResource('Jadwal yang sudah aktif/terbit tidak dapat diubah', null, 403);
+            }
+
             DB::beginTransaction();
 
             // Update the schedule header
@@ -301,6 +305,10 @@ class ClassScheduleController extends Controller
     {
         try {
             $schedule = ClassSchedule::findOrFail($id);
+
+            if ($schedule->status === 'active') {
+                return new ClassScheduleResource('Jadwal yang sudah aktif/terbit tidak dapat dihapus', null, 403);
+            }
 
             DB::beginTransaction();
 
