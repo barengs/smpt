@@ -214,10 +214,18 @@ Route::group(['prefix' => 'master'], function () {
     Route::apiResource('organization', OrganizationController::class);
 
     // Position routes
+    Route::get('position/export', [PositionController::class, 'export']);
+    Route::get('position/backup', [PositionController::class, 'backup']);
+    Route::post('position/import', [PositionController::class, 'import']);
+    Route::get('position/import/template', [PositionController::class, 'downloadTemplate']);
     Route::apiResource('position', PositionController::class);
     Route::get('position/organization/{organizationId}', [PositionController::class, 'getByOrganization']);
 
     // Position Assignment routes
+    Route::get('position-assignment/export', [PositionAssignmentController::class, 'export']);
+    Route::get('position-assignment/backup', [PositionAssignmentController::class, 'backup']);
+    Route::post('position-assignment/import', [PositionAssignmentController::class, 'import']);
+    Route::get('position-assignment/import/template', [PositionAssignmentController::class, 'downloadTemplate']);
     Route::apiResource('position-assignment', PositionAssignmentController::class);
     Route::get('position-assignment/current', [PositionAssignmentController::class, 'getCurrent']);
     Route::get('position-assignment/staff/{staffId}', [PositionAssignmentController::class, 'getByStaff']);
@@ -367,6 +375,8 @@ Route::group(['prefix' => 'main'], function () {
     // Educational Institution
     Route::get('educational-institution/export', [EducationalInstitutionController::class, 'export']);
     Route::get('educational-institution/backup', [EducationalInstitutionController::class, 'backup']);
+    Route::post('educational-institution/import', [EducationalInstitutionController::class, 'import']);
+    Route::get('educational-institution/import/template', [EducationalInstitutionController::class, 'downloadTemplate']);
     Route::apiResource('educational-institution', EducationalInstitutionController::class);
 
     // Internship

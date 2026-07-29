@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\QueryException;
 use Exception;
+use App\Imports\PositionImport;
+use App\Exports\PositionReadableExport;
+use App\Exports\PositionBackupExport;
+use App\Exports\PositionTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 
 class PositionController extends Controller
 {
@@ -128,6 +134,95 @@ class PositionController extends Controller
             return new PositionResource('Data jabatan berhasil diambil', $positions, 200);
         } catch (Exception $e) {
             return new PositionResource('Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Export positions to Excel (Readable)
+     */
+    public function export()
+    {
+        try {
+            return Excel::download(new PositionReadableExport, 'laporan_jabatan_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        } catch (\Exception $e) {
+            Log::error('Position Export error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Backup positions to CSV (Raw)
+     */
+    public function backup()
+    {
+        try {
+            return Excel::download(new PositionBackupExport, 'backup_jabatan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        } catch (\Exception $e) {
+            Log::error('Position Backup error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Import positions from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv,txt|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $import = new PositionImport();
+            
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => true,
+                'message' => $successCount > 0 ? 'Import completed' : 'Import failed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'errors' => $errors,
+                ]
+            ];
+
+            if ($failureCount > 0) {
+                $response['message'] = $successCount > 0 ? 'Import completed with some errors' : 'Import failed with errors';
+            }
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            Log::error('Position Import error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengimpor file: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for position import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new PositionTemplateExport,
+                'position_import_template.xlsx',
+                \Maatwebsite\Excel\Excel::XLSX
+            );
+        } catch (\Exception $e) {
+            Log::error('Position Template download error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

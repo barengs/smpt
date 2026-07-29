@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
 use Exception;
+use App\Imports\PositionAssignmentImport;
+use App\Exports\PositionAssignmentReadableExport;
+use App\Exports\PositionAssignmentBackupExport;
+use App\Exports\PositionAssignmentTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 
 class PositionAssignmentController extends Controller
 {
@@ -200,6 +206,95 @@ class PositionAssignmentController extends Controller
             return new PositionAssignmentResource('Data penugasan berhasil diambil', $assignments, 200);
         } catch (Exception $e) {
             return new PositionAssignmentResource('Terjadi kesalahan: ' . $e->getMessage(), null, 500);
+        }
+    }
+
+    /**
+     * Export position assignments to Excel (Readable)
+     */
+    public function export()
+    {
+        try {
+            return Excel::download(new PositionAssignmentReadableExport, 'laporan_kepengurusan_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        } catch (\Exception $e) {
+            Log::error('Position Assignment Export error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Backup position assignments to CSV (Raw)
+     */
+    public function backup()
+    {
+        try {
+            return Excel::download(new PositionAssignmentBackupExport, 'backup_kepengurusan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        } catch (\Exception $e) {
+            Log::error('Position Assignment Backup error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Import position assignments from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv,txt|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $import = new PositionAssignmentImport();
+            
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => true,
+                'message' => $successCount > 0 ? 'Import completed' : 'Import failed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'errors' => $errors,
+                ]
+            ];
+
+            if ($failureCount > 0) {
+                $response['message'] = $successCount > 0 ? 'Import completed with some errors' : 'Import failed with errors';
+            }
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            Log::error('Position Assignment Import error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengimpor file: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for position assignment import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new PositionAssignmentTemplateExport,
+                'position_assignment_import_template.xlsx',
+                \Maatwebsite\Excel\Excel::XLSX
+            );
+        } catch (\Exception $e) {
+            Log::error('Position Assignment Template download error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

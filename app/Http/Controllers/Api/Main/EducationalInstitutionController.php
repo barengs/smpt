@@ -9,6 +9,9 @@ use App\Models\EducationalInstitution;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Imports\EducationalInstitutionsImport;
+use App\Exports\EducationalInstitutionTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EducationalInstitutionController extends Controller
 {
@@ -136,5 +139,69 @@ class EducationalInstitutionController extends Controller
     public function backup()
     {
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\EducationalInstitutionBackupExport, 'backup_institusi_pendidikan_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+    }
+
+    /**
+     * Import educational institutions from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv,txt|max:10240',
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $import = new EducationalInstitutionsImport();
+            
+            Excel::import($import, $file);
+
+            $errors = $import->getErrors();
+            $successCount = $import->getSuccessCount();
+            $failureCount = $import->getFailureCount();
+
+            $response = [
+                'success' => true,
+                'message' => $successCount > 0 ? 'Import completed' : 'Import failed',
+                'data' => [
+                    'success_count' => $successCount,
+                    'failure_count' => $failureCount,
+                    'errors' => $errors,
+                ]
+            ];
+
+            if ($failureCount > 0) {
+                $response['message'] = $successCount > 0 ? 'Import completed with some errors' : 'Import failed with errors';
+                return response()->json($response, 200);
+            }
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            Log::error('Import error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengimpor file: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Download Excel template for educational institution import
+     */
+    public function downloadTemplate()
+    {
+        try {
+            return Excel::download(
+                new EducationalInstitutionTemplateExport,
+                'educational_institution_import_template.xlsx',
+                \Maatwebsite\Excel\Excel::XLSX
+            );
+        } catch (\Exception $e) {
+            Log::error('Template download error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengunduh template: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

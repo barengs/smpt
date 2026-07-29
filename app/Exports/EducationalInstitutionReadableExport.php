@@ -27,13 +27,13 @@ class EducationalInstitutionReadableExport implements FromCollection, WithHeadin
     public function map($institution): array
     {
         return [
-            $institution->name,
-            $institution->email,
-            $institution->website,
-            $institution->phone_number,
-            $institution->headmaster ? $institution->headmaster->full_name : '-',
+            $institution->institution_name,
+            $institution->institution_email,
+            $institution->institution_website,
+            $institution->institution_phone,
+            $institution->headmaster ? trim($institution->headmaster->first_name . ' ' . $institution->headmaster->last_name) : '-',
             $institution->education ? $institution->education->name : '-',
-            $institution->address,
+            $institution->institution_address,
         ];
     }
 
