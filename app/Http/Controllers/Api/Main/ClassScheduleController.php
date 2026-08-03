@@ -17,6 +17,8 @@ use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
+use App\Services\DataScopeService;
+use Illuminate\Support\Facades\Auth;
 
 class ClassScheduleController extends Controller
 {
@@ -27,6 +29,16 @@ class ClassScheduleController extends Controller
     {
         try {
             $query = ClassSchedule::query();
+
+            // Scope: filter jadwal berdasarkan institusi yang dapat diakses
+            $institutionIds = DataScopeService::getInstitutionIds(Auth::user());
+            if ($institutionIds !== null) {
+                if (empty($institutionIds)) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->whereIn('educational_institution_id', $institutionIds);
+                }
+            }
 
             // Filter by academic year
             if ($request->has('academic_year_id')) {

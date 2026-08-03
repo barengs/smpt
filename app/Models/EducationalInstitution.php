@@ -22,6 +22,10 @@ class EducationalInstitution extends Model
         return $this->belongsTo(Education::class, 'education_id');
     }
 
+    public function program()
+    {
+        return $this->belongsTo(Program::class);
+    }
     /**
      * Get the education class that owns the educational institution.
      */

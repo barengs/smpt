@@ -304,6 +304,9 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('staff/role-categories', [StaffController::class, 'getRoleCategories'])->name('staff.role-categories');
     Route::post('roles/{id}/sync-access', [RoleMenuController::class, 'syncRoleAccess'])->name('roles.sync-access');
     Route::post('staff/check-nik', [StaffController::class, 'checkNik'])->name('staff.check-nik');
+    Route::post('staff/{id}/sync-programs', [StaffController::class, 'syncPrograms'])->name('staff.sync-programs');
+    Route::get('staff/{id}/programs', [StaffController::class, 'getPrograms'])->name('staff.programs');
+
 
     Route::post('/{id}/restore', [StaffController::class, 'restore']);
     Route::delete('/{id}/force-delete', [StaffController::class, 'forceDelete']);

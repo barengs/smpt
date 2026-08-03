@@ -20,6 +20,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\StudentsImport;
 use App\Exports\StudentTemplateExport;
 use Illuminate\Support\Facades\Http;
+use App\Services\DataScopeService;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @tags Student Management
@@ -41,6 +43,10 @@ class StudentController extends Controller
             $sortOrder = $request->query('sort_order', 'desc');
 
             $query = Student::with(['program', 'hostel', 'parents']);
+
+            // Scope berdasarkan program yang dapat diakses user
+            $programIds = DataScopeService::getProgramIds(Auth::user());
+            DataScopeService::applyProgramScope($query, $programIds);
 
             if ($search) {
                 $query->where(function ($q) use ($search) {

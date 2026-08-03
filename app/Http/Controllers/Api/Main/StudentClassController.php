@@ -13,6 +13,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\StudentClassRequest;
 use App\Http\Resources\StudentClassResource;
+use App\Services\DataScopeService;
 
 class StudentClassController extends Controller
 {
@@ -23,6 +24,10 @@ class StudentClassController extends Controller
     {
         try {
             $query = StudentClass::with(['academicYears:id,year', 'educations:id,institution_name', 'students:id,first_name,last_name', 'classrooms:id,name', 'classGroup:id,name']);
+
+            // Scope: filter penempatan kelas berdasarkan institusi yang dapat diakses
+            $institutionIds = DataScopeService::getInstitutionIds(Auth::user());
+            DataScopeService::applyInstitutionScope($query, $institutionIds);
 
             // Filter by academic year if provided
             if ($request->filled('academic_year_id')) {

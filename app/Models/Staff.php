@@ -92,4 +92,9 @@ class Staff extends Model
     {
         return $this->belongsToMany(EducationalInstitution::class, 'staff_educational_institutions', 'staff_id', 'educational_institution_id');
     }
+
+    public function programs()
+    {
+        return $this->belongsToMany(Program::class, 'staff_programs');
+    }
 }

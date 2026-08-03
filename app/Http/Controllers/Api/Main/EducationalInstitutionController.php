@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 use App\Imports\EducationalInstitutionsImport;
 use App\Exports\EducationalInstitutionTemplateExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Services\DataScopeService;
+use Illuminate\Support\Facades\Auth;
 
 class EducationalInstitutionController extends Controller
 {
@@ -21,7 +23,18 @@ class EducationalInstitutionController extends Controller
     public function index()
     {
         try {
-            $educationalInstitutions = EducationalInstitution::with(['education', 'educationClass', 'headmaster'])->get();
+            $query = EducationalInstitution::with(['education', 'educationClass', 'headmaster', 'program']);
+
+            // Scope: hanya tampilkan institusi yang dapat diakses user
+            $institutionIds = DataScopeService::getInstitutionIds(Auth::user());
+            if ($institutionIds !== null) {
+                if (empty($institutionIds)) {
+                    return new EducationalInstitutionResource('Data institusi pendidikan berhasil diambil', collect([]), 200);
+                }
+                $query->whereIn('id', $institutionIds);
+            }
+
+            $educationalInstitutions = $query->get();
             return new EducationalInstitutionResource('Data institusi pendidikan berhasil diambil', $educationalInstitutions, 200);
         } catch (\Exception $e) {
             Log::error('Error retrieving educational institutions: ' . $e->getMessage());

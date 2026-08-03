@@ -20,6 +20,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Imports\StaffsImport;
 use App\Exports\StaffTemplateExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Services\DataScopeService;
+use Illuminate\Support\Facades\Auth;
 
 class StaffController extends Controller
 {
@@ -37,6 +39,23 @@ class StaffController extends Controller
             $sortOrder = $request->query('sort_order', 'desc');
 
             $query = User::whereHas('staff')->with(['staff', 'roles']);
+
+            // Scope: filter staff berdasarkan institusi yang dapat diakses
+            $institutionIds = DataScopeService::getInstitutionIds(Auth::user());
+            if ($institutionIds !== null) {
+                if (empty($institutionIds)) {
+                    $query->whereRaw('1 = 0');
+                } else {
+                    $query->whereHas('staff', function ($q) use ($institutionIds) {
+                        $q->whereHas('educationalInstitutions', function ($sq) use ($institutionIds) {
+                            $sq->whereIn('educational_institutions.id', $institutionIds);
+                        })->orWhereHas('positionAssignments.position.organization', function ($sq) use ($institutionIds) {
+                            $sq->whereIn('educational_institution_id', $institutionIds);
+                        });
+                    });
+                }
+            }
+
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
@@ -93,8 +112,6 @@ class StaffController extends Controller
             'roles' => 'required',
             'birth_place' => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
-            'educational_institution_ids' => 'nullable|array',
-            'educational_institution_ids.*' => 'exists:educational_institutions,id',
         ]);
 
 
@@ -155,10 +172,6 @@ class StaffController extends Controller
                 'photo' => $fileName ?? null,
             ]);
 
-            if ($request->has('educational_institution_ids')) {
-                $staff->educationalInstitutions()->sync($request->educational_institution_ids);
-            }
-
             DB::commit();
 
             // Load the user relationship
@@ -187,7 +200,7 @@ class StaffController extends Controller
     {
         try {
             // Load staff with user and roles information
-            $staff = Staff::with(['user.roles'])->find($id);
+            $staff = Staff::with(['user.roles', 'educationalInstitutions', 'programs'])->find($id);
 
             if (!$staff) {
                 return new StaffResource('Staff not found', null, 404);
@@ -234,8 +247,6 @@ class StaffController extends Controller
                 'roles' => 'sometimes|required',
                 'birth_place' => 'nullable|string|max:255',
                 'birth_date' => 'nullable|date',
-                'educational_institution_ids' => 'nullable|array',
-                'educational_institution_ids.*' => 'exists:educational_institutions,id',
             ]);
 
             // Return validation errors if any
@@ -296,10 +307,6 @@ class StaffController extends Controller
                 'job_id' => $request->job_id ?? $staff->job_id,
                 'photo' => $photoPath,
             ]);
-
-            if ($request->has('educational_institution_ids')) {
-                $staff->educationalInstitutions()->sync($request->educational_institution_ids);
-            }
 
             // Update roles if provided
             if ($request->has('roles')) {
@@ -972,4 +979,62 @@ class StaffController extends Controller
             return new StaffResource('Failed to download template', ['message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Sync program assignments untuk staff.
+     * POST /main/staff/{id}/sync-programs
+     * Body: { "program_ids": [1, 2] }
+     */
+    public function syncPrograms(Request $request, string $id)
+    {
+        try {
+            $user = User::with('staff')->findOrFail($id);
+            $staff = $user->staff;
+
+            if (! $staff) {
+                return response()->json(['status' => 'error', 'message' => 'Staff tidak ditemukan'], 404);
+            }
+
+            $request->validate([
+                'program_ids'   => 'required|array',
+                'program_ids.*' => 'exists:programs,id',
+            ]);
+
+            $staff->programs()->sync($request->program_ids);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Program staff berhasil diperbarui',
+                'data'    => $staff->programs()->get(['programs.id', 'programs.name']),
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['status' => 'error', 'message' => 'Validasi gagal', 'errors' => $e->errors()], 422);
+        } catch (Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Ambil daftar program yang ditugaskan ke staff.
+     * GET /main/staff/{id}/programs
+     */
+    public function getPrograms(string $id)
+    {
+        try {
+            $user = User::with('staff.programs')->findOrFail($id);
+            $staff = $user->staff;
+
+            if (! $staff) {
+                return response()->json(['status' => 'error', 'message' => 'Staff tidak ditemukan'], 404);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $staff->programs()->get(['programs.id', 'programs.name', 'programs.description']),
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
 }
+

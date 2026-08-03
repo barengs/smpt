@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Exception;
+use App\Services\DataScopeService;
 
 class StudentLeaveController extends Controller
 {
@@ -49,6 +50,10 @@ class StudentLeaveController extends Controller
                 'report',
                 'penalties'
             ]);
+
+            // Scope: filter izin berdasarkan program santri
+            $programIds = DataScopeService::getProgramIds(Auth::user());
+            DataScopeService::applyStudentProgramScope($query, $programIds);
 
             if ($request->has('leave_number')) {
                 $query->where('leave_number', 'LIKE', '%' . $request->leave_number . '%');

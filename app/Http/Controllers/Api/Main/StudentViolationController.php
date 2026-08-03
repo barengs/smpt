@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\StudentViolationsReportExport;
 use Exception;
+use App\Services\DataScopeService;
 
 class StudentViolationController extends Controller
 {
@@ -35,6 +36,10 @@ class StudentViolationController extends Controller
                 'reporter:id,first_name,last_name',
                 'sanctions.sanction'
             ]);
+
+            // Scope: filter pelanggaran berdasarkan program santri
+            $programIds = DataScopeService::getProgramIds(Auth::user());
+            DataScopeService::applyStudentProgramScope($query, $programIds);
 
             if ($request->has('student_id')) {
                 $query->where('student_id', $request->student_id);

@@ -16,4 +16,14 @@ class Program extends Model
     {
         return $this->hasMany(Hostel::class);
     }
+
+    public function institutions()
+    {
+        return $this->hasMany(EducationalInstitution::class);
+    }
+
+    public function staff()
+    {
+        return $this->belongsToMany(Staff::class, 'staff_programs');
+    }
 }

@@ -66,9 +66,12 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [
-            'email' => $this->email,
-            'name'  => $this->name,
-            'role'  => $this->getRoleNames()->first() ?? 'staf',
+            'email'                      => $this->email,
+            'name'                       => $this->name,
+            'role'                       => $this->getRoleNames()->first() ?? 'staf',
+            'is_super_admin'             => $this->isSuperAdmin(),
+            'accessible_institution_ids' => $this->getAccessibleInstitutionIds(),
+            'accessible_program_ids'     => $this->getAccessibleProgramIds(),
         ];
     }
 
@@ -92,5 +95,88 @@ class User extends Authenticatable implements JWTSubject
         return \App\Models\Menu::whereHas('roles', function ($query) use ($roleIds) {
             $query->whereIn('roles.id', $roleIds);
         })->with('child', 'permissions')->get();
+    }
+
+    /**
+     * True jika user adalah sysadmin (bypass semua scope data).
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('superadmin')
+            || $this->hasRole('sysadmin')
+            || $this->roles()->where('category', 'super')->exists();
+    }
+
+    /**
+     * IDs institusi yang dapat diakses. null = semua (sysadmin / staf pusat).
+     */
+    public function getAccessibleInstitutionIds(): ?array
+    {
+        if ($this->isSuperAdmin()) {
+            return null;
+        }
+
+        $staff = $this->staff;
+        if (! $staff) {
+            return [];
+        }
+
+        $assignments = $staff->positionAssignments()->where('is_active', true)->with('position.organization')->get();
+
+        // Jika ada jabatan di organisasi TANPA institusi -> Bypass (Akses Semua)
+        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id))) {
+            return null;
+        }
+
+        // Dari Jabatan (Otomatis)
+        $fromJob = $assignments->pluck('position.organization.educational_institution_id')->filter()->toArray();
+
+        // Institusi via program yang ditugaskan (Manual fallback)
+        $viaProgram = $staff->programs()
+            ->with('institutions:id,program_id')
+            ->get()
+            ->pluck('institutions')
+            ->flatten()
+            ->pluck('id')
+            ->toArray();
+
+        // Institusi yang ditugaskan langsung (Manual fallback)
+        $direct = $staff->educationalInstitutions()->pluck('educational_institutions.id')->toArray();
+
+        return array_values(array_unique(array_merge($fromJob, $viaProgram, $direct)));
+    }
+
+    /**
+     * IDs program yang dapat diakses. null = semua (sysadmin / staf pusat).
+     */
+    public function getAccessibleProgramIds(): ?array
+    {
+        if ($this->isSuperAdmin()) {
+            return null;
+        }
+
+        $staff = $this->staff;
+        if (! $staff) {
+            return [];
+        }
+
+        $assignments = $staff->positionAssignments()->where('is_active', true)->with('position.organization.educationalInstitution')->get();
+
+        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id))) {
+            return null;
+        }
+
+        $fromJob = $assignments->pluck('position.organization.educationalInstitution.program_id')->filter()->toArray();
+
+        // Program langsung
+        $direct = $staff->programs()->pluck('programs.id')->toArray();
+
+        // Program dari institusi yang ditugaskan langsung
+        $viaInst = $staff->educationalInstitutions()
+            ->whereNotNull('program_id')
+            ->pluck('program_id')
+            ->toArray();
+
+        return array_values(array_unique(array_merge($fromJob, $direct, $viaInst)));
     }
 }
