@@ -123,13 +123,19 @@ class User extends Authenticatable implements JWTSubject
 
         $assignments = $staff->positionAssignments()->where('is_active', true)->with('position.organization')->get();
 
-        // Jika ada jabatan di organisasi TANPA institusi -> Bypass (Akses Semua)
-        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id))) {
+        // 1. Level Pusat (Tanpa Institusi & Tanpa Program) -> Bypass (Akses Semua)
+        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id) && is_null($a->position->organization->program_id))) {
             return null;
         }
 
-        // Dari Jabatan (Otomatis)
-        $fromJob = $assignments->pluck('position.organization.educational_institution_id')->filter()->toArray();
+        // 2. Level Institusi
+        $fromInstJob = $assignments->pluck('position.organization.educational_institution_id')->filter()->toArray();
+
+        // 3. Level Program (Bisa lihat semua institusi di bawah programnya)
+        $programIdsFromJob = $assignments->pluck('position.organization.program_id')->filter()->toArray();
+        $fromProgJobInsts = \App\Models\EducationalInstitution::whereIn('program_id', $programIdsFromJob)->pluck('id')->toArray();
+
+        $fromJob = array_merge($fromInstJob, $fromProgJobInsts);
 
         // Institusi via program yang ditugaskan (Manual fallback)
         $viaProgram = $staff->programs()
@@ -162,11 +168,17 @@ class User extends Authenticatable implements JWTSubject
 
         $assignments = $staff->positionAssignments()->where('is_active', true)->with('position.organization.educationalInstitution')->get();
 
-        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id))) {
+        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id) && is_null($a->position->organization->program_id))) {
             return null;
         }
 
-        $fromJob = $assignments->pluck('position.organization.educationalInstitution.program_id')->filter()->toArray();
+        // Program dari institusi jabatan
+        $fromInstJob = $assignments->pluck('position.organization.educationalInstitution.program_id')->filter()->toArray();
+
+        // Program dari organisasi level program
+        $fromProgJob = $assignments->pluck('position.organization.program_id')->filter()->toArray();
+
+        $fromJob = array_merge($fromInstJob, $fromProgJob);
 
         // Program langsung
         $direct = $staff->programs()->pluck('programs.id')->toArray();

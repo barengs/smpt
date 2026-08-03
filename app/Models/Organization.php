@@ -35,4 +35,9 @@ class Organization extends Model
     {
         return $this->belongsTo(EducationalInstitution::class, 'educational_institution_id');
     }
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class, 'program_id');
+    }
 }
