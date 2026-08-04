@@ -121,7 +121,7 @@ class User extends Authenticatable implements JWTSubject
             return [];
         }
 
-        $assignments = $staff->positionAssignments()->where('is_active', true)->with('position.organization')->get();
+        $assignments = $staff->assignments()->where('is_active', true)->with('position.organization')->get();
 
         // 1. Level Pusat (Tanpa Institusi & Tanpa Program) -> Bypass (Akses Semua)
         if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id) && is_null($a->position->organization->program_id))) {
@@ -166,7 +166,7 @@ class User extends Authenticatable implements JWTSubject
             return [];
         }
 
-        $assignments = $staff->positionAssignments()->where('is_active', true)->with('position.organization.educationalInstitution')->get();
+        $assignments = $staff->assignments()->where('is_active', true)->with('position.organization.educationalInstitution')->get();
 
         if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id) && is_null($a->position->organization->program_id))) {
             return null;
