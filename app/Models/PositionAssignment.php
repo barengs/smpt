@@ -9,6 +9,27 @@ class PositionAssignment extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        $syncInstitutions = function ($assignment) {
+            if ($assignment->staff_id && $assignment->is_active) {
+                // Ensure relations are loaded or accessible
+                $assignment->loadMissing('position.organization');
+                if ($assignment->position && $assignment->position->organization && $assignment->position->organization->educational_institution_id) {
+                    $staff = Staff::find($assignment->staff_id);
+                    if ($staff) {
+                        $staff->educationalInstitutions()->syncWithoutDetaching([
+                            $assignment->position->organization->educational_institution_id
+                        ]);
+                    }
+                }
+            }
+        };
+
+        static::created($syncInstitutions);
+        static::updated($syncInstitutions);
+    }
+
     protected $guarded = ['id'];
 
     protected $casts = [
