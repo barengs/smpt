@@ -44,6 +44,8 @@ class MenuSeeder extends Seeder
             'buat penugasan guru', 'lihat penugasan guru', 'ubah penugasan guru', 'hapus penugasan guru',
             'buat presensi', 'lihat presensi', 'ubah presensi', 'hapus presensi',
             'buat pelanggaran', 'lihat pelanggaran', 'ubah pelanggaran', 'hapus pelanggaran',
+            'buat sanksi', 'lihat sanksi', 'ubah sanksi', 'hapus sanksi',
+            'buat jenis sanksi', 'lihat jenis sanksi', 'ubah jenis sanksi', 'hapus jenis sanksi',
             'buat perizinan', 'lihat perizinan', 'ubah perizinan', 'hapus perizinan',
             'buat libur', 'lihat libur', 'ubah libur', 'hapus libur',
             'buat pekerjaan', 'lihat pekerjaan', 'ubah pekerjaan', 'hapus pekerjaan',
@@ -118,12 +120,13 @@ class MenuSeeder extends Seeder
             // 7. KAMTIB SUBMENUS
             'Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 1],
             'Kategori Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation Category', 'route' => '/dashboard/manajemen-kamtib/kategori-pelanggaran', 'icon' => 'tags', 'order' => 2],
-            'Sanksi' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Sanction', 'route' => '/dashboard/manajemen-kamtib/sanksi', 'icon' => 'gavel', 'order' => 3],
-            'Perizinan' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Permit', 'route' => '/dashboard/manajemen-kamtib/perizinan', 'icon' => 'calendar-check', 'order' => 4],
-            'Tipe Izin' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Permit Type', 'route' => '/dashboard/manajemen-kamtib/tipe-izin', 'icon' => 'clipboard', 'order' => 5],
-            'Laporan Kamtib' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Security Report', 'route' => '/dashboard/manajemen-kamtib/laporan', 'icon' => 'files', 'order' => 6],
-            'Manajemen Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Management', 'route' => '/dashboard/manajemen-kamtib/manajemen-libur', 'icon' => 'calendar', 'order' => 7],
-            'Verifikasi Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Verification', 'route' => '/dashboard/manajemen-kamtib/libur-verifikasi', 'icon' => 'qr-code', 'order' => 10],
+            'Jenis Sanksi' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Sanction Type', 'route' => '/dashboard/manajemen-kamtib/jenis-sanksi', 'icon' => 'bookmark', 'order' => 3],
+            'Sanksi' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Sanction', 'route' => '/dashboard/manajemen-kamtib/sanksi', 'icon' => 'gavel', 'order' => 4],
+            'Perizinan' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Permit', 'route' => '/dashboard/manajemen-kamtib/perizinan', 'icon' => 'calendar-check', 'order' => 5],
+            'Tipe Izin' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Permit Type', 'route' => '/dashboard/manajemen-kamtib/tipe-izin', 'icon' => 'clipboard', 'order' => 6],
+            'Laporan Kamtib' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Security Report', 'route' => '/dashboard/manajemen-kamtib/laporan', 'icon' => 'files', 'order' => 7],
+            'Manajemen Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Management', 'route' => '/dashboard/manajemen-kamtib/manajemen-libur', 'icon' => 'calendar', 'order' => 8],
+            'Verifikasi Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Verification', 'route' => '/dashboard/manajemen-kamtib/libur-verifikasi', 'icon' => 'qr-code', 'order' => 9],
 
             // 8. KEPESANTRENAN SUBMENUS
             'Asrama' => ['parent' => 'Kepesantrenan', 'en_title' => 'Hostel', 'route' => '/dashboard/pendidikan/asrama', 'icon' => 'home', 'order' => 1],
@@ -208,5 +211,8 @@ class MenuSeeder extends Seeder
                 );
             }
         }
+
+        // Call PermissionMatrixSeeder to auto-generate scoped permissions for all menus
+        $this->call(PermissionMatrixSeeder::class);
     }
 }
