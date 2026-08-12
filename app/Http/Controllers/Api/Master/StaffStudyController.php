@@ -10,21 +10,50 @@ use App\Http\Controllers\Controller;
 class StaffStudyController extends Controller
 {
     /**
-     * Display a listing of staff with their assigned studies
+     * Display a listing of staff with their assigned studies.
+     *
+     * Filter guru yang terkait dengan satu institusi pendidikan tertentu.
+     * Sumber keterkaitan guru ke institusi ada DUA jalur:
+     *   Jalur 1 — Direct pivot: staff_educational_institutions
+     *             (di-sync otomatis oleh PositionAssignment::booted)
+     *   Jalur 2 — Struktur Organisasi: position_assignments (is_active=true)
+     *             → positions → organizations (educational_institution_id)
+     *
+     * Menggunakan union kedua jalur agar data lama (sebelum auto-sync)
+     * tetap terjangkau tanpa perlu migrasi data.
+     *
+     * @queryParam educational_institution_id int Filter berdasarkan institusi pendidikan.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $staffWithStudies = Staff::with('studies', 'user', 'educationalInstitutions')
-                ->whereHas('user', function ($query) {
-                    $query->role('asatidz')->orWhere->role('walikelas');
-                })
-                ->get();
+            $query = Staff::with('studies', 'user.roles', 'educationalInstitutions')
+                ->whereHas('user', function ($q) {
+                    $q->role('asatidz')->orWhere->role('walikelas');
+                });
+
+            if ($request->filled('educational_institution_id')) {
+                $instId = (int) $request->educational_institution_id;
+
+                $query->where(function ($q) use ($instId) {
+                    // Jalur 1: pivot staff_educational_institutions (hasil auto-sync PositionAssignment)
+                    $q->whereHas('educationalInstitutions', function ($sq) use ($instId) {
+                        $sq->where('educational_institutions.id', $instId);
+                    })
+                    // Jalur 2: PositionAssignment aktif → Position → Organization → institusi
+                    ->orWhereHas('assignments', function ($sq) use ($instId) {
+                        $sq->where('is_active', true)
+                            ->whereHas('position.organization', function ($osq) use ($instId) {
+                                $osq->where('educational_institution_id', $instId);
+                            });
+                    });
+                });
+            }
 
             return response()->json([
                 'message' => 'Success',
                 'status' => 200,
-                'data' => $staffWithStudies
+                'data' => $query->get()
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
