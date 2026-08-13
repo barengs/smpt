@@ -108,6 +108,35 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Helper recursive to find educational_institution_id from organization tree
+     */
+    private function resolveInstitutionId($org)
+    {
+        if (!$org) return null;
+        if ($org->educational_institution_id) return $org->educational_institution_id;
+        // Lazy load parent if not loaded
+        if (!$org->relationLoaded('parent')) $org->load('parent');
+        if ($org->parent) return $this->resolveInstitutionId($org->parent);
+        return null;
+    }
+
+    /**
+     * Helper recursive to find program_id from organization tree
+     */
+    private function resolveProgramId($org)
+    {
+        if (!$org) return null;
+        if ($org->program_id) return $org->program_id;
+        if ($org->educationalInstitution && $org->educationalInstitution->program_id) {
+            return $org->educationalInstitution->program_id;
+        }
+        // Lazy load parent if not loaded
+        if (!$org->relationLoaded('parent')) $org->load('parent');
+        if ($org->parent) return $this->resolveProgramId($org->parent);
+        return null;
+    }
+
+    /**
      * IDs institusi yang dapat diakses. null = semua (sysadmin / staf pusat).
      */
     public function getAccessibleInstitutionIds(): ?array
@@ -123,17 +152,34 @@ class User extends Authenticatable implements JWTSubject
 
         $assignments = $staff->assignments()->where('is_active', true)->with('position.organization')->get();
 
-        // 1. Level Pusat (Tanpa Institusi & Tanpa Program) -> Bypass (Akses Semua)
-        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id) && is_null($a->position->organization->program_id))) {
-            return null;
+        // 1. Resolve institution IDs for all active assignments
+        $fromInstJob = [];
+        $fromProgJobInsts = [];
+        $isPusat = false;
+
+        foreach ($assignments as $a) {
+            $org = $a->position ? $a->position->organization : null;
+            if (!$org) continue;
+
+            $instId = $this->resolveInstitutionId($org);
+            $progId = $this->resolveProgramId($org);
+
+            if (is_null($instId) && is_null($progId)) {
+                $isPusat = true; // No inst and no program -> level pusat
+                break;
+            }
+
+            if ($instId) $fromInstJob[] = $instId;
+            if ($progId) {
+                // If they have a program scope, they can access all institutions in that program
+                $insts = \App\Models\EducationalInstitution::where('program_id', $progId)->pluck('id')->toArray();
+                $fromProgJobInsts = array_merge($fromProgJobInsts, $insts);
+            }
         }
 
-        // 2. Level Institusi
-        $fromInstJob = $assignments->pluck('position.organization.educational_institution_id')->filter()->toArray();
-
-        // 3. Level Program (Bisa lihat semua institusi di bawah programnya)
-        $programIdsFromJob = $assignments->pluck('position.organization.program_id')->filter()->toArray();
-        $fromProgJobInsts = \App\Models\EducationalInstitution::whereIn('program_id', $programIdsFromJob)->pluck('id')->toArray();
+        if ($isPusat) {
+            return null;
+        }
 
         $fromJob = array_merge($fromInstJob, $fromProgJobInsts);
 
@@ -168,15 +214,37 @@ class User extends Authenticatable implements JWTSubject
 
         $assignments = $staff->assignments()->where('is_active', true)->with('position.organization.educationalInstitution')->get();
 
-        if ($assignments->contains(fn($a) => $a->position && $a->position->organization && is_null($a->position->organization->educational_institution_id) && is_null($a->position->organization->program_id))) {
-            return null;
+        $fromInstJob = [];
+        $fromProgJob = [];
+        $isPusat = false;
+
+        foreach ($assignments as $a) {
+            $org = $a->position ? $a->position->organization : null;
+            if (!$org) continue;
+
+            $instId = $this->resolveInstitutionId($org);
+            $progId = $this->resolveProgramId($org);
+
+            if (is_null($instId) && is_null($progId)) {
+                $isPusat = true;
+                break;
+            }
+
+            if ($progId) {
+                $fromProgJob[] = $progId;
+            }
+            if ($instId) {
+                // Get program of the institution
+                $instProgId = \App\Models\EducationalInstitution::where('id', $instId)->value('program_id');
+                if ($instProgId) {
+                    $fromInstJob[] = $instProgId;
+                }
+            }
         }
 
-        // Program dari institusi jabatan
-        $fromInstJob = $assignments->pluck('position.organization.educationalInstitution.program_id')->filter()->toArray();
-
-        // Program dari organisasi level program
-        $fromProgJob = $assignments->pluck('position.organization.program_id')->filter()->toArray();
+        if ($isPusat) {
+            return null;
+        }
 
         $fromJob = array_merge($fromInstJob, $fromProgJob);
 
