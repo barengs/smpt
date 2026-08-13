@@ -101,7 +101,8 @@ class MenuSeeder extends Seeder
             'Kepengurusan' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Management', 'route' => '/dashboard/organisasi/kepengurusan', 'icon' => 'users', 'order' => 3],
 
             // 3. KURIKULUM SUBMENUS
-            'Mata Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Subject', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 1],
+            'Dashboard Kurikulum' => ['parent' => 'Kurikulum', 'en_title' => 'Curriculum Dashboard', 'route' => '/dashboard/manajemen-kurikulum/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
+            'Mata Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Subject', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 2],
             'Jam Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Lesson Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-pelajaran', 'icon' => 'clock', 'order' => 2],
             'Sesi Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Lesson Session', 'route' => '/dashboard/manajemen-kurikulum/sesi-pelajaran', 'icon' => 'sun', 'order' => 3],
             'Jadwal Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Class Schedule', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 4],
@@ -118,7 +119,8 @@ class MenuSeeder extends Seeder
             'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 1],
 
             // 7. KAMTIB SUBMENUS
-            'Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 1],
+            'Dashboard Kamtib' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Security Dashboard', 'route' => '/dashboard/manajemen-kamtib/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
+            'Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation', 'route' => '/dashboard/manajemen-kamtib/pelanggaran', 'icon' => 'exclamation-triangle', 'order' => 2],
             'Kategori Pelanggaran' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Violation Category', 'route' => '/dashboard/manajemen-kamtib/kategori-pelanggaran', 'icon' => 'tags', 'order' => 2],
             'Jenis Sanksi' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Sanction Type', 'route' => '/dashboard/manajemen-kamtib/jenis-sanksi', 'icon' => 'bookmark', 'order' => 3],
             'Sanksi' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Sanction', 'route' => '/dashboard/manajemen-kamtib/sanksi', 'icon' => 'gavel', 'order' => 4],
@@ -133,7 +135,8 @@ class MenuSeeder extends Seeder
             'Kamar' => ['parent' => 'Kepesantrenan', 'en_title' => 'Room', 'route' => '/dashboard/kepesantrenan/kamar', 'icon' => 'bed', 'order' => 2],
 
             // 9. MANAJEMEN PENDIDIKAN SUBMENUS
-            'Program' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Program Education', 'route' => '/dashboard/pendidikan/program', 'icon' => 'bookmark', 'order' => 1],
+            'Dashboard Pendidikan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Education Dashboard', 'route' => '/dashboard/pendidikan/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
+            'Program' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Program Education', 'route' => '/dashboard/pendidikan/program', 'icon' => 'bookmark', 'order' => 2],
             'Tahun Ajaran' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Academic Year', 'route' => '/dashboard/pendidikan/tahun-ajaran', 'icon' => 'calendar', 'order' => 2],
             'Jenjang' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Level', 'route' => '/dashboard/pendidikan/jenjang', 'icon' => 'layers', 'order' => 3],
             'Kelas' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Room', 'route' => '/dashboard/pendidikan/kelas', 'icon' => 'layout', 'order' => 4],
