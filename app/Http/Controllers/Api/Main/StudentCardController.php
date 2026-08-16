@@ -115,16 +115,16 @@ class StudentCardController extends Controller
                 ->where('is_active', '=', true)
                 ->update(['is_active' => false]);
 
-            // Generate Card Number: NIS-DD-MM-YYYY-RANDOM
-            // Example: 12345-21-01-2026-X7Z
-            $datePart = now()->format('d-m-Y');
+            // Generate Card Number: NISDDMMYYYYRANDOM
+            // Example: 1234521012026X7Z
+            $datePart = now()->format('dmY');
             $randomPart = strtoupper(Str::random(3));
-            $cardNumber = sprintf('%s-%s-%s', $student->nis, $datePart, $randomPart);
+            $cardNumber = sprintf('%s%s%s', $student->nis, $datePart, $randomPart);
 
             // Ensure uniqueness (extremely rare collision chance with random(3) + NIS + Date, but good practice)
             while (StudentCard::where('card_number', '=', $cardNumber)->exists()) {
                 $randomPart = strtoupper(Str::random(3));
-                $cardNumber = sprintf('%s-%s-%s', $student->nis, $datePart, $randomPart);
+                $cardNumber = sprintf('%s%s%s', $student->nis, $datePart, $randomPart);
             }
 
             $card = StudentCard::create([

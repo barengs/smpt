@@ -78,6 +78,20 @@ class StudentController extends Controller
                     ])
                     ->first();
                 $student->current_room = $currentRoom;
+
+                // Attach current class
+                $currentClass = DB::table('student_classes as sc')
+                    ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                    ->where('sc.student_id', $student->id)
+                    ->where('sc.approval_status', 'disetujui')
+                    ->orderBy('sc.created_at', 'desc')
+                    ->select([
+                        'sc.id',
+                        'c.id as classroom_id',
+                        'c.name as class_name'
+                    ])
+                    ->first();
+                $student->current_class = $currentClass;
             });
 
             return new StudentResource('data ditemukan', $students, 200);
@@ -126,6 +140,20 @@ class StudentController extends Controller
                 ])
                 ->first();
             $student->current_room = $currentRoom;
+
+            // Attach current class
+            $currentClass = DB::table('student_classes as sc')
+                ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                ->where('sc.student_id', $student->id)
+                ->where('sc.approval_status', 'disetujui')
+                ->orderBy('sc.created_at', 'desc')
+                ->select([
+                    'sc.id',
+                    'c.id as classroom_id',
+                    'c.name as class_name'
+                ])
+                ->first();
+            $student->current_class = $currentClass;
 
             return new StudentResource('data ditemukan', $student, 200);
         } catch (\Throwable $th) {

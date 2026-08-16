@@ -29,7 +29,7 @@ class StaffStudyController extends Controller
         try {
             $query = Staff::with('studies', 'user.roles', 'educationalInstitutions')
                 ->whereHas('user', function ($q) {
-                    $q->role('asatidz')->orWhere->role('walikelas');
+                    $q->role(['asatidz', 'walikelas']);
                 });
 
             if ($request->filled('educational_institution_id')) {
@@ -112,7 +112,7 @@ class StaffStudyController extends Controller
         try {
             $staff = Staff::with('studies', 'user', 'educationalInstitutions')
                 ->whereHas('user', function ($query) {
-                    $query->role('asatidz')->orWhere->role('walikelas');
+                    $query->role(['asatidz', 'walikelas']);
                 })
                 ->findOrFail($id);
 
@@ -233,7 +233,7 @@ class StaffStudyController extends Controller
         try {
             $teachers = Staff::with('user', 'educationalInstitutions')
                 ->whereHas('user', function ($query) {
-                    $query->role('asatidz')->orWhere->role('walikelas');
+                    $query->role(['asatidz', 'walikelas']);
                 })
                 ->get();
 
