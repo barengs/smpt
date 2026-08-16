@@ -258,6 +258,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/student-statistics-by-period', [DashboardController::class, 'studentStatisticsByPeriod'])->name('dashboard.student-statistics-by-period');
     Route::get('dashboard/kamtib-statistics', [DashboardKamtibController::class, 'statistics'])->name('dashboard.kamtib-statistics');
+    Route::get('dashboard/kamtib-holiday-students', [DashboardKamtibController::class, 'holidayStudents'])->name('dashboard.kamtib-holiday-students');
     Route::get('dashboard/kurikulum-statistics', [DashboardKurikulumController::class, 'statistics'])->name('dashboard.kurikulum-statistics');
     Route::get('dashboard/pendidikan-statistics', [DashboardPendidikanController::class, 'statistics'])->name('dashboard.pendidikan-statistics');
 

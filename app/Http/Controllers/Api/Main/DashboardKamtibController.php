@@ -107,4 +107,57 @@ class DashboardKamtibController extends Controller
             ]
         ]);
     }
+
+    public function holidayStudents(Request $request)
+    {
+        $status = $request->query('status'); // checkout, checkin, not_returned
+        $today = Carbon::today();
+        
+        $activeHoliday = HolidayPeriod::where('status', 'active')
+            ->orWhere(function($query) use ($today) {
+                $query->whereDate('start_date', '<=', $today)
+                      ->whereDate('end_date', '>=', $today);
+            })
+            ->latest()
+            ->first();
+
+        if (!$activeHoliday) {
+            return response()->json([
+                'status' => 'success',
+                'data' => []
+            ]);
+        }
+
+        $query = StudentHolidayCheck::with(['student.hostel'])
+            ->where('holiday_period_id', $activeHoliday->id);
+
+        if ($status === 'checkout') {
+            $query->whereNotNull('checkout_at');
+        } elseif ($status === 'checkin') {
+            $query->whereNotNull('checkin_at');
+        } elseif ($status === 'not_returned') {
+            $query->whereNotNull('checkout_at')
+                  ->whereNull('checkin_at');
+        }
+
+        $checks = $query->get();
+
+        $students = $checks->map(function($check) {
+            $student = $check->student;
+            if (!$student) return null;
+            return [
+                'id' => $student->id,
+                'nis' => $student->nis,
+                'full_name' => trim($student->first_name . ' ' . $student->last_name),
+                'room_name' => $student->hostel ? $student->hostel->name : '-',
+                'checkout_at' => $check->checkout_at,
+                'checkin_at' => $check->checkin_at
+            ];
+        })->filter()->values();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $students
+        ]);
+    }
 }
