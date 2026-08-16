@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\Master\OccupationController;
 use App\Http\Controllers\Api\Master\EmploymentController;
 use App\Http\Controllers\Api\Main\DashboardController;
 use App\Http\Controllers\Api\Main\DashboardKamtibController;
+use App\Http\Controllers\Api\Main\DashboardKurikulumController;
 use App\Http\Controllers\Api\Main\RegistrationController;
 use App\Http\Controllers\Api\Main\TransactionController;
 use App\Http\Controllers\Api\Main\AccountController;
@@ -256,6 +257,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/student-statistics-by-period', [DashboardController::class, 'studentStatisticsByPeriod'])->name('dashboard.student-statistics-by-period');
     Route::get('dashboard/kamtib-statistics', [DashboardKamtibController::class, 'statistics'])->name('dashboard.kamtib-statistics');
+    Route::get('dashboard/kurikulum-statistics', [DashboardKurikulumController::class, 'statistics'])->name('dashboard.kurikulum-statistics');
 
     Route::apiResource('control-panel', ConrolPanelController::class);
     // Registration routes
