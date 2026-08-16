@@ -34,7 +34,7 @@ class DashboardPendidikanController extends Controller
                 
                 return [
                     'id' => $institution->id,
-                    'name' => $institution->name,
+                    'name' => $institution->institution_name,
                     'classroom_count' => $institution->classrooms_count,
                     'rombel_count' => $rombelCount
                 ];
