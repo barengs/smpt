@@ -546,9 +546,13 @@ class RegistrationController extends Controller
                 if (!$accountRes->successful()) {
                     $errorData = $accountRes->json();
                     if (isset($errorData['errors']['account_number'])) {
-                        throw new \Exception('Nomor NIS sudah terdaftar di Bank Santri.');
+                        // The account already exists in Bank Santri. 
+                        // Because this is likely a retry of a locally failed transaction,
+                        // we bypass throwing the exception so the local DB can commit successfully.
+                        Log::info("NIS {$student->nis} sudah terdaftar di Bank Santri, melanjutkan sinkronisasi lokal.");
+                    } else {
+                        throw new \Exception('Gagal membuat rekening di Bank Santri: ' . ($errorData['message'] ?? $accountRes->body()));
                     }
-                    throw new \Exception('Gagal membuat rekening di Bank Santri: ' . ($errorData['message'] ?? $accountRes->body()));
                 }
             } catch (\Exception $e) {
                 Log::error('Bank Santri Account Creation Error: ' . $e->getMessage());
