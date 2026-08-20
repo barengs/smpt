@@ -502,30 +502,38 @@ class RegistrationController extends Controller
                 }
             }
 
-            // Create student
-            $student = Student::create([
-                'parent_id' => $registration->parent_id,
-                'nis' => $this->generateNis($request->hijri_year),
-                'period' => $academicYear, // Use active academic year instead of hijri year
-                'first_name' => $registration->first_name,
-                'last_name' => $registration->last_name,
-                'gender' => $registration->gender,
-                'address' => $registration->address,
-                'nik' => $registration->nik,
-                'kk' => $registration->kk,
-                'born_in' => $registration->born_in,
-                'born_at' => $registration->born_at,
-                'village_id' => $villageIdVal,
-                'village' => $resolvedVillage,
-                'district' => $resolvedDistrict,
-                'postal_code' => $registration->postal_code,
-                'phone' => $registration->phone,
-                'photo' => $registration->photo,
-                'program_id' => $registration->program_id,
-                'user_id' => Auth::id(),
-                'education_type_id' => $registration->education_level_id,
-                'status' => 'Tidak Aktif', // Default status
-            ]);
+            // Create or get student
+            $student = Student::where('nik', $registration->nik)->first();
+            
+            if (!$student) {
+                $student = Student::create([
+                    'parent_id' => $registration->parent_id,
+                    'nis' => $this->generateNis($request->hijri_year),
+                    'period' => $academicYear, // Use active academic year instead of hijri year
+                    'first_name' => $registration->first_name,
+                    'last_name' => $registration->last_name,
+                    'gender' => $registration->gender,
+                    'address' => $registration->address,
+                    'nik' => $registration->nik,
+                    'kk' => $registration->kk,
+                    'born_in' => $registration->born_in,
+                    'born_at' => $registration->born_at,
+                    'village_id' => $villageIdVal,
+                    'village' => $resolvedVillage,
+                    'district' => $resolvedDistrict,
+                    'postal_code' => $registration->postal_code,
+                    'phone' => $registration->phone,
+                    'photo' => $registration->photo,
+                    'program_id' => $registration->program_id,
+                    'user_id' => Auth::id(),
+                    'education_type_id' => $registration->education_level_id,
+                    'status' => 'Tidak Aktif', // Default status
+                ]);
+            } else {
+                if (empty($student->nis)) {
+                    $student->update(['nis' => $this->generateNis($request->hijri_year)]);
+                }
+            }
 
             // Call Bank Santri microservice to create the account physically there
             $bankUrl = config('services.bank_santri.url');
