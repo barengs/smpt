@@ -131,9 +131,14 @@ class HolidayController extends Controller
             });
         }
 
-        $students = $query->get();
+        if ($request->has('program_id') && $request->program_id != '') {
+            $query->where('program_id', $request->program_id);
+        }
 
-        $data = $students->map(function ($student) use ($period) {
+        $perPage = $request->input('per_page', 10);
+        $students = $query->paginate($perPage);
+
+        $data = collect($students->items())->map(function ($student) use ($period) {
             $check = StudentHolidayCheck::where('holiday_period_id', $period->id)
                 ->where('student_id', $student->id)
                 ->first();
@@ -166,7 +171,11 @@ class HolidayController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $data
+            'data' => $data,
+            'current_page' => $students->currentPage(),
+            'last_page' => $students->lastPage(),
+            'total' => $students->total(),
+            'per_page' => $students->perPage(),
         ]);
     }
 
