@@ -241,6 +241,9 @@ class HolidayController extends Controller
 
         $check->update(['checkin_at' => now()]);
 
+        $period = HolidayPeriod::find($periodId);
+        $this->recordLateReturnViolation($studentId, $period);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Check-in berhasil dicatat',
@@ -354,6 +357,8 @@ class HolidayController extends Controller
 
         $check->update(['checkin_at' => now()]);
 
+        $this->recordLateReturnViolation($student->id, $period);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Check-in berhasil dicatat',
@@ -362,5 +367,71 @@ class HolidayController extends Controller
                 'checkin_at' => $check->checkin_at
             ]
         ]);
+    }
+
+    private function recordLateReturnViolation($studentId, $period)
+    {
+        $now = now();
+        $endDate = \Carbon\Carbon::parse($period->end_date)->startOfDay();
+        $cutoff = $endDate->copy()->setTime(11, 30, 0);
+
+        if ($now->lessThanOrEqualTo($cutoff)) {
+            return;
+        }
+
+        $daysLate = $endDate->diffInDays($now->copy()->startOfDay());
+
+        $academicYear = \App\Models\AcademicYear::where('active', true)->first();
+        if (!$academicYear) return;
+
+        if ($daysLate == 0) {
+            $violationType = \App\Models\Violation::firstOrCreate(
+                ['name' => 'Terlambat kembali dari liburan (Jam)'],
+                [
+                    'category_id' => 1,
+                    'description' => 'Terlambat kembali dari liburan melewati batas waktu pukul 11:30 di hari yang sama.',
+                    'point' => 10,
+                    'is_active' => true
+                ]
+            );
+
+            \App\Models\StudentViolation::create([
+                'student_id' => $studentId,
+                'violation_id' => $violationType->id,
+                'academic_year_id' => $academicYear->id,
+                'violation_date' => $now->toDateString(),
+                'violation_time' => $now->toTimeString(),
+                'location' => 'Pesantren',
+                'description' => "Kembali dari liburan '{$period->name}' pada pukul " . $now->format('H:i') . " (Batas 11:30).",
+                'reported_by' => auth()->id() ?? 1,
+                'status' => 'pending'
+            ]);
+        } else {
+            $violationType = \App\Models\Violation::firstOrCreate(
+                ['name' => 'Terlambat kembali dari liburan (Hari)'],
+                [
+                    'category_id' => 2,
+                    'description' => 'Terlambat kembali dari liburan melebihi tanggal yang ditentukan.',
+                    'point' => 40,
+                    'is_active' => true
+                ]
+            );
+
+            for ($i = 1; $i <= $daysLate; $i++) {
+                $lateDate = $endDate->copy()->addDays($i);
+                
+                \App\Models\StudentViolation::create([
+                    'student_id' => $studentId,
+                    'violation_id' => $violationType->id,
+                    'academic_year_id' => $academicYear->id,
+                    'violation_date' => $lateDate->toDateString(),
+                    'violation_time' => '00:00:00',
+                    'location' => 'Pesantren',
+                    'description' => "Keterlambatan kembali dari liburan '{$period->name}' (Hari ke-{$i}).",
+                    'reported_by' => auth()->id() ?? 1,
+                    'status' => 'pending'
+                ]);
+            }
+        }
     }
 }
