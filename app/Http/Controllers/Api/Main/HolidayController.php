@@ -135,6 +135,10 @@ class HolidayController extends Controller
             $query->where('program_id', $request->program_id);
         }
 
+        if ($request->has('room_id') && $request->room_id != '') {
+            $query->where('room_id', $request->room_id);
+        }
+
         $perPage = $request->input('per_page', 10);
         $students = $query->paginate($perPage);
 
