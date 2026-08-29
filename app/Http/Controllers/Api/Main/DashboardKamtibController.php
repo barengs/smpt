@@ -38,13 +38,41 @@ class DashboardKamtibController extends Controller
             
         $holidayStats = null;
         if ($activeHoliday) {
-            $totalAssigned = StudentHolidayCheck::where('holiday_period_id', $activeHoliday->id)->count();
-            $totalCheckout = StudentHolidayCheck::where('holiday_period_id', $activeHoliday->id)
-                ->whereNotNull('checkout_at')
-                ->count();
-            $totalCheckin = StudentHolidayCheck::where('holiday_period_id', $activeHoliday->id)
-                ->whereNotNull('checkin_at')
-                ->count();
+            $checks = StudentHolidayCheck::with(['student.program', 'student.hostel'])
+                ->where('holiday_period_id', $activeHoliday->id)
+                ->get();
+                
+            $totalAssigned = $checks->count();
+            $totalCheckout = $checks->whereNotNull('checkout_at')->count();
+            $totalCheckin = $checks->whereNotNull('checkin_at')->count();
+
+            $byProgram = $checks->groupBy(function($check) {
+                return $check->student?->program?->name ?? 'Tanpa Program';
+            })->map(function($group, $key) {
+                $checkout = $group->whereNotNull('checkout_at')->count();
+                $checkin = $group->whereNotNull('checkin_at')->count();
+                return [
+                    'name' => $key,
+                    'total' => $group->count(),
+                    'checkout_count' => $checkout,
+                    'checkin_count' => $checkin,
+                    'not_returned_count' => $checkout - $checkin,
+                ];
+            })->values();
+
+            $byAsrama = $checks->groupBy(function($check) {
+                return $check->student?->hostel?->name ?? 'Tanpa Asrama';
+            })->map(function($group, $key) {
+                $checkout = $group->whereNotNull('checkout_at')->count();
+                $checkin = $group->whereNotNull('checkin_at')->count();
+                return [
+                    'name' => $key,
+                    'total' => $group->count(),
+                    'checkout_count' => $checkout,
+                    'checkin_count' => $checkin,
+                    'not_returned_count' => $checkout - $checkin,
+                ];
+            })->values();
                 
             $holidayStats = [
                 'title' => $activeHoliday->name,
@@ -54,6 +82,8 @@ class DashboardKamtibController extends Controller
                 'checkout_count' => $totalCheckout,
                 'checkin_count' => $totalCheckin,
                 'not_returned_count' => $totalCheckout - $totalCheckin,
+                'by_program' => $byProgram,
+                'by_asrama' => $byAsrama,
             ];
         }
         
