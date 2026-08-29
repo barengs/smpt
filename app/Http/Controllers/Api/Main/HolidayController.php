@@ -136,7 +136,9 @@ class HolidayController extends Controller
         }
 
         if ($request->has('room_id') && $request->room_id != '') {
-            $query->where('room_id', $request->room_id);
+            $query->whereHas('activeRoom', function($q) use ($request) {
+                $q->where('rooms.id', $request->room_id);
+            });
         }
 
         $perPage = $request->input('per_page', 10);
