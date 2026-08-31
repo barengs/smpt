@@ -52,7 +52,17 @@ class StudentResignationController extends Controller
             $query->orderBy($sortBy, $sortOrder);
             $resignations = $query->paginate($perPage);
 
-            return new StudentResignationResource('Data pengajuan keluar berhasil diambil', $resignations, 200);
+            $summary = [
+                'pending' => StudentResignation::where('status', 'pending')->count(),
+                'proses' => StudentResignation::where('status', 'proses')->count(),
+                'disetujui' => StudentResignation::where('status', 'disetujui')->count(),
+                'ditolak' => StudentResignation::where('status', 'ditolak')->count(),
+            ];
+
+            $data = $resignations->toArray();
+            $data['summary'] = $summary;
+
+            return new StudentResignationResource('Data pengajuan keluar berhasil diambil', $data, 200);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
