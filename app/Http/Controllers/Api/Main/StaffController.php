@@ -56,6 +56,18 @@ class StaffController extends Controller
                 }
             }
 
+            // Filter khusus untuk Kepala Sekolah
+            $isHeadmaster = filter_var($request->query('is_headmaster'), FILTER_VALIDATE_BOOLEAN);
+            if ($isHeadmaster) {
+                $query->where(function($q) {
+                    $q->whereHas('roles', function($qRole) {
+                        $qRole->where('name', 'like', '%kepala%');
+                    })
+                    ->orWhereHas('staff.assignments.position', function($qPos) {
+                        $qPos->where('name', 'like', '%kepala%');
+                    });
+                });
+            }
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
