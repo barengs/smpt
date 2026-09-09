@@ -27,7 +27,7 @@ class StudentResignationRequest extends FormRequest
             'student_id' => 'required|exists:students,id',
             'submission_type' => 'sometimes|in:biasa,pasca_tugas',
             'note' => 'nullable|string',
-            'attachment' => ($isPost ? 'required' : 'nullable') . '|file|mimes:pdf,jpeg,png,jpg|max:2048',
+            'attachment' => 'nullable|file|mimes:pdf,jpeg,png,jpg|max:2048',
             'status' => 'sometimes|in:pending,proses,disetujui,ditolak',
         ];
     }
