@@ -143,15 +143,6 @@ class StaffStudyController extends Controller
 
             $staff = Staff::findOrFail($id);
 
-            // Check if the staff member has the 'asatidz' or 'walikelas' role
-            if (!$staff->user || (!$staff->user->hasRole('asatidz') && !$staff->user->hasRole('walikelas'))) {
-                return response()->json([
-                    'message' => 'Staff member does not have the asatidz or walikelas role',
-                    'status' => 400,
-                    'data' => null
-                ], 400);
-            }
-
             // Sync the studies for this staff member
             $staff->studies()->sync($request->study_ids);
 
