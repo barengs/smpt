@@ -337,9 +337,13 @@ class StaffController extends Controller
                 $staff->user->update($userUpdate);
             }
 
+            // Sync educational institutions if provided
+            if ($request->has('educational_institution_ids')) {
+                $staff->educationalInstitutions()->sync($request->educational_institution_ids);
+            }
 
             // Load the user relationship
-            $staff->load('user');
+            $staff->load(['user', 'educationalInstitutions']);
 
             return new StaffResource('Data berhasil di update', $staff, 200);
         } catch (ValidationException $e) {
