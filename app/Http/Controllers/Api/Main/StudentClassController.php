@@ -292,7 +292,8 @@ class StudentClassController extends Controller
         /** @var string $classGroupId */
         try {
             $studentClasses = StudentClass::with([
-                'students:id,first_name,last_name,nik,nis,gender,address',
+                'students:id,parent_id,first_name,last_name,nik,nis,gender,address,village,district,postal_code',
+                'students.parents:nik,card_address,domicile_address',
                 'classGroup:id,name',
                 'classrooms:id,name',
                 'educations:id,institution_name',
@@ -304,9 +305,21 @@ class StudentClassController extends Controller
 
             // Transform the data
             $data = $studentClasses->map(function ($studentClass) {
+                $student = $studentClass->students;
+                if ($student) {
+                    if (empty($student->address)) {
+                        $regionParts = array_filter([$student->village, $student->district, $student->postal_code]);
+                        if (!empty($regionParts)) {
+                            $student->address = implode(', ', $regionParts);
+                        } elseif ($student->parents) {
+                            $student->address = $student->parents->domicile_address ?: $student->parents->card_address;
+                        }
+                    }
+                }
+
                 return [
                     'id' => $studentClass->id,
-                    'student' => $studentClass->students,
+                    'student' => $student,
                     'class_group' => $studentClass->classGroup,
                     'classroom' => $studentClass->classrooms,
                     'educational_institution' => $studentClass->educations,
