@@ -22,6 +22,7 @@ use App\Exports\StudentTemplateExport;
 use Illuminate\Support\Facades\Http;
 use App\Services\DataScopeService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 /**
  * @tags Student Management
@@ -45,7 +46,14 @@ class StudentController extends Controller
             $query = Student::with(['program', 'hostel', 'parents']);
 
             // Scope berdasarkan program yang dapat diakses user
-            $programIds = DataScopeService::getProgramIds(Auth::user());
+            $expectedInternalKey = config('services.bank_santri.internal_key')
+                ?? env('BANK_SANTRI_INTERNAL_KEY')
+                ?? env('INTERNAL_API_KEY', 'smpt-banksantri-internal-secret-2026');
+            $providedInternalKey = $request->header('X-Internal-Key');
+            $isInternal = !empty($expectedInternalKey) && $providedInternalKey === $expectedInternalKey;
+
+            $user = Auth::user();
+            $programIds = $isInternal ? null : DataScopeService::getProgramIds($user);
             DataScopeService::applyProgramScope($query, $programIds);
 
             if ($search) {
@@ -95,17 +103,17 @@ class StudentController extends Controller
             });
 
             return new StudentResource('data ditemukan', $students, 200);
-        } catch (Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to fetch students: ' . $e->getMessage(),
-            ], 500);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'No students found',
             ], 404);
-            //throw $th;
+        } catch (\Throwable $e) {
+            Log::error('Student index error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch students: ' . $e->getMessage(),
+            ], 500);
         }
     }
 
@@ -156,16 +164,16 @@ class StudentController extends Controller
             $student->current_class = $currentClass;
 
             return new StudentResource('data ditemukan', $student, 200);
-        } catch (\Throwable $th) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Failed to fetch student: ' . $th->getMessage(),
-            ], 500);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Student not found',
             ], 404);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch student: ' . $th->getMessage(),
+            ], 500);
         }
     }
 

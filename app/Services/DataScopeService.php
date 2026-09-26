@@ -8,29 +8,38 @@ class DataScopeService
 {
     /**
      * IDs institusi yang dapat diakses user.
-     * null = sysadmin, bypass semua filter.
+     * null = sysadmin / internal service, bypass semua filter.
      * [] = staff tanpa penugasan, tidak bisa lihat data apapun.
      */
-    public static function getInstitutionIds(User $user): ?array
+    public static function getInstitutionIds(?User $user): ?array
     {
+        if (! $user) {
+            return null;
+        }
         return $user->getAccessibleInstitutionIds();
     }
 
     /**
      * IDs program yang dapat diakses user.
-     * null = sysadmin, bypass semua filter.
+     * null = sysadmin / internal service, bypass semua filter.
      * [] = staff tanpa penugasan.
      */
-    public static function getProgramIds(User $user): ?array
+    public static function getProgramIds(?User $user): ?array
     {
+        if (! $user) {
+            return null;
+        }
         return $user->getAccessibleProgramIds();
     }
 
     /**
      * True jika user bypass semua scope (sysadmin).
      */
-    public static function isSuperAdmin(User $user): bool
+    public static function isSuperAdmin(?User $user): bool
     {
+        if (! $user) {
+            return false;
+        }
         return $user->isSuperAdmin();
     }
 
