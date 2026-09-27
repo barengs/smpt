@@ -59,13 +59,13 @@ class ClassGroupController extends Controller
                 ], 422);
             }
 
-            // Check if the staff member has the 'walikelas' role
+            // Validate advisor exists and has a linked user account
             if ($request->advisor_id) {
                 $staff = Staff::with('user')->find($request->advisor_id);
-                if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
+                if (!$staff || !$staff->user) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Staff yang dipilih bukan memiliki role walikelas'
+                        'message' => 'Staff yang dipilih tidak valid atau belum memiliki akun pengguna'
                     ], 422);
                 }
             }
@@ -156,13 +156,13 @@ class ClassGroupController extends Controller
                 ], 422);
             }
 
-            // Check if the staff member has the 'walikelas' role
+            // Validate advisor exists and has a linked user account
             if ($request->advisor_id) {
                 $staff = Staff::with('user')->find($request->advisor_id);
-                if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
+                if (!$staff || !$staff->user) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Staff yang dipilih bukan memiliki role walikelas'
+                        'message' => 'Staff yang dipilih tidak valid atau belum memiliki akun pengguna'
                     ], 422);
                 }
             }
@@ -291,8 +291,16 @@ class ClassGroupController extends Controller
     public function getAdvisors()
     {
         try {
-            $advisors = Staff::whereHas('user', function ($query) {
-                $query->role('walikelas');
+            $advisors = Staff::where(function ($query) {
+                $query->whereHas('user.roles', function ($sub) {
+                    $sub->where('name', 'walikelas');
+                })
+                ->orWhereHas('assignments.position', function ($sub) {
+                    $sub->where(function ($w) {
+                        $w->where('name', 'like', '%wali%kelas%')
+                          ->orWhere('name', 'like', '%walikelas%');
+                    });
+                });
             })->with('user')->get();
 
             return response()->json([
@@ -336,12 +344,12 @@ class ClassGroupController extends Controller
                 ], 422);
             }
 
-            // Check if the staff member has the 'walikelas' role
+            // Validate advisor exists and has a linked user account
             $staff = Staff::with('user')->find($request->advisor_id);
-            if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
+            if (!$staff || !$staff->user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Staff yang dipilih bukan memiliki role walikelas'
+                    'message' => 'Staff yang dipilih tidak valid atau belum memiliki akun pengguna'
                 ], 422);
             }
 

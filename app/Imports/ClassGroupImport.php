@@ -65,10 +65,9 @@ class ClassGroupImport implements
             // Additional validation for Advisor Role if ID is provided
             if ($advisorId) {
                 $staff = Staff::with('user')->find($advisorId);
-                // If staff doesn't exist or doesn't have role 'walikelas', we could either skip or just log warning.
-                // For now, let's treat it as an error to ensure data integrity, mirroring Controller logic.
-                if (!$staff || !$staff->user || !$staff->user->hasRole('walikelas')) {
-                    $this->errors[] = "Row with Name '{$name}': Advisor ID {$advisorId} is invalid or missing 'walikelas' role - skipped";
+                // Just validate that the staff exists and has a user account
+                if (!$staff || !$staff->user) {
+                    $this->errors[] = "Row with Name '{$name}': Advisor ID {$advisorId} is invalid or has no user account - skipped";
                     $this->failureCount++;
                     return null;
                 }
