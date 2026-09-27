@@ -15,6 +15,19 @@ class StudentClassRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('education_id') && !$this->has('educational_institution_id')) {
+            $this->merge(['educational_institution_id' => $this->education_id]);
+        }
+        if ($this->has('class_id') && !$this->has('classroom_id')) {
+            $this->merge(['classroom_id' => $this->class_id]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>

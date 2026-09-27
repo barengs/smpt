@@ -58,15 +58,17 @@ class StudentClassTest extends TestCase
     public function it_can_create_a_student_class()
     {
         $academicYear = AcademicYear::factory()->create();
-        $education = Education::factory()->create();
+        $education = \App\Models\EducationalInstitution::factory()->create();
         $student = Student::factory()->create();
         $classroom = Classroom::factory()->create();
+        $classGroup = \App\Models\ClassGroup::factory()->create();
 
         $data = [
             'academic_year_id' => $academicYear->id,
-            'education_id' => $education->id,
+            'educational_institution_id' => $education->id,
             'student_id' => $student->id,
-            'class_id' => $classroom->id,
+            'classroom_id' => $classroom->id,
+            'class_group_id' => $classGroup->id,
             'approval_status' => 'diajukan',
             'approval_note' => 'Test note',
         ];
@@ -157,7 +159,7 @@ class StudentClassTest extends TestCase
 
         $this->assertDatabaseHas('student_classes', [
             'id' => $studentClass->id,
-            'class_id' => $newClassroom->id,
+            'classroom_id' => $newClassroom->id,
             'approval_status' => 'disetujui'
         ]);
     }

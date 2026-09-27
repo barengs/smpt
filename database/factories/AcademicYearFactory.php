@@ -24,7 +24,7 @@ class AcademicYearFactory extends Factory
      */
     public function definition(): array
     {
-        $year = fake()->year();
+        $year = fake()->unique()->year();
         $startDate = fake()->date('Y-m-d', '2025-06-01');
         $endDate = fake()->date('Y-m-d', '2026-05-31');
 

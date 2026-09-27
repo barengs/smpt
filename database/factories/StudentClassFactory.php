@@ -28,9 +28,10 @@ class StudentClassFactory extends Factory
     {
         return [
             'academic_year_id' => AcademicYear::factory(),
-            'education_id' => Education::factory(),
+            'educational_institution_id' => \App\Models\EducationalInstitution::factory(),
             'student_id' => Student::factory(),
-            'class_id' => Classroom::factory(),
+            'classroom_id' => Classroom::factory(),
+            'class_group_id' => \App\Models\ClassGroup::factory(),
             'approval_status' => $this->faker->randomElement(['diajukan', 'disetujui', 'ditolak']),
             'approval_note' => $this->faker->optional()->sentence(),
             'approved_by' => User::factory(),
