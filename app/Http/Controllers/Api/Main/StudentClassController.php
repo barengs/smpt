@@ -23,7 +23,7 @@ class StudentClassController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = StudentClass::with(['academicYears:id,year', 'educations:id,institution_name', 'students:id,first_name,last_name', 'classrooms:id,name', 'classGroup:id,name']);
+            $query = StudentClass::with(['academicYears:id,year', 'educations:id,institution_name', 'students:id,first_name,last_name,nis', 'classrooms:id,name', 'classGroup:id,name']);
 
             // Scope: filter penempatan kelas berdasarkan institusi yang dapat diakses
             $institutionIds = DataScopeService::getInstitutionIds(Auth::user());
@@ -42,6 +42,20 @@ class StudentClassController extends Controller
             // Filter by education if provided
             if ($request->has('educational_institution_id')) {
                 $query->where('educational_institution_id', $request->educational_institution_id);
+            } elseif ($request->has('education_id')) {
+                $query->where('educational_institution_id', $request->education_id);
+            }
+
+            // Filter by classroom if provided
+            if ($request->has('classroom_id')) {
+                $query->where('classroom_id', $request->classroom_id);
+            } elseif ($request->has('class_id')) {
+                $query->where('classroom_id', $request->class_id);
+            }
+
+            // Filter by class group if provided
+            if ($request->has('class_group_id')) {
+                $query->where('class_group_id', $request->class_group_id);
             }
 
             // Filter by approval status if provided

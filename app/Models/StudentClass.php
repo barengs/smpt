@@ -11,6 +11,18 @@ class StudentClass extends Model
 
     protected $guarded = ['id'];
 
+    protected $appends = ['education_id', 'class_id'];
+
+    public function getEducationIdAttribute()
+    {
+        return $this->educational_institution_id;
+    }
+
+    public function getClassIdAttribute()
+    {
+        return $this->classroom_id;
+    }
+
     public function students()
     {
         return $this->belongsTo(Student::class, 'student_id');
