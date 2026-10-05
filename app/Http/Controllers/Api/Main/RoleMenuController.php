@@ -424,8 +424,18 @@ class RoleMenuController extends Controller
             // Collect all menu IDs from matrix
             $menuIds = collect($request->matrix)->pluck('menu_id')->toArray();
             
-            // 1. Sync Menus to Role
-            $role->menus()->sync($menuIds);
+            // Auto-sync parent menus: if a child menu is assigned, also assign its parent
+            $allMenuIds = $menuIds;
+            foreach ($menuIds as $menuId) {
+                $menu = Menu::find($menuId);
+                if ($menu && $menu->parent_id) {
+                    $allMenuIds[] = $menu->parent_id;
+                }
+            }
+            $allMenuIds = array_unique($allMenuIds);
+            
+            // 1. Sync Menus to Role (including auto-synced parents)
+            $role->menus()->sync($allMenuIds);
 
             // 2. Sync Permissions
             $allPermissionNames = [];
@@ -516,7 +526,7 @@ class RoleMenuController extends Controller
 
     /**
      * Get Permission Matrix for a role.
-     * Parses scoped permissions back to generic actions.
+     * Returns hierarchical tree with all menus and their permission status.
      * 
      * @param string $roleId
      * @return \Illuminate\Http\JsonResponse
@@ -524,80 +534,28 @@ class RoleMenuController extends Controller
     public function getPermissionMatrix(string $roleId)
     {
         try {
-            $role = Role::with(['menus.permissions', 'permissions'])->findOrFail($roleId);
-
-            $matrix = [];
+            $role = Role::with('permissions')->findOrFail($roleId);
             $rolePermissions = $role->permissions->pluck('name')->toArray();
-
-            foreach ($role->menus as $menu) {
-                $currentPermissions = [];
-                $customPermissions = [];
-                
-                // Which of the menu's permissions does the role actually have?
-                $menuPerms = $menu->permissions->pluck('name')->toArray();
-                $activePerms = array_intersect($menuPerms, $rolePermissions);
-
-                // Also add any scoped permission that ends with "_menu_{$menu->id}" that the role has
-                foreach ($rolePermissions as $rp) {
-                    if (str_ends_with($rp, "_menu_{$menu->id}")) {
-                        $activePerms[] = $rp;
-                    } else {
-                        // Match legacy permission: Action + Menu Slug
-                        $menuSlug = \Illuminate\Support\Str::slug($menu->en_title ?? $menu->id_title);
-                        if (str_ends_with($rp, " {$menuSlug}")) {
-                            $activePerms[] = $rp;
-                        }
-                    }
-                }
-                
-                $activePerms = array_unique($activePerms);
-
-                foreach ($activePerms as $permName) {
-                    $permNameLower = strtolower($permName);
-                    
-                    // Scoped permission check (e.g. "view_menu_1")
-                    if (str_ends_with($permNameLower, "_menu_{$menu->id}")) {
-                        $suffix = "_menu_{$menu->id}";
-                        $action = substr($permNameLower, 0, strlen($permNameLower) - strlen($suffix));
-                        $actionUpper = strtoupper($action);
-                        $standardActions = ['CREATE', 'VIEW', 'EDIT', 'DELETE', 'APPROVE'];
-                        
-                        if (in_array($actionUpper, $standardActions)) {
-                            $currentPermissions[] = $actionUpper;
-                        } else {
-                            $customPermissions[] = $action;
-                        }
-                        continue;
-                    }
-
-                    // Natural language check (e.g. "lihat santri")
-                    $words = explode(' ', $permNameLower);
-                    $firstWord = $words[0] ?? '';
-
-                    $actionMapped = match($firstWord) {
-                        'lihat', 'view', 'read' => 'VIEW',
-                        'buat', 'create', 'add', 'tambah' => 'CREATE',
-                        'ubah', 'edit', 'update' => 'EDIT',
-                        'hapus', 'delete', 'remove' => 'DELETE',
-                        'setuju', 'approve', 'konfirmasi', 'aktivasi' => 'APPROVE',
-                        default => null
-                    };
-
-                    if ($actionMapped) {
-                        $currentPermissions[] = $actionMapped;
-                    } else {
-                        $customPermissions[] = $permName;
-                    }
-                }
-
-                $matrix[] = [
-                    'menu_id' => $menu->id,
-                    'menu_title' => $menu->id_title,
-                    'permissions' => array_values(array_unique($currentPermissions)),
-                    'custom_permissions' => array_values(array_unique($customPermissions)),
-                ];
-            }
-
+            
+            // Get all sidebar menus
+            $allMenus = Menu::where('position', 'sidebar')
+                ->where('status', 'active')
+                ->orderBy('order')
+                ->get();
+            
+            // Build hierarchical tree with permission status
+            $modules = $this->buildMenuMatrixTree($allMenus, null, $rolePermissions);
+            
+            // Calculate summary
+            $leafMenus = $allMenus->filter(function($menu) {
+                return $menu->route && $menu->route !== '#' && $menu->route !== '';
+            });
+            
+            $assignedMenuIds = $role->menus()->pluck('menus.id')->toArray();
+            $assignedLeafMenus = $leafMenus->whereIn('id', $assignedMenuIds)->count();
+            
+            $isFullAccess = $this->checkFullAccess($leafMenus, $rolePermissions);
+            
             return response()->json([
                 'status' => 'success',
                 'data' => [
@@ -606,15 +564,137 @@ class RoleMenuController extends Controller
                         'name' => $role->name,
                         'category' => $role->category,
                     ],
-                    'matrix' => $matrix,
+                    'summary' => [
+                        'total_menus' => $leafMenus->count(),
+                        'assigned_menus' => $assignedLeafMenus,
+                        'is_full_access' => $isFullAccess,
+                    ],
+                    'modules' => $modules,
                 ]
             ], 200);
-
+            
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal mengambil permission matrix: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Build hierarchical menu tree with permission status.
+     */
+    private function buildMenuMatrixTree($menus, $parentId, $rolePermissions)
+    {
+        $result = [];
+        
+        foreach ($menus->where('parent_id', $parentId) as $menu) {
+            $node = [
+                'id' => $menu->id,
+                'title' => $menu->id_title,
+                'route' => $menu->route,
+                'is_group' => !$menu->route || $menu->route === '#' || $menu->route === '',
+                'permissions' => $this->extractMenuPermissions($menu, $rolePermissions),
+                'custom_permissions' => $this->extractMenuCustomPermissions($menu, $rolePermissions),
+                'children' => $this->buildMenuMatrixTree($menus, $menu->id, $rolePermissions),
+            ];
+            
+            $result[] = $node;
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Extract standard permissions for a menu from role permissions.
+     */
+    private function extractMenuPermissions($menu, $rolePermissions)
+    {
+        $permissions = [];
+        $standardActions = ['view', 'create', 'edit', 'delete', 'approve'];
+        
+        foreach ($standardActions as $action) {
+            $scopedName = "{$action}_menu_{$menu->id}";
+            if (in_array($scopedName, $rolePermissions)) {
+                $permissions[] = strtoupper($action);
+            }
+        }
+        
+        // Legacy permission matching
+        $menuSlug = \Illuminate\Support\Str::slug($menu->en_title ?? $menu->id_title);
+        $actionMap = [
+            'VIEW' => ['lihat', 'view', 'read'],
+            'CREATE' => ['buat', 'create', 'add', 'tambah'],
+            'EDIT' => ['ubah', 'edit', 'update'],
+            'DELETE' => ['hapus', 'delete', 'remove'],
+            'APPROVE' => ['setuju', 'approve', 'konfirmasi', 'aktivasi'],
+        ];
+        
+        foreach ($rolePermissions as $rp) {
+            $rpLower = strtolower($rp);
+            foreach ($actionMap as $action => $verbs) {
+                if (in_array($action, $permissions)) continue;
+                foreach ($verbs as $verb) {
+                    if (str_starts_with($rpLower, $verb) && str_ends_with($rpLower, $menuSlug)) {
+                        $permissions[] = $action;
+                        break 2;
+                    }
+                }
+            }
+        }
+        
+        return array_values(array_unique($permissions));
+    }
+
+    /**
+     * Extract custom permissions for a menu from role permissions.
+     */
+    private function extractMenuCustomPermissions($menu, $rolePermissions)
+    {
+        $customPermissions = [];
+        $standardActions = ['view', 'create', 'edit', 'delete', 'approve'];
+        $standardVerbs = ['lihat', 'view', 'read', 'buat', 'create', 'add', 'tambah', 'ubah', 'edit', 'update', 'hapus', 'delete', 'remove', 'setuju', 'approve', 'konfirmasi', 'aktivasi'];
+        
+        foreach ($rolePermissions as $rp) {
+            $rpLower = strtolower($rp);
+            
+            // Scoped custom permissions
+            if (str_ends_with($rpLower, "_menu_{$menu->id}")) {
+                $suffix = "_menu_{$menu->id}";
+                $action = substr($rpLower, 0, strlen($rpLower) - strlen($suffix));
+                if (!in_array($action, $standardActions)) {
+                    $customPermissions[] = $action;
+                }
+                continue;
+            }
+            
+            // Legacy custom permissions
+            $menuSlug = \Illuminate\Support\Str::slug($menu->en_title ?? $menu->id_title);
+            if (str_ends_with($rpLower, " {$menuSlug}")) {
+                $words = explode(' ', $rpLower);
+                $firstWord = $words[0] ?? '';
+                if (!in_array($firstWord, $standardVerbs)) {
+                    $customPermissions[] = $rp;
+                }
+            }
+        }
+        
+        return array_values(array_unique($customPermissions));
+    }
+
+    /**
+     * Check if role has full access to all leaf menus.
+     */
+    private function checkFullAccess($leafMenus, $rolePermissions)
+    {
+        foreach ($leafMenus as $menu) {
+            foreach (['view', 'create', 'edit', 'delete', 'approve'] as $action) {
+                $scopedName = "{$action}_menu_{$menu->id}";
+                if (!in_array($scopedName, $rolePermissions)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
