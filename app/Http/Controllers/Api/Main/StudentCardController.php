@@ -56,9 +56,12 @@ class StudentCardController extends Controller
             $card = $student->activeStudentCard ?? $student->studentCards()->latest()->first();
         } 
 
-        // 2. If no card found via Student, try to find by Card ID
+        // 2. If no card found via Student, try to find by Card Number or Card ID
         if (!$card) {
-            $card = StudentCard::with('student')->find($id);
+            $card = StudentCard::with('student')
+                ->where('card_number', $id)
+                ->orWhere('id', $id)
+                ->first();
         }
 
         if (!$card) {
