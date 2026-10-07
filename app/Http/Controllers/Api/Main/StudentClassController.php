@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Main;
 
 use App\Models\Classroom;
+use App\Models\ClassGroup;
 use App\Models\Education;
 use App\Models\AcademicYear;
 use App\Models\StudentClass;
@@ -308,17 +309,33 @@ class StudentClassController extends Controller
             $studentClasses = StudentClass::with([
                 'students:id,parent_id,first_name,last_name,nik,nis,gender,address,village,district,postal_code',
                 'students.parents:nik,card_address,domicile_address',
-                'classGroup:id,name',
-                'classrooms:id,name',
-                'educations:id,institution_name',
+                'classGroup:id,name,educational_institution_id,advisor_id',
+                'classGroup.advisor:id,user_id,first_name,last_name,nip',
+                'classGroup.educational_institution:id,institution_name,headmaster_id',
+                'classGroup.educational_institution.headmaster:id,first_name,last_name,nip',
+                'classrooms:id,name,educational_institution_id',
+                'classrooms.school:id,institution_name,headmaster_id',
+                'classrooms.school.headmaster:id,first_name,last_name,nip',
+                'educations:id,institution_name,headmaster_id',
+                'educations.headmaster:id,first_name,last_name,nip',
                 'academicYears:id,year'
             ])
             ->where('class_group_id', $classGroupId)
             ->orderBy('classroom_id')
             ->get();
 
+            $classGroup = ClassGroup::with([
+                'advisor',
+                'educational_institution.headmaster',
+                'classroom.school.headmaster'
+            ])->find($classGroupId);
+
+            $resolvedInstitution = $classGroup?->educational_institution ?? $classGroup?->classroom?->school;
+            $resolvedHeadmaster = $resolvedInstitution?->headmaster;
+            $resolvedAdvisor = $classGroup?->advisor;
+
             // Transform the data
-            $data = $studentClasses->map(function ($studentClass) {
+            $data = $studentClasses->map(function ($studentClass) use ($classGroup, $resolvedInstitution, $resolvedHeadmaster, $resolvedAdvisor) {
                 $student = $studentClass->students;
                 if ($student) {
                     if (empty($student->address)) {
@@ -329,14 +346,29 @@ class StudentClassController extends Controller
                             $student->address = $student->parents->domicile_address ?: $student->parents->card_address;
                         }
                     }
+
+                    // Attach headmaster & school info so it's readily accessible
+                    $inst = $studentClass->educations 
+                        ?? $studentClass->classGroup?->educational_institution 
+                        ?? $studentClass->classrooms?->school 
+                        ?? $resolvedInstitution;
+                    
+                    $hm = $inst?->headmaster ?? $resolvedHeadmaster;
+                    $adv = $studentClass->classGroup?->advisor ?? $resolvedAdvisor;
+
+                    $student->school_name = $inst?->institution_name;
+                    $student->headmaster_name = $hm ? trim("{$hm->first_name} {$hm->last_name}") : null;
+                    $student->headmaster_nip = $hm?->nip;
+                    $student->advisor_name = $adv ? trim("{$adv->first_name} {$adv->last_name}") : null;
+                    $student->advisor_nip = $adv?->nip;
                 }
 
                 return [
                     'id' => $studentClass->id,
                     'student' => $student,
-                    'class_group' => $studentClass->classGroup,
+                    'class_group' => $studentClass->classGroup ?? $classGroup,
                     'classroom' => $studentClass->classrooms,
-                    'educational_institution' => $studentClass->educations,
+                    'educational_institution' => $studentClass->educations ?? $studentClass->classGroup?->educational_institution,
                     'academic_year' => $studentClass->academicYears,
                     'approval_status' => $studentClass->approval_status,
                     'approval_note' => $studentClass->approval_note,
@@ -349,7 +381,18 @@ class StudentClassController extends Controller
                 'message' => 'Data siswa yang sudah dipetakan ke rombel berhasil diambil',
                 'status' => 200,
                 'data' => $data,
-                'total' => $data->count()
+                'total' => $data->count(),
+                'headmaster' => $resolvedHeadmaster ? [
+                    'name' => trim("{$resolvedHeadmaster->first_name} {$resolvedHeadmaster->last_name}"),
+                    'nip' => $resolvedHeadmaster->nip,
+                ] : null,
+                'advisor' => $resolvedAdvisor ? [
+                    'name' => trim("{$resolvedAdvisor->first_name} {$resolvedAdvisor->last_name}"),
+                    'nip' => $resolvedAdvisor->nip,
+                ] : null,
+                'school' => [
+                    'name' => $resolvedInstitution?->institution_name,
+                ]
             ], 200);
         } catch (\Exception $e) {
             Log::error('Error fetching students mapped to class groups: ' . $e->getMessage());

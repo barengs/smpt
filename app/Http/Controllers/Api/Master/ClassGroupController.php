@@ -23,7 +23,11 @@ class ClassGroupController extends Controller
     public function index()
     {
         try {
-            $classGroups = ClassGroup::with(['classroom', 'advisor.user', 'educational_institution:id,institution_name'])->orderByDesc('id')->get();
+            $classGroups = ClassGroup::with([
+                'classroom.school.headmaster',
+                'advisor.user',
+                'educational_institution.headmaster'
+            ])->orderByDesc('id')->get();
 
             return response()->json([
                 'success' => true,
@@ -48,6 +52,7 @@ class ClassGroupController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'classroom_id' => 'required|exists:classrooms,id',
+                'educational_institution_id' => 'required|exists:educational_institutions,id',
                 'advisor_id' => 'nullable|exists:staff,id'
             ]);
 
@@ -104,7 +109,11 @@ class ClassGroupController extends Controller
     public function show(string $id)
     {
         try {
-            $classGroup = ClassGroup::with(['classroom', 'advisor.user', 'educational_institution:id,institution_name'])->find($id);
+            $classGroup = ClassGroup::with([
+                'classroom.school.headmaster',
+                'advisor.user',
+                'educational_institution.headmaster'
+            ])->find($id);
 
             if (!$classGroup) {
                 return response()->json([
@@ -145,6 +154,7 @@ class ClassGroupController extends Controller
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'classroom_id' => 'required|exists:classrooms,id',
+                'educational_institution_id' => 'required|exists:educational_institutions,id',
                 'advisor_id' => 'nullable|exists:staff,id'
             ]);
 
@@ -413,8 +423,8 @@ class ClassGroupController extends Controller
     {
         try {
             $query = ClassGroup::with([
-                'classroom:id,name',
-                'educational_institution:id,institution_name',
+                'classroom.school.headmaster',
+                'educational_institution.headmaster',
                 'advisor.user:id,name'
             ]);
 
