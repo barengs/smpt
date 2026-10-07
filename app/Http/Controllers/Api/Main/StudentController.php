@@ -43,7 +43,7 @@ class StudentController extends Controller
             $sortBy = $request->query('sort_by', 'created_at');
             $sortOrder = $request->query('sort_order', 'desc');
 
-            $query = Student::with(['program', 'hostel', 'parents']);
+            $query = Student::with(['program', 'hostel', 'parents', 'activeStudentCard']);
 
             // Scope berdasarkan program yang dapat diakses user
             $expectedInternalKey = config('services.bank_santri.internal_key')
