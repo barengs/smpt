@@ -345,6 +345,15 @@ Route::group(['prefix' => 'main'], function () {
     Route::post('student/{id}/update-photo', [StudentController::class, 'updatePhoto'])->name('student.update-photo');
     Route::get('student/{id}/finance', [StudentController::class, 'getFinanceInfo'])->name('student.finance');
 
+    // Exam Clearance (Gerbang Ujian Triwulan & Dispensasi Finansial)
+    Route::group(['prefix' => 'exam-clearance'], function () {
+        Route::get('check/{studentId}',                    [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'check']);
+        Route::get('quarter/{quarterId}/students',         [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'quarterStudents']);
+        Route::get('dispensations',                        [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'dispensations']);
+        Route::post('dispensation',                        [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'grantDispensation']);
+        Route::patch('dispensation/{id}',                  [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'revokeDispensation']);
+    });
+
 
     // Student Card
     Route::get('student/{id}/cards', [StudentCardController::class, 'index']); // History by Student ID

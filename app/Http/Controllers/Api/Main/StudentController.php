@@ -833,12 +833,24 @@ class StudentController extends Controller
                 $transactionsData = $transactionsRes->json('data.data') ?? [];
             }
 
+            // 3. Ambil ringkasan tagihan & tunggakan
+            $arrearsRes = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/account/{$nis}/arrears");
+
+            $arrearsData = null;
+            if ($arrearsRes->successful()) {
+                $arrearsData = $arrearsRes->json('data');
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Informasi keuangan berhasil diambil.',
                 'data' => [
-                    'account' => $accountData,
-                    'transactions' => $transactionsData
+                    'account'      => $accountData,
+                    'transactions' => $transactionsData,
+                    'arrears'      => $arrearsData,
                 ]
             ], 200);
 
