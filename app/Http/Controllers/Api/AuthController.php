@@ -35,7 +35,7 @@ class AuthController extends Controller
         if (is_numeric($login)) {
             // 1. Try to find user by email (in case email column stores NIK)
             $user = User::where('email', $login)->first();
-            
+
             // 2. Try to find user by parent NIK
             if (!$user) {
                 $user = User::whereHas('parent', function ($query) use ($login) {
@@ -43,10 +43,24 @@ class AuthController extends Controller
                 })->first();
             }
 
-            // 3. Try to find user by staff NIK
+            // 3. Try to find user by parent PHONE NUMBER (Nomor HP Wali Santri)
+            if (!$user) {
+                $user = User::whereHas('parent', function ($query) use ($login) {
+                    $query->where('phone', $login);
+                })->first();
+            }
+
+            // 4. Try to find user by staff NIK
             if (!$user) {
                 $user = User::whereHas('staff', function ($query) use ($login) {
                     $query->where('nik', $login);
+                })->first();
+            }
+
+            // 5. Try to find user by staff PHONE NUMBER
+            if (!$user) {
+                $user = User::whereHas('staff', function ($query) use ($login) {
+                    $query->where('phone', $login);
                 })->first();
             }
         }
