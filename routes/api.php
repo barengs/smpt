@@ -69,6 +69,7 @@ use App\Http\Controllers\Api\Main\RoleMenuController;
 use App\Http\Controllers\Api\Main\AssessmentController;
 use App\Http\Controllers\Api\Main\ReportCardController;
 use App\Http\Controllers\Api\Main\PesantrenReportController;
+use App\Http\Controllers\Api\Main\FcmTokenController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -463,6 +464,10 @@ Route::group(['prefix' => 'main'], function () {
         Route::get('leave-report', [PesantrenReportController::class, 'leaveReport']);
         Route::get('attendance-statistics', [PesantrenReportController::class, 'attendanceStatistics']);
     });
+
+    // FCM Notification Token routes
+    Route::post('fcm/register', [FcmTokenController::class, 'register']);
+    Route::post('fcm/unregister', [FcmTokenController::class, 'unregister']);
 });
 
 // Internal callback route for Bank Santri notifications
