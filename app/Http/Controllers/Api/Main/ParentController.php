@@ -393,10 +393,54 @@ class ParentController extends Controller
     public function getByNik($nik)
     {
         try {
-            $parent = ParentProfile::with(['student.program', 'student.hostel'])
-                ->where('nik', $nik)
-                ->first();
-            // dd($parent);
+            $parent = ParentProfile::with([
+                'student.program',
+                'student.hostel',
+                'student.activeStudentCard',
+            ])->where('nik', $nik)->first();
+
+            if ($parent && $parent->student->isNotEmpty()) {
+                $studentIds = $parent->student->pluck('id')->all();
+
+                // Batch query kamar aktif per santri
+                $currentRoomsMap = DB::table('student_room_assignments as sra')
+                    ->join('rooms as r', 'r.id', '=', 'sra.room_id')
+                    ->join('hostels as h', 'h.id', '=', 'r.hostel_id')
+                    ->whereIn('sra.student_id', $studentIds)
+                    ->where('sra.is_active', true)
+                    ->select([
+                        'sra.student_id',
+                        'sra.id as assignment_id',
+                        'r.id as room_id',
+                        'r.name as room_name',
+                        'h.id as hostel_id',
+                        'h.name as hostel_name',
+                    ])
+                    ->get()
+                    ->keyBy('student_id');
+
+                // Batch query kelas terbaru yang disetujui per santri
+                $currentClassesMap = DB::table('student_classes as sc')
+                    ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                    ->whereIn('sc.student_id', $studentIds)
+                    ->where('sc.approval_status', 'disetujui')
+                    ->orderBy('sc.created_at', 'desc')
+                    ->select([
+                        'sc.student_id',
+                        'sc.id',
+                        'c.id as classroom_id',
+                        'c.name as class_name',
+                    ])
+                    ->get()
+                    ->unique('student_id')
+                    ->keyBy('student_id');
+
+                $parent->student->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
+                    $student->current_room = $currentRoomsMap->get($student->id);
+                    $student->current_class = $currentClassesMap->get($student->id);
+                });
+            }
+
             return response()->json([
                 'status' => 'success',
                 'data' => $parent,

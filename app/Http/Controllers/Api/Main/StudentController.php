@@ -70,36 +70,51 @@ class StudentController extends Controller
             // Use paginate to provide metadata and consistent data.data structure
             $students = $query->paginate($perPage);
 
-            // Attach current room for each student in the current page
-            $students->getCollection()->each(function ($student) {
-                $currentRoom = DB::table('student_room_assignments as sra')
+            // OPTIMASI: Batch query untuk hindari N+1 (sebelumnya 2 query x N student = 30.000 query).
+            // Sekarang hanya 2 query total untuk seluruh halaman data.
+            $studentIds = $students->getCollection()->pluck('id')->filter()->values()->all();
+
+            $currentRoomsMap = collect();
+            $currentClassesMap = collect();
+
+            if (!empty($studentIds)) {
+                // Batch query current rooms (1 query untuk semua student di halaman ini)
+                $currentRoomsMap = DB::table('student_room_assignments as sra')
                     ->join('rooms as r', 'r.id', '=', 'sra.room_id')
                     ->join('hostels as h', 'h.id', '=', 'r.hostel_id')
                     ->leftJoin('academic_years as ay', 'ay.id', '=', 'sra.academic_year_id')
-                    ->where('sra.student_id', $student->id)
+                    ->whereIn('sra.student_id', $studentIds)
                     ->where('sra.is_active', true)
                     ->select([
+                        'sra.student_id',
                         'sra.id', 'sra.start_date', 'sra.end_date', 'sra.notes',
                         'r.id as room_id', 'r.name as room_name', 'r.capacity as room_capacity',
                         'h.id as hostel_id', 'h.name as hostel_name',
                         'ay.id as academic_year_id', 'ay.year as academic_year',
                     ])
-                    ->first();
-                $student->current_room = $currentRoom;
+                    ->get()
+                    ->keyBy('student_id');
 
-                // Attach current class
-                $currentClass = DB::table('student_classes as sc')
+                // Batch query current class (kelas terbaru yang disetujui per student)
+                $currentClassesMap = DB::table('student_classes as sc')
                     ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                    ->where('sc.student_id', $student->id)
+                    ->whereIn('sc.student_id', $studentIds)
                     ->where('sc.approval_status', 'disetujui')
                     ->orderBy('sc.created_at', 'desc')
                     ->select([
+                        'sc.student_id',
                         'sc.id',
                         'c.id as classroom_id',
                         'c.name as class_name'
                     ])
-                    ->first();
-                $student->current_class = $currentClass;
+                    ->get()
+                    ->unique('student_id')
+                    ->keyBy('student_id');
+            }
+
+            $students->getCollection()->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
+                $student->current_room = $currentRoomsMap->get($student->id);
+                $student->current_class = $currentClassesMap->get($student->id);
             });
 
             return new StudentResource('data ditemukan', $students, 200);
