@@ -42,7 +42,14 @@ class PresenceController extends Controller
             }
 
             // Default presence listing
-            $query = Presence::with(['student', 'meetingSchedule.schedule.classroom', 'meetingSchedule.schedule.classGroup', 'user']);
+            $query = Presence::with([
+                'student',
+                'meetingSchedule.schedule.classroom.school',
+                'meetingSchedule.schedule.classGroup',
+                'meetingSchedule.schedule.study',
+                'meetingSchedule.schedule.teacher',
+                'user',
+            ]);
 
             // Filter by student if provided
             if ($request->has('student_id')) {
@@ -64,7 +71,7 @@ class PresenceController extends Controller
                 $query->where('user_id', $request->user_id);
             }
 
-            $presences = $query->get();
+            $presences = $query->orderBy('date', 'desc')->orderBy('id', 'desc')->get();
 
             return new PresenceResource('Data presensi berhasil diambil', $presences, 200);
         } catch (QueryException $e) {

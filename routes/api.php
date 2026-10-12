@@ -69,6 +69,7 @@ use App\Http\Controllers\Api\Main\RoleMenuController;
 use App\Http\Controllers\Api\Main\AssessmentController;
 use App\Http\Controllers\Api\Main\ReportCardController;
 use App\Http\Controllers\Api\Main\PesantrenReportController;
+use App\Http\Controllers\Api\Main\FcmTokenController;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
 use App\Models\Education;
@@ -344,6 +345,19 @@ Route::group(['prefix' => 'main'], function () {
     Route::apiResource('student', StudentController::class);
     Route::post('student/{id}/update-photo', [StudentController::class, 'updatePhoto'])->name('student.update-photo');
     Route::get('student/{id}/finance', [StudentController::class, 'getFinanceInfo'])->name('student.finance');
+    Route::get('student/{id}/payment-packages', [StudentController::class, 'getPaymentPackages'])->name('student.payment-packages');
+    Route::get('student/{id}/addon-items', [StudentController::class, 'getAddonItems'])->name('student.addon-items');
+    Route::get('student/{id}/top-up-history', [StudentController::class, 'getTopUpHistory'])->name('student.top-up-history');
+    Route::post('student/{id}/top-up', [StudentController::class, 'submitTopUp'])->name('student.top-up');
+
+    // Exam Clearance (Gerbang Ujian Triwulan & Dispensasi Finansial)
+    Route::group(['prefix' => 'exam-clearance'], function () {
+        Route::get('check/{studentId}',                    [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'check']);
+        Route::get('quarter/{quarterId}/students',         [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'quarterStudents']);
+        Route::get('dispensations',                        [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'dispensations']);
+        Route::post('dispensation',                        [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'grantDispensation']);
+        Route::patch('dispensation/{id}',                  [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'revokeDispensation']);
+    });
 
 
     // Student Card
@@ -454,6 +468,10 @@ Route::group(['prefix' => 'main'], function () {
         Route::get('leave-report', [PesantrenReportController::class, 'leaveReport']);
         Route::get('attendance-statistics', [PesantrenReportController::class, 'attendanceStatistics']);
     });
+
+    // FCM Notification Token routes
+    Route::post('fcm/register', [FcmTokenController::class, 'register']);
+    Route::post('fcm/unregister', [FcmTokenController::class, 'unregister']);
 });
 
 // Internal callback route for Bank Santri notifications

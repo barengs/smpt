@@ -70,36 +70,51 @@ class StudentController extends Controller
             // Use paginate to provide metadata and consistent data.data structure
             $students = $query->paginate($perPage);
 
-            // Attach current room for each student in the current page
-            $students->getCollection()->each(function ($student) {
-                $currentRoom = DB::table('student_room_assignments as sra')
+            // OPTIMASI: Batch query untuk hindari N+1 (sebelumnya 2 query x N student = 30.000 query).
+            // Sekarang hanya 2 query total untuk seluruh halaman data.
+            $studentIds = $students->getCollection()->pluck('id')->filter()->values()->all();
+
+            $currentRoomsMap = collect();
+            $currentClassesMap = collect();
+
+            if (!empty($studentIds)) {
+                // Batch query current rooms (1 query untuk semua student di halaman ini)
+                $currentRoomsMap = DB::table('student_room_assignments as sra')
                     ->join('rooms as r', 'r.id', '=', 'sra.room_id')
                     ->join('hostels as h', 'h.id', '=', 'r.hostel_id')
                     ->leftJoin('academic_years as ay', 'ay.id', '=', 'sra.academic_year_id')
-                    ->where('sra.student_id', $student->id)
+                    ->whereIn('sra.student_id', $studentIds)
                     ->where('sra.is_active', true)
                     ->select([
+                        'sra.student_id',
                         'sra.id', 'sra.start_date', 'sra.end_date', 'sra.notes',
                         'r.id as room_id', 'r.name as room_name', 'r.capacity as room_capacity',
                         'h.id as hostel_id', 'h.name as hostel_name',
                         'ay.id as academic_year_id', 'ay.year as academic_year',
                     ])
-                    ->first();
-                $student->current_room = $currentRoom;
+                    ->get()
+                    ->keyBy('student_id');
 
-                // Attach current class
-                $currentClass = DB::table('student_classes as sc')
+                // Batch query current class (kelas terbaru yang disetujui per student)
+                $currentClassesMap = DB::table('student_classes as sc')
                     ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                    ->where('sc.student_id', $student->id)
+                    ->whereIn('sc.student_id', $studentIds)
                     ->where('sc.approval_status', 'disetujui')
                     ->orderBy('sc.created_at', 'desc')
                     ->select([
+                        'sc.student_id',
                         'sc.id',
                         'c.id as classroom_id',
                         'c.name as class_name'
                     ])
-                    ->first();
-                $student->current_class = $currentClass;
+                    ->get()
+                    ->unique('student_id')
+                    ->keyBy('student_id');
+            }
+
+            $students->getCollection()->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
+                $student->current_room = $currentRoomsMap->get($student->id);
+                $student->current_class = $currentClassesMap->get($student->id);
             });
 
             return new StudentResource('data ditemukan', $students, 200);
@@ -152,13 +167,22 @@ class StudentController extends Controller
             // Attach current class
             $currentClass = DB::table('student_classes as sc')
                 ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                ->leftJoin('educational_institutions as ei', 'ei.id', '=', 'sc.educational_institution_id')
+                ->leftJoin('class_groups as cg', 'cg.id', '=', 'sc.class_group_id')
+                ->leftJoin('academic_years as ay', 'ay.id', '=', 'sc.academic_year_id')
                 ->where('sc.student_id', $student->id)
                 ->where('sc.approval_status', 'disetujui')
                 ->orderBy('sc.created_at', 'desc')
                 ->select([
                     'sc.id',
                     'c.id as classroom_id',
-                    'c.name as class_name'
+                    'c.name as class_name',
+                    'ei.id as institution_id',
+                    'ei.name as institution_name',
+                    'cg.id as class_group_id',
+                    'cg.name as class_group_name',
+                    'ay.id as academic_year_id',
+                    'ay.year as academic_year'
                 ])
                 ->first();
             $student->current_class = $currentClass;
@@ -833,12 +857,24 @@ class StudentController extends Controller
                 $transactionsData = $transactionsRes->json('data.data') ?? [];
             }
 
+            // 3. Ambil ringkasan tagihan & tunggakan
+            $arrearsRes = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/account/{$nis}/arrears");
+
+            $arrearsData = null;
+            if ($arrearsRes->successful()) {
+                $arrearsData = $arrearsRes->json('data');
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Informasi keuangan berhasil diambil.',
                 'data' => [
-                    'account' => $accountData,
-                    'transactions' => $transactionsData
+                    'account'      => $accountData,
+                    'transactions' => $transactionsData,
+                    'arrears'      => $arrearsData,
                 ]
             ], 200);
 
@@ -846,6 +882,214 @@ class StudentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengambil data keuangan dari Bank Santri: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payment packages available in bank-santri via proxy.
+     */
+    public function getPaymentPackages(Request $request, string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+            $bankUrl = config('services.bank_santri.url');
+            $bankInternalKey = config('services.bank_santri.internal_key');
+
+            $res = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/payment-packages", [
+                'is_active' => true,
+                'per_page'  => $request->query('per_page', 50),
+            ]);
+
+            if ($res->successful()) {
+                return response()->json($res->json(), $res->status());
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil paket pembayaran: ' . ($res->json('message') ?? 'Terjadi kesalahan pada Bank Santri')
+            ], $res->status());
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal terhubung ke Bank Santri: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get transaction item addons available in bank-santri via proxy.
+     */
+    public function getAddonItems(Request $request, string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+            $bankUrl = config('services.bank_santri.url');
+            $bankInternalKey = config('services.bank_santri.internal_key');
+
+            $res = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/transaction-items/addons", [
+                'is_active' => true,
+                'all'       => true,
+            ]);
+
+            if ($res->successful()) {
+                return response()->json($res->json(), $res->status());
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil item fasilitas: ' . ($res->json('message') ?? 'Terjadi kesalahan pada Bank Santri')
+            ], $res->status());
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal terhubung ke Bank Santri: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get top up history for a student via proxy.
+     */
+    public function getTopUpHistory(Request $request, string $id)
+    {
+        try {
+            $student = Student::findOrFail($id);
+            $nis = $student->nis;
+
+            if (!$nis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NIS santri tidak ditemukan.'
+                ], 404);
+            }
+
+            $bankUrl = config('services.bank_santri.url');
+            $bankInternalKey = config('services.bank_santri.internal_key');
+
+            $res = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])->get("{$bankUrl}/api/internal/account/{$nis}/top-ups", [
+                'per_page' => $request->query('per_page', 20),
+            ]);
+
+            if ($res->successful()) {
+                return response()->json($res->json(), $res->status());
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil riwayat top-up: ' . ($res->json('message') ?? 'Terjadi kesalahan pada Bank Santri')
+            ], $res->status());
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal terhubung ke Bank Santri: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Submit top up / payment proof via proxy to bank-santri.
+     */
+    public function submitTopUp(Request $request, string $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'payment_package_id' => 'nullable|integer',
+            'addon_item_ids'     => 'nullable',
+            'amount'             => 'required|numeric|min:10000',
+            'payment_proof'      => 'required|file|mimes:jpeg,png,jpg,webp,pdf|max:5120',
+            'notes'              => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors(),
+                'message' => $validator->errors()->first(),
+            ], 422);
+        }
+
+        try {
+            $student = Student::findOrFail($id);
+            $nis = $student->nis;
+
+            if (!$nis) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NIS santri tidak ditemukan.'
+                ], 404);
+            }
+
+            // Otorisasi: jika login sebagai wali, pastikan santri adalah miliknya
+            $user = Auth::user();
+            if ($user && $user->parent) {
+                if ($student->parent_id !== $user->parent->nik) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki hak akses untuk santri ini.'
+                    ], 403);
+                }
+            }
+
+            $bankUrl = config('services.bank_santri.url');
+            $bankInternalKey = config('services.bank_santri.internal_key');
+
+            $file = $request->file('payment_proof');
+
+            $postData = [
+                'account_number'    => $nis,
+                'student_id'        => (string) $student->id,
+                'amount'            => (string) $request->input('amount'),
+                'notes'             => (string) ($request->input('notes') ?? ''),
+                'requested_by_type' => 'wali',
+            ];
+
+            if ($request->filled('payment_package_id')) {
+                $postData['payment_package_id'] = (string) $request->input('payment_package_id');
+            }
+
+            if ($request->filled('addon_item_ids')) {
+                $addons = $request->input('addon_item_ids');
+                $postData['addon_item_ids'] = is_array($addons) ? json_encode($addons) : (string) $addons;
+            }
+
+            $response = Http::withHeaders([
+                'X-Internal-Key' => $bankInternalKey,
+                'Accept'         => 'application/json',
+            ])
+            ->attach(
+                'payment_proof',
+                file_get_contents($file->getRealPath()),
+                $file->getClientOriginalName()
+            )
+            ->post("{$bankUrl}/api/internal/top-up/bank-transfer", $postData);
+
+            if ($response->successful()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $response->json('message') ?? 'Bukti transfer berhasil dikirim. Menunggu verifikasi pihak bank.',
+                    'data'    => $response->json('data'),
+                ], 201);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => $response->json('message') ?? 'Gagal mengajukan top-up ke Bank Santri.',
+                'errors'  => $response->json('errors'),
+            ], $response->status());
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 500);
         }
     }
