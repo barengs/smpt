@@ -178,7 +178,7 @@ class StudentController extends Controller
                     'c.id as classroom_id',
                     'c.name as class_name',
                     'ei.id as institution_id',
-                    'ei.name as institution_name',
+                    'ei.institution_name as institution_name',
                     'cg.id as class_group_id',
                     'cg.name as class_group_name',
                     'ay.id as academic_year_id',
