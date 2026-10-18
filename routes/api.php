@@ -100,6 +100,7 @@ Route::group([
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('refresh', [AuthController::class, 'refresh']);
     Route::get('profile', [AuthController::class, 'me']);
+    Route::match(['put', 'patch'], 'profile', [AuthController::class, 'updateProfile']);
     Route::get('sso-handover', [AuthController::class, 'ssoHandover']);
     Route::post('register', [AuthRegisterController::class, 'register']);
     Route::post('change-password', [AuthController::class, 'changePassword']);
