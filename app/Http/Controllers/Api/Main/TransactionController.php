@@ -109,6 +109,9 @@ class TransactionController extends Controller
                             Log::info('Student record found, activating...', ['nik' => $registration->nik]);
                             $student->update(['status' => 'Aktif']);
                         }
+
+                        // Kirim data santri aktif ke Tarbiyah secara otomatis
+                        \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
                     }
                     DB::commit();
                 } catch (\Exception $e) {
@@ -222,6 +225,9 @@ class TransactionController extends Controller
                         Log::info('Student record found, activating...', ['nik' => $registration->nik]);
                         $student->update(['status' => 'Aktif']);
                     }
+
+                    // Kirim data santri aktif ke Tarbiyah secara otomatis
+                    \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
                 }
                 DB::commit();
                 

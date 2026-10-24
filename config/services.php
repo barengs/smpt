@@ -40,4 +40,9 @@ return [
         'internal_key' => env('BANK_SANTRI_INTERNAL_KEY', 'smpt-banksantri-internal-secret-2026'),
     ],
 
+    'tarbiyah' => [
+        'url' => env('TARBIYAH_URL', 'http://127.0.0.1:8002'),
+        'internal_key' => env('TARBIYAH_INTERNAL_KEY', 'smpt-tarbiyah-internal-secret-2026'),
+    ],
+
 ];

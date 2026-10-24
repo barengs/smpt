@@ -290,6 +290,10 @@ class StudentController extends Controller
             }
             $student->update($updateData);
 
+            if (($updateData['status'] ?? null) === 'Aktif') {
+                \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
+            }
+
             // Load updated data with relationships
             $updatedStudent = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);
 
