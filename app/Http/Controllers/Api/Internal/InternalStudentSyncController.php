@@ -43,6 +43,9 @@ class InternalStudentSyncController extends Controller
             return [
                 'santri_id'    => $s->id,
                 'nis'          => $s->nis,
+                'period'       => $s->period, // Angkatan (tahun Hijriah, mis. 1445-1446)
+                'program_id'   => $s->program_id ?: null,
+                'hostel_id'    => $s->hostel_id ?: null,
                 'nik'          => $s->nik,
                 'name'         => trim("{$s->first_name} {$s->last_name}"),
                 'gender'       => $s->gender ?? 'L',
