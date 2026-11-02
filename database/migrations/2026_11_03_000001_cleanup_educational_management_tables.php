@@ -104,3 +104,4 @@ return new class extends Migration
         // One-way migration as education has permanently migrated to Tarbiyah
     }
 };
+

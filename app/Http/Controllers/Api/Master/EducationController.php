@@ -22,3 +22,4 @@ class EducationController extends Controller
         ]);
     }
 }
+

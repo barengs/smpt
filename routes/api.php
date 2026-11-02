@@ -277,6 +277,7 @@ Route::group(['prefix' => 'main'], function () {
     Route::get('student/{id}/addon-items', [StudentController::class, 'getAddonItems'])->name('student.addon-items');
     Route::get('student/{id}/top-up-history', [StudentController::class, 'getTopUpHistory'])->name('student.top-up-history');
     Route::post('student/{id}/top-up', [StudentController::class, 'submitTopUp'])->name('student.top-up');
+    Route::get('student/{id}/education-history', [StudentController::class, 'getEducationHistory'])->name('student.education-history');
 
     // Exam Clearance (Gerbang Ujian Triwulan & Dispensasi Finansial)
     Route::group(['prefix' => 'exam-clearance'], function () {
