@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AuthRegisterController;
 use App\Http\Controllers\Api\Master\AcademicYearController;
+use App\Http\Controllers\Api\Master\EducationController;
 use App\Http\Controllers\Api\Master\ProvinceController;
 use App\Http\Controllers\Api\Master\CityController;
 use App\Http\Controllers\Api\Master\DistrictController;
@@ -96,6 +97,7 @@ Route::group(['prefix' => 'master'], function () {
     Route::get('profession/trashed', [ProfessionController::class, 'trashed'])->name('profession.trashed');
     Route::post('profession/{id}/restore', [ProfessionController::class, 'restore']);
     Route::apiResource('profession', ProfessionController::class);
+    Route::get('education', [EducationController::class, 'index']);
     Route::get('program/trashed', [ProgramController::class, 'trashed']);
     Route::post('program/{id}/restore', [ProgramController::class, 'restore']);
     Route::apiResource('program', ProgramController::class);
