@@ -478,6 +478,7 @@ Route::group(['prefix' => 'main'], function () {
 // Internal callback route for Bank Santri notifications
 Route::post('internal/transaction/activate-callback', [TransactionController::class, 'activateCallback']);
 
-// Internal route for Tarbiyah service to pull active students
+// Internal route for Tarbiyah service to pull active students & programs
 Route::get('internal/students/active', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getActiveStudents']);
+Route::get('internal/programs', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getPrograms']);
 
