@@ -92,4 +92,29 @@ class InternalStudentSyncController extends Controller
             'data'    => $programs,
         ], 200);
     }
+
+    /**
+     * Endpoint untuk Tarbiyah menarik master Tahun Akademik dari SMPT.
+     * Dipanggil dengan header X-Internal-Key.
+     */
+    public function getAcademicYears(Request $request)
+    {
+        $incomingKey = $request->header('X-Internal-Key');
+        $expectedKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+
+        if (empty($incomingKey) || $incomingKey !== $expectedKey) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: Invalid Internal API Key.',
+            ], 401);
+        }
+
+        $years = \App\Models\AcademicYear::orderBy('year', 'desc')->get();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Data tahun akademik berhasil diambil',
+            'data'    => $years,
+        ], 200);
+    }
 }
