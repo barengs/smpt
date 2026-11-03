@@ -42,11 +42,6 @@ class EducationalInstitution extends Model
         return $this->belongsTo(Staff::class, 'headmaster_id', 'id');
     }
 
-    public function classrooms()
-    {
-        return $this->hasMany(Classroom::class, 'educational_institution_id', 'id');
-    }
-
     public function staff()
     {
         return $this->belongsToMany(Staff::class, 'staff_educational_institutions', 'educational_institution_id', 'staff_id');

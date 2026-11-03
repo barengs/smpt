@@ -290,6 +290,11 @@ class StudentController extends Controller
             }
             $student->update($updateData);
 
+            // Sinkronisasi ke Tarbiyah (baik aktivasi santri aktif maupun mutasi status non-aktif)
+            if ($student->nis) {
+                \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
+            }
+
             // Load updated data with relationships
             $updatedStudent = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);
 
@@ -1091,6 +1096,88 @@ class StudentController extends Controller
                 'success' => false,
                 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Ambil riwayat pendidikan & kelas santri dari sistem Tarbiyah via internal Service-to-Service.
+     * GET /api/main/student/{id}/education-history
+     */
+    public function getEducationHistory($id)
+    {
+        $student = Student::findOrFail($id);
+
+        if (empty($student->nis)) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Santri belum memiliki NIS untuk riwayat akademik.',
+                'data'    => [
+                    'nis'           => null,
+                    'current_class' => null,
+                    'history'       => [],
+                    'reports'       => [],
+                ],
+            ]);
+        }
+
+        $tarbiyahUrl = config('services.tarbiyah.url', 'http://127.0.0.1:8002');
+        $tarbiyahKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+
+        try {
+            $response = Http::timeout(6)->withHeaders([
+                'X-Internal-Key' => $tarbiyahKey,
+                'Accept'         => 'application/json',
+            ])->get("{$tarbiyahUrl}/api/internal/students/{$student->nis}/education-history");
+
+            if ($response->successful()) {
+                return response()->json([
+                    'status' => 'success',
+                    'data'   => $response->json('data'),
+                ]);
+            }
+
+            if ($response->status() === 404) {
+                return response()->json([
+                    'status'  => 'success',
+                    'message' => 'Data santri belum tercatat di sistem Tarbiyah.',
+                    'data'    => [
+                        'nis'           => $student->nis,
+                        'current_class' => null,
+                        'history'       => [],
+                        'reports'       => [],
+                    ],
+                ]);
+            }
+
+            Log::warning("Tarbiyah Education History: respon gagal status {$response->status()}", [
+                'nis'  => $student->nis,
+                'body' => $response->body(),
+            ]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Gagal mengambil riwayat pendidikan dari Tarbiyah.',
+                'data'    => null,
+            ], 502);
+
+        } catch (\Exception $e) {
+            Log::error("Tarbiyah Education History: error koneksi ke Tarbiyah", [
+                'nis'   => $student->nis,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Fail-safe: jika Tarbiyah down, kembalikan respon ramah tanpa mematikan UI
+            return response()->json([
+                'status'  => 'warning',
+                'message' => 'Layanan Tarbiyah (akademik) sedang tidak dapat dihubungi.',
+                'data'    => [
+                    'nis'           => $student->nis,
+                    'current_class' => null,
+                    'history'       => [],
+                    'reports'       => [],
+                    'is_offline'    => true,
+                ],
+            ], 200);
         }
     }
 }

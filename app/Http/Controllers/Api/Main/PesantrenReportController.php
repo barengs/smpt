@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\Hostel;
 use App\Models\StudentViolation;
 use App\Models\StudentLeave;
-use App\Models\Presence;
 use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -149,58 +148,5 @@ class PesantrenReportController extends Controller
         }
     }
 
-    /**
-     * Get Attendance Statistics
-     */
-    public function attendanceStatistics(Request $request)
-    {
-        try {
-            $startDate = $request->start_date ?? Carbon::now()->startOfMonth()->toDateString();
-            $endDate = $request->end_date ?? Carbon::now()->toDateString();
 
-            // Group by Lesson/Class via MeetingSchedule
-            $stats = Presence::join('meeting_schedules', 'presences.meeting_schedule_id', '=', 'meeting_schedules.id')
-                ->join('class_schedule_details', 'meeting_schedules.class_schedule_detail_id', '=', 'class_schedule_details.id')
-                ->join('studies', 'class_schedule_details.study_id', '=', 'studies.id')
-                ->whereBetween('presences.date', [$startDate, $endDate])
-                ->select(
-                    'studies.name as study_name',
-                    'presences.status',
-                    DB::raw('count(*) as count')
-                )
-                ->groupBy('studies.name', 'presences.status')
-                ->get();
-
-            // Transform into a more readable format
-            $formattedStats = $stats->groupBy('study_name')->map(function ($items, $study) {
-                $statusCounts = $items->pluck('count', 'status');
-                $total = $statusCounts->sum();
-                return [
-                    'study_name' => $study,
-                    'present' => $statusCounts->get('hadir', 0),
-                    'absent' => $statusCounts->get('alfa', 0),
-                    'sick' => $statusCounts->get('sakit', 0),
-                    'permit' => $statusCounts->get('izin', 0),
-                    'total' => $total,
-                    'percentage' => $total > 0 ? round(($statusCounts->get('hadir', 0) / $total) * 100, 2) : 0
-                ];
-            })->values();
-
-            return response()->json([
-                'status' => 'success',
-                'data' => [
-                    'attendance' => $formattedStats,
-                    'period' => [
-                        'start' => $startDate,
-                        'end' => $endDate
-                    ]
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal mengambil statistik presensi: ' . $e->getMessage()
-            ], 500);
-        }
-    }
 }

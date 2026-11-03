@@ -195,6 +195,78 @@ class AuthController extends Controller
     }
 
     /**
+     * Update authenticated user profile.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah digunakan oleh akun lain.',
+        ]);
+
+        $user->name = trim($request->name);
+        $user->email = trim($request->email);
+        $user->save();
+
+        // Update relasi parent_profile jika ada
+        if ($user->parent) {
+            $nameParts = explode(' ', trim($request->name), 2);
+            $firstName = $nameParts[0];
+            $lastName = isset($nameParts[1]) ? $nameParts[1] : null;
+
+            $parentUpdateData = [
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => trim($request->email),
+            ];
+            if ($request->has('phone')) {
+                $parentUpdateData['phone'] = $request->phone ? trim($request->phone) : null;
+            }
+            $user->parent->update($parentUpdateData);
+        } elseif ($request->filled('phone')) {
+            $nameParts = explode(' ', trim($request->name), 2);
+            $user->parent()->create([
+                'first_name' => $nameParts[0],
+                'last_name' => $nameParts[1] ?? null,
+                'email' => trim($request->email),
+                'phone' => trim($request->phone),
+                'nik' => $user->email,
+                'kk' => $user->email,
+            ]);
+        }
+
+        // Muat relasi terbaru
+        $user->load('parent');
+        if ($user->hasRole('orangtua')) {
+            $user->profile = $user->parent;
+        } else {
+            $user->profile = $user->staff;
+        }
+
+        $userData = $user->toArray();
+        $userData['permissions'] = $user->getAllPermissions()->pluck('name');
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui.',
+            'data' => $userData,
+        ]);
+    }
+
+    /**
      * Get the token array structure.
      *
      * @param  string $token
