@@ -290,7 +290,8 @@ class StudentController extends Controller
             }
             $student->update($updateData);
 
-            if (($updateData['status'] ?? null) === 'Aktif') {
+            // Sinkronisasi ke Tarbiyah (baik aktivasi santri aktif maupun mutasi status non-aktif)
+            if ($student->nis) {
                 \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
             }
 
