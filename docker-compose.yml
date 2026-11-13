@@ -1,0 +1,43 @@
+services:
+  api-tamjid-app:
+    image: ghcr.io/barengs/smpt:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-tamjid-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - api_tamjid_storage:/var/www/html/storage/app/public
+    networks:
+      - tamjid-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/up || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  api-tamjid-worker:
+    image: ghcr.io/barengs/smpt:latest
+    container_name: api-tamjid-worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: ["php", "artisan", "queue:work", "--tries=3", "--timeout=90"]
+    volumes:
+      - api_tamjid_storage:/var/www/html/storage/app/public
+    networks:
+      - tamjid-net
+    depends_on:
+      api-tamjid-app:
+        condition: service_healthy
+
+volumes:
+  api_tamjid_storage:
+    name: api_tamjid_storage
+
+networks:
+  tamjid-net:
+    external: true
