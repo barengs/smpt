@@ -7,6 +7,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use App\Models\ParentProfile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ParentResource;
@@ -420,20 +421,23 @@ class ParentController extends Controller
                     ->keyBy('student_id');
 
                 // Batch query kelas terbaru yang disetujui per santri
-                $currentClassesMap = DB::table('student_classes as sc')
-                    ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                    ->whereIn('sc.student_id', $studentIds)
-                    ->where('sc.approval_status', 'disetujui')
-                    ->orderBy('sc.created_at', 'desc')
-                    ->select([
-                        'sc.student_id',
-                        'sc.id',
-                        'c.id as classroom_id',
-                        'c.name as class_name',
-                    ])
-                    ->get()
-                    ->unique('student_id')
-                    ->keyBy('student_id');
+                $currentClassesMap = collect();
+                if (Schema::hasTable('student_classes') && Schema::hasTable('classrooms')) {
+                    $currentClassesMap = DB::table('student_classes as sc')
+                        ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                        ->whereIn('sc.student_id', $studentIds)
+                        ->where('sc.approval_status', 'disetujui')
+                        ->orderBy('sc.created_at', 'desc')
+                        ->select([
+                            'sc.student_id',
+                            'sc.id',
+                            'c.id as classroom_id',
+                            'c.name as class_name',
+                        ])
+                        ->get()
+                        ->unique('student_id')
+                        ->keyBy('student_id');
+                }
 
                 $parent->student->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
                     $student->current_room = $currentRoomsMap->get($student->id);

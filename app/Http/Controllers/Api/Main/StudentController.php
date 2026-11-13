@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Exception;
@@ -96,20 +97,22 @@ class StudentController extends Controller
                     ->keyBy('student_id');
 
                 // Batch query current class (kelas terbaru yang disetujui per student)
-                $currentClassesMap = DB::table('student_classes as sc')
-                    ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                    ->whereIn('sc.student_id', $studentIds)
-                    ->where('sc.approval_status', 'disetujui')
-                    ->orderBy('sc.created_at', 'desc')
-                    ->select([
-                        'sc.student_id',
-                        'sc.id',
-                        'c.id as classroom_id',
-                        'c.name as class_name'
-                    ])
-                    ->get()
-                    ->unique('student_id')
-                    ->keyBy('student_id');
+                if (Schema::hasTable('student_classes') && Schema::hasTable('classrooms')) {
+                    $currentClassesMap = DB::table('student_classes as sc')
+                        ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                        ->whereIn('sc.student_id', $studentIds)
+                        ->where('sc.approval_status', 'disetujui')
+                        ->orderBy('sc.created_at', 'desc')
+                        ->select([
+                            'sc.student_id',
+                            'sc.id',
+                            'c.id as classroom_id',
+                            'c.name as class_name'
+                        ])
+                        ->get()
+                        ->unique('student_id')
+                        ->keyBy('student_id');
+                }
             }
 
             $students->getCollection()->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
@@ -165,26 +168,29 @@ class StudentController extends Controller
             $student->current_room = $currentRoom;
 
             // Attach current class
-            $currentClass = DB::table('student_classes as sc')
-                ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                ->leftJoin('educational_institutions as ei', 'ei.id', '=', 'sc.educational_institution_id')
-                ->leftJoin('class_groups as cg', 'cg.id', '=', 'sc.class_group_id')
-                ->leftJoin('academic_years as ay', 'ay.id', '=', 'sc.academic_year_id')
-                ->where('sc.student_id', $student->id)
-                ->where('sc.approval_status', 'disetujui')
-                ->orderBy('sc.created_at', 'desc')
-                ->select([
-                    'sc.id',
-                    'c.id as classroom_id',
-                    'c.name as class_name',
-                    'ei.id as institution_id',
-                    'ei.institution_name as institution_name',
-                    'cg.id as class_group_id',
-                    'cg.name as class_group_name',
-                    'ay.id as academic_year_id',
-                    'ay.year as academic_year'
-                ])
-                ->first();
+            $currentClass = null;
+            if (Schema::hasTable('student_classes') && Schema::hasTable('classrooms')) {
+                $currentClass = DB::table('student_classes as sc')
+                    ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
+                    ->leftJoin('educational_institutions as ei', 'ei.id', '=', 'sc.educational_institution_id')
+                    ->leftJoin('class_groups as cg', 'cg.id', '=', 'sc.class_group_id')
+                    ->leftJoin('academic_years as ay', 'ay.id', '=', 'sc.academic_year_id')
+                    ->where('sc.student_id', $student->id)
+                    ->where('sc.approval_status', 'disetujui')
+                    ->orderBy('sc.created_at', 'desc')
+                    ->select([
+                        'sc.id',
+                        'c.id as classroom_id',
+                        'c.name as class_name',
+                        'ei.id as institution_id',
+                        'ei.institution_name as institution_name',
+                        'cg.id as class_group_id',
+                        'cg.name as class_group_name',
+                        'ay.id as academic_year_id',
+                        'ay.year as academic_year'
+                    ])
+                    ->first();
+            }
             $student->current_class = $currentClass;
 
             return new StudentResource('data ditemukan', $student, 200);
