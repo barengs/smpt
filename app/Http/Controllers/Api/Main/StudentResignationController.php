@@ -228,6 +228,10 @@ class StudentResignationController extends Controller
 
             DB::commit();
 
+            if ($request->status === 'disetujui' && isset($student) && $student->nis) {
+                \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
+            }
+
             $resignation->load(['student.program', 'student.hostel', 'processor']);
 
             return new StudentResignationResource('Pengajuan keluar berhasil diperbarui', $resignation, 200);

@@ -77,11 +77,9 @@ class MenuSeeder extends Seeder
             'Dasbor' => ['en_title' => 'Dashboard', 'icon' => 'layout-dashboard', 'route' => '/dashboard', 'order' => 1],
             'Guru Tugas' => ['en_title' => 'Assignment Teacher', 'icon' => 'chalkboard-teacher', 'route' => '#', 'order' => 5],
             'Manajemen Staf' => ['en_title' => 'Staff Management', 'icon' => 'user-tie', 'route' => '#', 'order' => 10],
-            'Kurikulum' => ['en_title' => 'Curriculum', 'icon' => 'book', 'route' => '#', 'order' => 15],
             'Bank Santri' => ['en_title' => 'Student Bank', 'icon' => 'landmark', 'route' => '#', 'order' => 20],
             'Manajemen Kamtib' => ['en_title' => 'Security & Discipline', 'icon' => 'shield-check', 'route' => '#', 'order' => 35],
             'Kepesantrenan' => ['en_title' => 'Islamic Boarding School', 'icon' => 'mosque', 'route' => '#', 'order' => 40],
-            'Manajemen Pendidikan' => ['en_title' => 'Education Management', 'icon' => 'graduation-cap', 'route' => '#', 'order' => 45],
             'Informasi' => ['en_title' => 'Information', 'icon' => 'info-circle', 'route' => '#', 'order' => 50],
             'Manajemen Santri' => ['en_title' => 'Student Management', 'icon' => 'users', 'route' => '#', 'order' => 55],
             'Data Master' => ['en_title' => 'Master Data', 'icon' => 'database', 'route' => '#', 'order' => 60],
@@ -99,21 +97,6 @@ class MenuSeeder extends Seeder
             'Lembaga' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Institution', 'route' => '/dashboard/organisasi/lembaga', 'icon' => 'building', 'order' => 1],
             'Jabatan' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Position', 'route' => '/dashboard/organisasi/jabatan', 'icon' => 'briefcase', 'order' => 2],
             'Kepengurusan' => ['parent' => 'Struktur Organisasi', 'en_title' => 'Management', 'route' => '/dashboard/organisasi/kepengurusan', 'icon' => 'users', 'order' => 3],
-
-            // 3. KURIKULUM SUBMENUS
-            'Dashboard Kurikulum' => ['parent' => 'Kurikulum', 'en_title' => 'Curriculum Dashboard', 'route' => '/dashboard/manajemen-kurikulum/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
-            'Mata Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Subject', 'route' => '/dashboard/manajemen-kurikulum/mata-pelajaran', 'icon' => 'book-open', 'order' => 2],
-            'Jam Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Lesson Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-pelajaran', 'icon' => 'clock', 'order' => 2],
-            'Sesi Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Lesson Session', 'route' => '/dashboard/manajemen-kurikulum/sesi-pelajaran', 'icon' => 'sun', 'order' => 3],
-            'Jadwal Pelajaran' => ['parent' => 'Kurikulum', 'en_title' => 'Class Schedule', 'route' => '/dashboard/manajemen-kurikulum/jadwal-pelajaran', 'icon' => 'calendar-alt', 'order' => 4],
-            'Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher', 'route' => '/dashboard/manajemen-kurikulum/guru', 'icon' => 'user-tie', 'order' => 5],
-            'Penugasan Guru' => ['parent' => 'Kurikulum', 'en_title' => 'Teacher Assignment', 'route' => '/dashboard/manajemen-kurikulum/penugasan-guru', 'icon' => 'clipboard-list', 'order' => 6],
-            'Jam Mengajar' => ['parent' => 'Kurikulum', 'en_title' => 'Teaching Hour', 'route' => '/dashboard/manajemen-kurikulum/jam-mengajar', 'icon' => 'clock', 'order' => 7],
-            'Presensi' => ['parent' => 'Kurikulum', 'en_title' => 'Presence', 'route' => '/dashboard/manajemen-kurikulum/presensi', 'icon' => 'check-circle', 'order' => 8],
-            'Penilaian' => ['parent' => 'Kurikulum', 'en_title' => 'Assessment', 'route' => '/dashboard/manajemen-kurikulum/penilaian', 'icon' => 'star', 'order' => 9],
-            'E-Raport' => ['parent' => 'Kurikulum', 'en_title' => 'E-Report', 'route' => '/dashboard/manajemen-kurikulum/raport', 'icon' => 'file-text', 'order' => 10],
-            'Kenaikan Kelas' => ['parent' => 'Kurikulum', 'en_title' => 'Class Promotion', 'route' => '/dashboard/manajemen-kurikulum/kenaikan-kelas', 'icon' => 'arrow-up', 'order' => 11],
-            'Institusi Pendidikan' => ['parent' => 'Kurikulum', 'en_title' => 'Educational Institution', 'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan', 'icon' => 'school', 'order' => 12],
 
             // 4. BANK SANTRI SUBMENUS
             'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/santri/rekening', 'icon' => 'refresh-cw', 'order' => 1],
@@ -135,13 +118,6 @@ class MenuSeeder extends Seeder
             'Kamar' => ['parent' => 'Kepesantrenan', 'en_title' => 'Room', 'route' => '/dashboard/kepesantrenan/kamar', 'icon' => 'bed', 'order' => 2],
             'Jadwal Kegiatan' => ['parent' => 'Kepesantrenan', 'en_title' => 'Activity Schedule', 'route' => '/dashboard/kepesantrenan/jadwal-kegiatan', 'icon' => 'clock', 'order' => 3],
 
-            // 9. MANAJEMEN PENDIDIKAN SUBMENUS
-            'Dashboard Pendidikan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Education Dashboard', 'route' => '/dashboard/pendidikan/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
-            'Jenjang' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Level', 'route' => '/dashboard/pendidikan/jenjang', 'icon' => 'layers', 'order' => 3],
-            'Kelas' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Room', 'route' => '/dashboard/pendidikan/kelas', 'icon' => 'layout', 'order' => 4],
-            'Rombel' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Group', 'route' => '/dashboard/pendidikan/rombel', 'icon' => 'users', 'order' => 5],
-            'Kelompok Pendidikan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Education Group', 'route' => '/dashboard/pendidikan/kelompok-pendidikan', 'icon' => 'graduation-cap', 'order' => 6],
-
             // 10. INFORMASI SUBMENUS
             'Berita' => ['parent' => 'Informasi', 'en_title' => 'News Feed', 'route' => '/dashboard/berita', 'icon' => 'newspaper', 'order' => 1],
             'Pengumuman' => ['parent' => 'Informasi', 'en_title' => 'Announcement', 'route' => '/dashboard/pengumuman', 'icon' => 'bell', 'order' => 2],
@@ -152,7 +128,6 @@ class MenuSeeder extends Seeder
             'Wali Santri' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Guardian', 'route' => '/dashboard/wali-santri-list', 'icon' => 'user-friends', 'order' => 3],
             'Surat Perjanjian' => ['parent' => 'Manajemen Santri', 'en_title' => 'Agreement', 'route' => '/dashboard/santri/perjanjian', 'icon' => 'file-text', 'order' => 4],
             'Mutasi Asrama' => ['parent' => 'Manajemen Santri', 'en_title' => 'Hostel Mutation', 'route' => '/dashboard/santri/mutasi-asrama', 'icon' => 'arrow-right-left', 'order' => 10],
-            'Penempatan Kelas' => ['parent' => 'Manajemen Santri', 'en_title' => 'Class Placement', 'route' => '/dashboard/manajemen-kurikulum/penempatan-kelas', 'icon' => 'user-check', 'order' => 11],
             'Pengajuan Boyong' => ['parent' => 'Manajemen Santri', 'en_title' => 'Student Resignation', 'route' => '/dashboard/santri/boyong', 'icon' => 'log-out', 'order' => 12],
 
             // 12. DATA MASTER SUBMENUS

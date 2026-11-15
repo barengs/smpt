@@ -26,7 +26,7 @@ class RoleAccessSeeder extends Seeder
                 'category' => 'administrasi',
                 'menus' => [
                     'Dasbor', 'Manajemen Santri', 'Data Santri', 'Pendaftaran Santri', 'Wali Santri',
-                    'Manajemen Staf', 'Data Staf', 'Manajemen Pendidikan', 'Institusi Pendidikan',
+                    'Manajemen Staf', 'Data Staf',
                     'Informasi', 'Pengaturan'
                 ],
                 'permissions' => ['view', 'create', 'edit', 'delete', 'approve']
@@ -41,8 +41,7 @@ class RoleAccessSeeder extends Seeder
             'guru' => [
                 'category' => 'pendidikan',
                 'menus' => [
-                    'Dasbor', 'Kurikulum', 'Mata Pelajaran', 'Jadwal Pelajaran', 'Guru', 
-                    'Penugasan Guru', 'Jam Mengajar', 'Presensi', 'Kenaikan Kelas', 'Siswa'
+                    'Dasbor'
                 ],
                 'permissions' => ['view'] // Mostly view, presensi maybe edit?
             ],

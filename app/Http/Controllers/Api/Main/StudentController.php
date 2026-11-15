@@ -23,6 +23,7 @@ use App\Exports\StudentTemplateExport;
 use Illuminate\Support\Facades\Http;
 use App\Services\DataScopeService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -1128,6 +1129,15 @@ class StudentController extends Controller
 
         $tarbiyahUrl = config('services.tarbiyah.url', 'http://127.0.0.1:8002');
         $tarbiyahKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+        $freshCacheKey = "tarbiyah:education_history:fresh:{$student->nis}";
+        $staleCacheKey = "tarbiyah:education_history:stale:{$student->nis}";
+
+        if ($cachedData = Cache::get($freshCacheKey)) {
+            return response()->json([
+                'status' => 'success',
+                'data'   => $cachedData,
+            ]);
+        }
 
         try {
             $response = Http::timeout(6)->withHeaders([
@@ -1136,9 +1146,13 @@ class StudentController extends Controller
             ])->get("{$tarbiyahUrl}/api/internal/students/{$student->nis}/education-history");
 
             if ($response->successful()) {
+                $data = $response->json('data');
+                Cache::put($freshCacheKey, $data, now()->addMinutes(10));
+                Cache::put($staleCacheKey, $data, now()->addHours(24));
+
                 return response()->json([
                     'status' => 'success',
-                    'data'   => $response->json('data'),
+                    'data'   => $data,
                 ]);
             }
 
@@ -1160,6 +1174,15 @@ class StudentController extends Controller
                 'body' => $response->body(),
             ]);
 
+            if ($staleData = Cache::get($staleCacheKey)) {
+                $staleData['is_offline'] = true;
+                return response()->json([
+                    'status'  => 'warning',
+                    'message' => 'Layanan Tarbiyah bermasalah. Menampilkan data cache terakhir.',
+                    'data'    => $staleData,
+                ], 200);
+            }
+
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Gagal mengambil riwayat pendidikan dari Tarbiyah.',
@@ -1172,7 +1195,16 @@ class StudentController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            // Fail-safe: jika Tarbiyah down, kembalikan respon ramah tanpa mematikan UI
+            if ($staleData = Cache::get($staleCacheKey)) {
+                $staleData['is_offline'] = true;
+                return response()->json([
+                    'status'  => 'warning',
+                    'message' => 'Layanan Tarbiyah (akademik) sedang tidak dapat dihubungi. Menampilkan data cache terakhir.',
+                    'data'    => $staleData,
+                ], 200);
+            }
+
+            // Fail-safe: jika Tarbiyah down dan belum ada cache, kembalikan respon ramah tanpa mematikan UI
             return response()->json([
                 'status'  => 'warning',
                 'message' => 'Layanan Tarbiyah (akademik) sedang tidak dapat dihubungi.',
