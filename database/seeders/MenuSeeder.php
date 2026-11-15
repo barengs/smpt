@@ -116,7 +116,7 @@ class MenuSeeder extends Seeder
             'Institusi Pendidikan' => ['parent' => 'Kurikulum', 'en_title' => 'Educational Institution', 'route' => '/dashboard/manajemen-kurikulum/institusi-pendidikan', 'icon' => 'school', 'order' => 12],
 
             // 4. BANK SANTRI SUBMENUS
-            'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/bank-santri/transaksi', 'icon' => 'refresh-cw', 'order' => 1],
+            'Transaksi Bank' => ['parent' => 'Bank Santri', 'en_title' => 'Bank Transaction', 'route' => '/dashboard/santri/rekening', 'icon' => 'refresh-cw', 'order' => 1],
 
             // 7. KAMTIB SUBMENUS
             'Dashboard Kamtib' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Security Dashboard', 'route' => '/dashboard/manajemen-kamtib/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
@@ -131,18 +131,16 @@ class MenuSeeder extends Seeder
             'Verifikasi Libur' => ['parent' => 'Manajemen Kamtib', 'en_title' => 'Holiday Verification', 'route' => '/dashboard/manajemen-kamtib/libur-verifikasi', 'icon' => 'qr-code', 'order' => 9],
 
             // 8. KEPESANTRENAN SUBMENUS
-            'Asrama' => ['parent' => 'Kepesantrenan', 'en_title' => 'Hostel', 'route' => '/dashboard/pendidikan/asrama', 'icon' => 'home', 'order' => 1],
+            'Asrama' => ['parent' => 'Kepesantrenan', 'en_title' => 'Hostel', 'route' => '/dashboard/kepesantrenan/asrama', 'icon' => 'home', 'order' => 1],
             'Kamar' => ['parent' => 'Kepesantrenan', 'en_title' => 'Room', 'route' => '/dashboard/kepesantrenan/kamar', 'icon' => 'bed', 'order' => 2],
+            'Jadwal Kegiatan' => ['parent' => 'Kepesantrenan', 'en_title' => 'Activity Schedule', 'route' => '/dashboard/kepesantrenan/jadwal-kegiatan', 'icon' => 'clock', 'order' => 3],
 
             // 9. MANAJEMEN PENDIDIKAN SUBMENUS
             'Dashboard Pendidikan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Education Dashboard', 'route' => '/dashboard/pendidikan/dashboard', 'icon' => 'layout-dashboard', 'order' => 1],
-            'Program' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Program Education', 'route' => '/dashboard/pendidikan/program', 'icon' => 'bookmark', 'order' => 2],
-            'Tahun Ajaran' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Academic Year', 'route' => '/dashboard/pendidikan/tahun-ajaran', 'icon' => 'calendar', 'order' => 2],
             'Jenjang' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Level', 'route' => '/dashboard/pendidikan/jenjang', 'icon' => 'layers', 'order' => 3],
             'Kelas' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Room', 'route' => '/dashboard/pendidikan/kelas', 'icon' => 'layout', 'order' => 4],
             'Rombel' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Class Group', 'route' => '/dashboard/pendidikan/rombel', 'icon' => 'users', 'order' => 5],
             'Kelompok Pendidikan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Education Group', 'route' => '/dashboard/pendidikan/kelompok-pendidikan', 'icon' => 'graduation-cap', 'order' => 6],
-            'Jadwal Kegiatan' => ['parent' => 'Manajemen Pendidikan', 'en_title' => 'Activity Schedule', 'route' => '/dashboard/jadwal', 'icon' => 'clock', 'order' => 7],
 
             // 10. INFORMASI SUBMENUS
             'Berita' => ['parent' => 'Informasi', 'en_title' => 'News Feed', 'route' => '/dashboard/berita', 'icon' => 'newspaper', 'order' => 1],
@@ -159,10 +157,12 @@ class MenuSeeder extends Seeder
 
             // 12. DATA MASTER SUBMENUS
             'Pekerjaan' => ['parent' => 'Data Master', 'en_title' => 'Occupation', 'route' => '/dashboard/master-data/pekerjaan', 'icon' => 'briefcase', 'order' => 1],
-            'Provinsi' => ['parent' => 'Data Master', 'en_title' => 'Province', 'route' => '/dashboard/wilayah/provinsi', 'icon' => 'map', 'order' => 2],
-            'Kota' => ['parent' => 'Data Master', 'en_title' => 'Regency', 'route' => '/dashboard/wilayah/kota', 'icon' => 'map-pinned', 'order' => 3],
-            'Kecamatan' => ['parent' => 'Data Master', 'en_title' => 'District', 'route' => '/dashboard/wilayah/kecamatan', 'icon' => 'navigation', 'order' => 4],
-            'Desa' => ['parent' => 'Data Master', 'en_title' => 'Village', 'route' => '/dashboard/wilayah/desa', 'icon' => 'map-pin', 'order' => 5],
+            'Program' => ['parent' => 'Data Master', 'en_title' => 'Program Education', 'route' => '/dashboard/master-data/program', 'icon' => 'bookmark', 'order' => 2],
+            'Tahun Ajaran' => ['parent' => 'Data Master', 'en_title' => 'Academic Year', 'route' => '/dashboard/master-data/tahun-ajaran', 'icon' => 'calendar', 'order' => 3],
+            'Provinsi' => ['parent' => 'Data Master', 'en_title' => 'Province', 'route' => '/dashboard/wilayah/provinsi', 'icon' => 'map', 'order' => 4],
+            'Kota' => ['parent' => 'Data Master', 'en_title' => 'Regency', 'route' => '/dashboard/wilayah/kota', 'icon' => 'map-pinned', 'order' => 5],
+            'Kecamatan' => ['parent' => 'Data Master', 'en_title' => 'District', 'route' => '/dashboard/wilayah/kecamatan', 'icon' => 'navigation', 'order' => 6],
+            'Desa' => ['parent' => 'Data Master', 'en_title' => 'Village', 'route' => '/dashboard/wilayah/desa', 'icon' => 'map-pin', 'order' => 7],
 
             // 13. PENGATURAN SUBMENUS
             'Navigasi' => ['parent' => 'Pengaturan', 'en_title' => 'Navigation Management', 'route' => '/dashboard/settings/navigation', 'icon' => 'menu', 'order' => 1],
