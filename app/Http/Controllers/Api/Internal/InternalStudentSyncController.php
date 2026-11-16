@@ -7,6 +7,8 @@ use App\Models\Program;
 use App\Models\Staff;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class InternalStudentSyncController extends Controller
 {
@@ -37,13 +39,13 @@ class InternalStudentSyncController extends Controller
         $students = $query->get()->map(function ($s) {
             $parentName = null;
             if ($s->parents) {
-                $parentName = $s->parents->father_name 
-                    ?: $s->parents->mother_name 
-                    ?: $s->parents->guardian_name;
+                $parentName = trim("{$s->parents->first_name} {$s->parents->last_name}") ?: null;
             }
 
             return [
                 'santri_id'    => $s->id,
+                'parent_id'    => $s->parent_id ?: $s->parents?->nik ?: null,
+                'kk'           => $s->kk ?? $s->parents?->kk ?? null,
                 'nis'          => $s->nis,
                 'period'       => $s->period, // Angkatan (tahun Hijriah, mis. 1445-1446)
                 'program_id'   => $s->program_id ?: null,
@@ -52,8 +54,9 @@ class InternalStudentSyncController extends Controller
                 'name'         => trim("{$s->first_name} {$s->last_name}"),
                 'gender'       => $s->gender ?? 'L',
                 'status'       => 'aktif',
+                'phone'        => $s->phone ?? null,
                 'parent_name'  => $parentName,
-                'parent_phone' => $s->phone ?? $s->parents?->phone ?? null,
+                'parent_phone' => $s->parents?->phone ?? $s->phone ?? null,
                 'address'      => $s->address,
                 'born_in'      => $s->born_in,
                 'born_at'      => $s->born_at ? (is_string($s->born_at) ? substr($s->born_at, 0, 10) : $s->born_at->format('Y-m-d')) : null,
@@ -163,6 +166,53 @@ class InternalStudentSyncController extends Controller
             'message' => 'Data guru/staf berhasil diambil',
             'total'   => $staffList->count(),
             'data'    => $staffList,
+        ], 200);
+    }
+
+    /**
+     * Endpoint untuk Tarbiyah menarik riwayat penempatan kelas lama dari SMPT
+     * (jika tabel student_classes & class_groups masih tersedia di database SMPT).
+     */
+    public function getLegacyStudentClasses(Request $request)
+    {
+        $incomingKey = $request->header('X-Internal-Key');
+        $expectedKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+
+        if (empty($incomingKey) || $incomingKey !== $expectedKey) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: Invalid Internal API Key.',
+            ], 401);
+        }
+
+        if (! Schema::hasTable('student_classes') || ! Schema::hasTable('class_groups')) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Tabel kelas lama (student_classes/class_groups) sudah dihapus dari SMPT.',
+                'total'   => 0,
+                'data'    => [],
+            ], 200);
+        }
+
+        $rows = DB::table('student_classes as sc')
+            ->join('students as s', 's.id', '=', 'sc.student_id')
+            ->join('class_groups as cg', 'cg.id', '=', 'sc.class_group_id')
+            ->leftJoin('academic_years as ay', 'ay.id', '=', 'sc.academic_year_id')
+            ->whereNotNull('s.nis')
+            ->select([
+                's.nis',
+                'cg.name as class_group_name',
+                'ay.year as academic_year',
+                'sc.approval_status',
+                'sc.created_at',
+            ])
+            ->get();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Data penempatan kelas lama berhasil diambil',
+            'total'   => $rows->count(),
+            'data'    => $rows,
         ], 200);
     }
 }

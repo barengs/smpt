@@ -29,9 +29,7 @@ class TarbiyahSyncService
 
             $parentName = null;
             if ($student->parents) {
-                $parentName = $student->parents->father_name 
-                    ?: $student->parents->mother_name 
-                    ?: $student->parents->guardian_name;
+                $parentName = trim("{$student->parents->first_name} {$student->parents->last_name}") ?: null;
             }
 
             $bornAt = null;
@@ -47,6 +45,7 @@ class TarbiyahSyncService
                 'Content-Type'   => 'application/json',
             ])->post("{$tarbiyahUrl}/api/internal/students/sync", [
                 'santri_id'    => $student->id,
+                'parent_id'    => $student->parent_id ?: $student->parents?->nik ?: null,
                 'nis'          => $student->nis,
                 'period'       => $student->period ?? null,
                 'program_id'   => $student->program_id ?: null,
@@ -55,7 +54,7 @@ class TarbiyahSyncService
                 'gender'       => $student->gender ?? 'L',
                 'status'       => $student->status ?? 'Aktif',
                 'parent_name'  => $parentName,
-                'parent_phone' => $student->phone ?? $student->parents?->phone ?? null,
+                'parent_phone' => $student->parents?->phone ?? $student->phone ?? null,
                 'address'      => $student->address ?? null,
                 'nik'          => $student->nik ?? null,
                 'born_in'      => $student->born_in ?? null,
