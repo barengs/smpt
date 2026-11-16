@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api\Internal;
 
 use App\Http\Controllers\Controller;
-use App\Models\Student;
 use App\Models\Program;
+use App\Models\Staff;
+use App\Models\Student;
 use Illuminate\Http\Request;
 
 class InternalStudentSyncController extends Controller
@@ -115,6 +116,53 @@ class InternalStudentSyncController extends Controller
             'status'  => 'success',
             'message' => 'Data tahun akademik berhasil diambil',
             'data'    => $years,
+        ], 200);
+    }
+
+    /**
+     * Endpoint untuk Tarbiyah menarik (pull) daftar staf dengan role guru/asatidz/walikelas dari SMPT.
+     * Dipanggil dengan header X-Internal-Key.
+     */
+    public function getTeachers(Request $request)
+    {
+        $incomingKey = $request->header('X-Internal-Key');
+        $expectedKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+
+        if (empty($incomingKey) || $incomingKey !== $expectedKey) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: Invalid Internal API Key.',
+            ], 401);
+        }
+
+        $staffList = Staff::with(['user.roles'])
+            ->whereHas('user.roles', function ($query) {
+                $query->whereIn('name', ['guru', 'asatidz', 'walikelas']);
+            })
+            ->orderBy('first_name')
+            ->get()
+            ->map(function ($s) {
+                $rawGender = strtoupper(trim($s->gender ?? 'L'));
+                $gender = ($rawGender === 'P' || $rawGender === 'PEREMPUAN') ? 'P' : 'L';
+
+                return [
+                    'staff_id'  => $s->id,
+                    'nip'       => $s->nip ?: $s->code ?: null,
+                    'name'      => trim("{$s->first_name} {$s->last_name}"),
+                    'gender'    => $gender,
+                    'phone'     => $s->phone,
+                    'email'     => $s->email ?: $s->user?->email,
+                    'status'    => 'tetap',
+                    'is_active' => strtolower($s->status ?? 'aktif') === 'aktif',
+                    'roles'     => $s->user?->roles->pluck('name')->values() ?? [],
+                ];
+            });
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Data guru/staf berhasil diambil',
+            'total'   => $staffList->count(),
+            'data'    => $staffList,
         ], 200);
     }
 }
