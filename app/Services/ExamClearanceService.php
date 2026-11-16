@@ -76,6 +76,9 @@ class ExamClearanceService
     public function check(Student $student, ?AcademicQuarter $quarter = null): array
     {
         $quarter = $quarter ?? AcademicQuarter::where('active', true)->first();
+        if (! $quarter && TarbiyahSyncService::syncAcademicQuarters() > 0) {
+            $quarter = AcademicQuarter::where('active', true)->first();
+        }
 
         $base = [
             'student_id' => $student->id,

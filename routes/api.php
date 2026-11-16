@@ -286,6 +286,7 @@ Route::group(['prefix' => 'main'], function () {
         Route::get('dispensations',                        [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'dispensations']);
         Route::post('dispensation',                        [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'grantDispensation']);
         Route::patch('dispensation/{id}',                  [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'revokeDispensation']);
+        Route::post('sync-quarters',                       [\App\Http\Controllers\Api\Main\ExamClearanceController::class, 'syncQuarters']);
     });
 
     // Student Card

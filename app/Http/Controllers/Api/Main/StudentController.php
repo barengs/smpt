@@ -97,28 +97,14 @@ class StudentController extends Controller
                     ->get()
                     ->keyBy('student_id');
 
-                // Batch query current class (kelas terbaru yang disetujui per student)
-                if (Schema::hasTable('student_classes') && Schema::hasTable('classrooms')) {
-                    $currentClassesMap = DB::table('student_classes as sc')
-                        ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                        ->whereIn('sc.student_id', $studentIds)
-                        ->where('sc.approval_status', 'disetujui')
-                        ->orderBy('sc.created_at', 'desc')
-                        ->select([
-                            'sc.student_id',
-                            'sc.id',
-                            'c.id as classroom_id',
-                            'c.name as class_name'
-                        ])
-                        ->get()
-                        ->unique('student_id')
-                        ->keyBy('student_id');
-                }
+                // Batch query current class dari Tarbiyah berdasarkan NIS
+                $nisList = $students->getCollection()->pluck('nis')->filter()->values()->toArray();
+                $currentClassesMap = \App\Services\TarbiyahSyncService::fetchCurrentClasses($nisList);
             }
 
             $students->getCollection()->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
                 $student->current_room = $currentRoomsMap->get($student->id);
-                $student->current_class = $currentClassesMap->get($student->id);
+                $student->current_class = $student->nis ? ($currentClassesMap[$student->nis] ?? null) : null;
             });
 
             return new StudentResource('data ditemukan', $students, 200);
@@ -296,11 +282,6 @@ class StudentController extends Controller
                 $updateData['photo'] = $photoPath;
             }
             $student->update($updateData);
-
-            // Sinkronisasi ke Tarbiyah (baik aktivasi santri aktif maupun mutasi status non-aktif)
-            if ($student->nis) {
-                \App\Services\TarbiyahSyncService::syncStudent($student->fresh());
-            }
 
             // Load updated data with relationships
             $updatedStudent = Student::with(['program', 'hostel', 'parents'])->findOrFail($id);

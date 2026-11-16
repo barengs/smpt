@@ -420,28 +420,13 @@ class ParentController extends Controller
                     ->get()
                     ->keyBy('student_id');
 
-                // Batch query kelas terbaru yang disetujui per santri
-                $currentClassesMap = collect();
-                if (Schema::hasTable('student_classes') && Schema::hasTable('classrooms')) {
-                    $currentClassesMap = DB::table('student_classes as sc')
-                        ->join('classrooms as c', 'c.id', '=', 'sc.classroom_id')
-                        ->whereIn('sc.student_id', $studentIds)
-                        ->where('sc.approval_status', 'disetujui')
-                        ->orderBy('sc.created_at', 'desc')
-                        ->select([
-                            'sc.student_id',
-                            'sc.id',
-                            'c.id as classroom_id',
-                            'c.name as class_name',
-                        ])
-                        ->get()
-                        ->unique('student_id')
-                        ->keyBy('student_id');
-                }
+                // Batch query kelas aktif santri dari Tarbiyah berdasarkan NIS
+                $nisList = $parent->student->pluck('nis')->filter()->values()->toArray();
+                $currentClassesMap = \App\Services\TarbiyahSyncService::fetchCurrentClasses($nisList);
 
                 $parent->student->each(function ($student) use ($currentRoomsMap, $currentClassesMap) {
                     $student->current_room = $currentRoomsMap->get($student->id);
-                    $student->current_class = $currentClassesMap->get($student->id);
+                    $student->current_class = $student->nis ? ($currentClassesMap[$student->nis] ?? null) : null;
                 });
             }
 

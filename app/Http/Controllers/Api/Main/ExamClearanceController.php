@@ -49,7 +49,8 @@ class ExamClearanceController extends Controller
         $quarter = AcademicQuarter::findOrFail($quarterId);
 
         $students = Student::query()
-            ->when($request->class_id, fn($q, $cid) => $q->whereHas('activeRoom', fn($r) => $r->where('classrooms.id', $cid)))
+            ->when($request->program_id, fn($q, $pid) => $q->where('program_id', $pid))
+            ->when($request->nis_list, fn($q, $nisList) => $q->whereIn('nis', (array) $nisList))
             ->orderBy('first_name')
             ->get();
 
@@ -98,6 +99,21 @@ class ExamClearanceController extends Controller
             'message' => 'Dispensasi ujian diberikan. Santri diizinkan mengikuti ujian sampai tanggal komitmen pembayaran.',
             'data'    => $dispensation,
         ], 201);
+    }
+
+    /**
+     * Tarik & sinkronisasi master triwulan akademik (academic_quarters) dari Tarbiyah.
+     * POST /api/main/exam-clearance/sync-quarters
+     */
+    public function syncQuarters()
+    {
+        $synced = \App\Services\TarbiyahSyncService::syncAcademicQuarters();
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => "Berhasil menyinkronkan {$synced} periode triwulan dari Tarbiyah.",
+            'synced'  => $synced,
+        ]);
     }
 
     /**
