@@ -190,4 +190,41 @@ class TarbiyahSyncService
             return 0;
         }
     }
+
+    /**
+     * Push daftar Tahun Akademik dari SMPT ke Tarbiyah secara otomatis.
+     */
+    public static function syncAcademicYears(): bool
+    {
+        $tarbiyahUrl = config('services.tarbiyah.url', 'http://127.0.0.1:8002');
+        $tarbiyahKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+
+        try {
+            $years = AcademicYear::orderBy('year', 'desc')->get()->map(fn ($y) => [
+                'year'        => $y->year,
+                'start_date'  => $y->start_date ? (is_string($y->start_date) ? substr($y->start_date, 0, 10) : $y->start_date->format('Y-m-d')) : null,
+                'end_date'    => $y->end_date ? (is_string($y->end_date) ? substr($y->end_date, 0, 10) : $y->end_date->format('Y-m-d')) : null,
+                'active'      => (bool) $y->active,
+                'description' => $y->description,
+            ])->values()->all();
+
+            $response = Http::timeout(5)->withHeaders([
+                'X-Internal-Key' => $tarbiyahKey,
+                'Accept'         => 'application/json',
+            ])->post("{$tarbiyahUrl}/api/internal/academic-years/sync", [
+                'academic_years' => $years,
+            ]);
+
+            if ($response->successful()) {
+                Log::info('TarbiyahSync: Sukses push sync tahun akademik ke Tarbiyah.');
+                return true;
+            }
+
+            Log::warning('TarbiyahSync: Gagal push sync tahun akademik: ' . $response->body());
+            return false;
+        } catch (\Exception $e) {
+            Log::error('TarbiyahSync: Error push sync tahun akademik: ' . $e->getMessage());
+            return false;
+        }
+    }
 }
