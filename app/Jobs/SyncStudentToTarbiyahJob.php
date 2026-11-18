@@ -19,10 +19,9 @@ class SyncStudentToTarbiyahJob implements ShouldQueue
     /** @var array<int, int> */
     public array $backoff = [10, 60, 300];
 
-    public bool $afterCommit = true;
-
     public function __construct(public int $studentId)
     {
+        $this->afterCommit = true;
     }
 
     public function handle(): void

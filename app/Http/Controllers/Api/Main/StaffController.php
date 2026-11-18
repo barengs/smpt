@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers\Api\Main;
 
-use Exception;
-use App\Models\User;
-use App\Models\Staff;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Exports\StaffTemplateExport;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
-use Intervention\Image\ImageManager;
 use App\Http\Resources\StaffResource;
+use App\Imports\StaffsImport;
+use App\Models\Staff;
+use App\Models\User;
+use App\Services\DataScopeService;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Intervention\Image\Drivers\Gd\Driver;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Imports\StaffsImport;
-use App\Exports\StaffTemplateExport;
+use Intervention\Image\ImageManager;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Services\DataScopeService;
-use Illuminate\Support\Facades\Auth;
 
 class StaffController extends Controller
 {
@@ -47,9 +47,7 @@ class StaffController extends Controller
                     $query->whereRaw('1 = 0');
                 } else {
                     $query->whereHas('staff', function ($q) use ($institutionIds) {
-                        $q->whereHas('educationalInstitutions', function ($sq) use ($institutionIds) {
-                            $sq->whereIn('educational_institutions.id', $institutionIds);
-                        })->orWhereHas('positionAssignments.position.organization', function ($sq) use ($institutionIds) {
+                        $q->whereHas('positionAssignments.position.organization', function ($sq) use ($institutionIds) {
                             $sq->whereIn('educational_institution_id', $institutionIds);
                         });
                     });
@@ -59,34 +57,34 @@ class StaffController extends Controller
             // Filter khusus untuk Kepala Sekolah
             $isHeadmaster = filter_var($request->query('is_headmaster'), FILTER_VALIDATE_BOOLEAN);
             if ($isHeadmaster) {
-                $query->where(function($q) {
-                    $q->whereHas('roles', function($qRole) {
+                $query->where(function ($q) {
+                    $q->whereHas('roles', function ($qRole) {
                         $qRole->where('name', 'like', '%kepala%');
                     })
-                    ->orWhereHas('staff.assignments.position', function($qPos) {
-                        $qPos->where('name', 'like', '%kepala%');
-                    });
+                        ->orWhereHas('staff.assignments.position', function ($qPos) {
+                            $qPos->where('name', 'like', '%kepala%');
+                        });
                 });
             }
 
             if ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhereHas('staff', function ($sq) use ($search) {
-                          $sq->where('first_name', 'like', "%{$search}%")
-                             ->orWhere('last_name', 'like', "%{$search}%")
-                             ->orWhere('nik', 'like', "%{$search}%")
-                             ->orWhere('nip', 'like', "%{$search}%");
-                      });
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhereHas('staff', function ($sq) use ($search) {
+                            $sq->where('first_name', 'like', "%{$search}%")
+                                ->orWhere('last_name', 'like', "%{$search}%")
+                                ->orWhere('nik', 'like', "%{$search}%")
+                                ->orWhere('nip', 'like', "%{$search}%");
+                        });
                 });
             }
 
             // Correctly handle sort_by if it's a staff field
             if (in_array($sortBy, ['first_name', 'last_name', 'nik', 'nip'])) {
                 $query->join('staff', 'users.id', '=', 'staff.user_id')
-                      ->select('users.*')
-                      ->orderBy('staff.' . $sortBy, $sortOrder);
+                    ->select('users.*')
+                    ->orderBy('staff.'.$sortBy, $sortOrder);
             } else {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -104,7 +102,6 @@ class StaffController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \App\Http\Resources\StaffResource
      */
     public function store(Request $request)
@@ -125,7 +122,6 @@ class StaffController extends Controller
             'birth_place' => 'nullable|string|max:255',
             'birth_date' => 'nullable|date',
         ]);
-
 
         try {
 
@@ -148,13 +144,13 @@ class StaffController extends Controller
 
             $fileName = null;
             if ($request->hasFile('photo')) {
-                $image = new ImageManager(new Driver());
+                $image = new ImageManager(new Driver);
                 $timestamp = now()->timestamp;
-                $fileName = $timestamp . '_' . $request->file('photo')->getClientOriginalName();
+                $fileName = $timestamp.'_'.$request->file('photo')->getClientOriginalName();
 
                 $largeImage = $image->read($request->file('photo')->getRealPath());
                 $largeImage->cover(512, 512);
-                Storage::disk('public')->put('uploads/logos/large/' . $fileName, (string) $largeImage->encode());
+                Storage::disk('public')->put('uploads/logos/large/'.$fileName, (string) $largeImage->encode());
             }
 
             // Create the staff
@@ -170,7 +166,7 @@ class StaffController extends Controller
                 'nip' => $request->nip,
                 'birth_place' => $request->birth_place,
                 'birth_date' => $request->birth_date,
-                'gender' => match($request->gender) {
+                'gender' => match ($request->gender) {
                     'Laki-laki', 'L' => 'L',
                     'Perempuan', 'P' => 'P',
                     default => 'L',
@@ -192,12 +188,15 @@ class StaffController extends Controller
             return new StaffResource('Data berhasil di simpan', $staff, 200);
         } catch (ValidationException $e) {
             DB::rollBack();
+
             return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
             DB::rollBack();
+
             return new StaffResource('Database error occurred while creating staff member', ['message' => $e->getMessage()], 500);
         } catch (Exception $e) {
             DB::rollBack();
+
             return new StaffResource('An error occurred while creating staff member', ['message' => $e->getMessage()], 500);
         }
     }
@@ -211,10 +210,10 @@ class StaffController extends Controller
     public function show($id)
     {
         try {
-            // Load staff with user and roles information
-            $staff = Staff::with(['user.roles', 'educationalInstitutions', 'programs'])->find($id);
+            // Load staff with user, roles, and programs information
+            $staff = Staff::with(['user.roles', 'programs'])->find($id);
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found', null, 404);
             }
 
@@ -229,7 +228,6 @@ class StaffController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  string  $id
      * @return \App\Http\Resources\StaffResource
      */
@@ -238,7 +236,7 @@ class StaffController extends Controller
         try {
             $staff = Staff::find($id);
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found', null, 404);
             }
 
@@ -247,9 +245,9 @@ class StaffController extends Controller
                 'user_id' => 'sometimes|required|exists:users,id',
                 'first_name' => 'sometimes|required|string|max:255',
                 'last_name' => 'sometimes|required|string|max:255',
-                'nip' => 'nullable|string|max:20|unique:staff,nip,' . $id,
-                'nik' => 'nullable|string|max:20|unique:staff,nik,' . $id,
-                'email' => 'sometimes|required|email|unique:staff,email,' . $id,
+                'nip' => 'nullable|string|max:20|unique:staff,nip,'.$id,
+                'nik' => 'nullable|string|max:20|unique:staff,nik,'.$id,
+                'email' => 'sometimes|required|email|unique:staff,email,'.$id,
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:500',
                 'zip_code' => 'nullable|string|max:10',
@@ -278,18 +276,18 @@ class StaffController extends Controller
             $photoPath = $staff->photo; // Keep existing photo by default
             if ($request->hasFile('photo')) {
                 // Delete old photo if it exists
-                if ($staff->photo && Storage::disk('public')->exists('uploads/logos/large/' . $staff->photo)) {
-                    Storage::disk('public')->delete('uploads/logos/large/' . $staff->photo);
+                if ($staff->photo && Storage::disk('public')->exists('uploads/logos/large/'.$staff->photo)) {
+                    Storage::disk('public')->delete('uploads/logos/large/'.$staff->photo);
                 }
 
                 // Upload new photo
-                $image = new ImageManager(new Driver());
+                $image = new ImageManager(new Driver);
                 $timestamp = now()->timestamp;
-                $fileName = $timestamp . '_' . $request->file('photo')->getClientOriginalName();
+                $fileName = $timestamp.'_'.$request->file('photo')->getClientOriginalName();
 
                 $largeImage = $image->read($request->file('photo')->getRealPath());
                 $largeImage->cover(512, 512);
-                Storage::disk('public')->put('uploads/logos/large/' . $fileName, (string) $largeImage->encode());
+                Storage::disk('public')->put('uploads/logos/large/'.$fileName, (string) $largeImage->encode());
 
                 $photoPath = $fileName;
             }
@@ -307,7 +305,7 @@ class StaffController extends Controller
                 'phone' => $request->input('phone', $staff->phone),
                 'address' => $request->input('address', $staff->address),
                 'zip_code' => $request->input('zip_code', $staff->zip_code),
-                'gender' => match($request->input('gender', $staff->gender)) {
+                'gender' => match ($request->input('gender', $staff->gender)) {
                     'Laki-laki', 'L' => 'L',
                     'Perempuan', 'P' => 'P',
                     default => $staff->gender,
@@ -333,7 +331,7 @@ class StaffController extends Controller
             if ($request->has('username')) {
                 $userUpdate['name'] = $request->username;
             }
-            if (!empty($userUpdate)) {
+            if (! empty($userUpdate)) {
                 $staff->user->update($userUpdate);
             }
 
@@ -343,7 +341,7 @@ class StaffController extends Controller
             }
 
             // Load the user relationship
-            $staff->load(['user', 'educationalInstitutions']);
+            $staff->load(['user', 'programs']);
 
             return new StaffResource('Data berhasil di update', $staff, 200);
         } catch (ValidationException $e) {
@@ -363,7 +361,8 @@ class StaffController extends Controller
     public function generateCode()
     {
         $lastStaff = Staff::orderBy('id', 'desc')->first();
-        $code = 'SP' . str_pad(($lastStaff ? $lastStaff->id + 1 : 1), 4, '0', STR_PAD_LEFT);
+        $code = 'SP'.str_pad(($lastStaff ? $lastStaff->id + 1 : 1), 4, '0', STR_PAD_LEFT);
+
         return $code;
     }
 
@@ -378,7 +377,7 @@ class StaffController extends Controller
         try {
             $staff = Staff::find($id);
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found', null, 404);
             }
 
@@ -404,11 +403,11 @@ class StaffController extends Controller
         try {
             $staff = Staff::withTrashed()->find($id);
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found', null, 404);
             }
 
-            if (!$staff->trashed()) {
+            if (! $staff->trashed()) {
                 return new StaffResource('Staff is not deleted', null, 400);
             }
 
@@ -479,13 +478,13 @@ class StaffController extends Controller
     {
         try {
             // Validate user ID
-            if (!is_numeric($userId)) {
+            if (! is_numeric($userId)) {
                 return new StaffResource('Invalid user ID', null, 400);
             }
 
             $staff = Staff::with('user')->where('user_id', $userId)->first();
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found for this user', null, 404);
             }
 
@@ -500,7 +499,6 @@ class StaffController extends Controller
     /**
      * Bulk delete staff members.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \App\Http\Resources\StaffResource
      */
     public function bulkDelete(Request $request)
@@ -508,7 +506,7 @@ class StaffController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'ids' => 'required|array',
-                'ids.*' => 'exists:staff,id'
+                'ids.*' => 'exists:staff,id',
             ]);
 
             if ($validator->fails()) {
@@ -518,7 +516,7 @@ class StaffController extends Controller
             $ids = $request->input('ids');
             $deletedCount = Staff::whereIn('id', $ids)->delete();
 
-            return new StaffResource($deletedCount . ' staff members deleted successfully', null, 200);
+            return new StaffResource($deletedCount.' staff members deleted successfully', null, 200);
         } catch (ValidationException $e) {
             return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
@@ -531,7 +529,6 @@ class StaffController extends Controller
     /**
      * Bulk restore staff members.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \App\Http\Resources\StaffResource
      */
     public function bulkRestore(Request $request)
@@ -539,7 +536,7 @@ class StaffController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'ids' => 'required|array',
-                'ids.*' => 'exists:staff,id'
+                'ids.*' => 'exists:staff,id',
             ]);
 
             if ($validator->fails()) {
@@ -549,7 +546,7 @@ class StaffController extends Controller
             $ids = $request->input('ids');
             $restoredCount = Staff::withTrashed()->whereIn('id', $ids)->restore();
 
-            return new StaffResource($restoredCount . ' staff members restored successfully', null, 200);
+            return new StaffResource($restoredCount.' staff members restored successfully', null, 200);
         } catch (ValidationException $e) {
             return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
@@ -562,7 +559,6 @@ class StaffController extends Controller
     /**
      * Update staff status.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  string  $id
      * @return \App\Http\Resources\StaffResource
      */
@@ -571,7 +567,7 @@ class StaffController extends Controller
         try {
             $staff = Staff::find($id);
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found', null, 404);
             }
 
@@ -612,7 +608,7 @@ class StaffController extends Controller
                 'total' => $total,
                 'active' => $active,
                 'inactive' => $inactive,
-                'trashed' => $trashed
+                'trashed' => $trashed,
             ];
 
             return new StaffResource('Data berhasil diambil', $data, 200);
@@ -634,7 +630,7 @@ class StaffController extends Controller
         try {
             $staff = Staff::withTrashed()->find($id);
 
-            if (!$staff) {
+            if (! $staff) {
                 return new StaffResource('Staff not found', null, 404);
             }
 
@@ -652,7 +648,6 @@ class StaffController extends Controller
     /**
      * Bulk force delete staff members.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \App\Http\Resources\StaffResource
      */
     public function bulkForceDelete(Request $request)
@@ -660,7 +655,7 @@ class StaffController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'ids' => 'required|array',
-                'ids.*' => 'exists:staff,id'
+                'ids.*' => 'exists:staff,id',
             ]);
 
             if ($validator->fails()) {
@@ -670,7 +665,7 @@ class StaffController extends Controller
             $ids = $request->input('ids');
             $deletedCount = Staff::withTrashed()->whereIn('id', $ids)->forceDelete();
 
-            return new StaffResource($deletedCount . ' staff members permanently deleted successfully', null, 200);
+            return new StaffResource($deletedCount.' staff members permanently deleted successfully', null, 200);
         } catch (ValidationException $e) {
             return new StaffResource('Validation failed', $e->errors(), 422);
         } catch (QueryException $e) {
@@ -699,14 +694,13 @@ class StaffController extends Controller
 
             return new StaffResource('data ditemukan', $data, 200);
         } catch (Exception $e) {
-            return response()->json('terjadi kesalahan: ' . $e->getMessage(), 500);
+            return response()->json('terjadi kesalahan: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Get staff members by role category.
      *
-     * @param string $category
      * @return \App\Http\Resources\StaffResource
      */
     public function getStaffByCategory(string $category)
@@ -772,14 +766,13 @@ class StaffController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json('data tidak ditemukan', 404);
         } catch (Exception $e) {
-            return response()->json('terjadi kesalahan: ' . $e->getMessage(), 500);
+            return response()->json('terjadi kesalahan: '.$e->getMessage(), 500);
         }
     }
 
     /**
      * Check NIK and extract information like province, city, district, birth date, and gender.
      *
-     * @param Request $request
      * @return \App\Http\Resources\StaffResource
      */
     public function checkNik(Request $request)
@@ -820,18 +813,18 @@ class StaffController extends Controller
             $fullYear = (int) $year <= 30 ? "20{$year}" : "19{$year}";
 
             // Format birth date
-            $formattedBirthDate = sprintf("%s-%s-%02d", $fullYear, $month, $adjustedDay);
+            $formattedBirthDate = sprintf('%s-%s-%02d', $fullYear, $month, $adjustedDay);
 
             // Get region information
-            $province = DB::table(config('laravolt.indonesia.table_prefix') . 'provinces')
+            $province = DB::table(config('laravolt.indonesia.table_prefix').'provinces')
                 ->where('code', $provinceCode)
                 ->first();
 
-            $city = DB::table(config('laravolt.indonesia.table_prefix') . 'cities')
+            $city = DB::table(config('laravolt.indonesia.table_prefix').'cities')
                 ->where('code', $cityCode)
                 ->first();
 
-            $district = DB::table(config('laravolt.indonesia.table_prefix') . 'districts')
+            $district = DB::table(config('laravolt.indonesia.table_prefix').'districts')
                 ->where('code', $districtCode)
                 ->first();
 
@@ -913,7 +906,7 @@ class StaffController extends Controller
             }
 
             $file = $request->file('file');
-            $import = new StaffsImport();
+            $import = new StaffsImport;
 
             // Import the file
             Excel::import($import, $file);
@@ -932,6 +925,7 @@ class StaffController extends Controller
             if (count($errors) > 0) {
                 $responseData['errors'] = array_slice($errors, 0, 50); // Limit to first 50 errors
                 $responseData['total_errors'] = count($errors);
+
                 return new StaffResource('Import completed with some errors', $responseData, 200);
             }
 
@@ -950,7 +944,7 @@ class StaffController extends Controller
      */
     public function export()
     {
-        return Excel::download(new \App\Exports\StaffReadableExport, 'laporan_staf_' . date('Y-m-d_H-i-s') . '.xlsx', \Maatwebsite\Excel\Excel::XLSX);
+        return Excel::download(new \App\Exports\StaffReadableExport, 'laporan_staf_'.date('Y-m-d_H-i-s').'.xlsx', \Maatwebsite\Excel\Excel::XLSX);
     }
 
     /**
@@ -960,7 +954,7 @@ class StaffController extends Controller
      */
     public function backup()
     {
-        return Excel::download(new \App\Exports\StaffBackupExport, 'backup_staf_' . date('Y-m-d_H-i-s') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        return Excel::download(new \App\Exports\StaffBackupExport, 'backup_staf_'.date('Y-m-d_H-i-s').'.csv', \Maatwebsite\Excel\Excel::CSV);
     }
 
     /**
@@ -988,7 +982,7 @@ class StaffController extends Controller
     {
         try {
             return Excel::download(
-                new StaffTemplateExport(),
+                new StaffTemplateExport,
                 'staff_import_template.xlsx'
             );
         } catch (Exception $e) {
@@ -1012,16 +1006,16 @@ class StaffController extends Controller
             }
 
             $request->validate([
-                'program_ids'   => 'required|array',
+                'program_ids' => 'required|array',
                 'program_ids.*' => 'exists:programs,id',
             ]);
 
             $staff->programs()->sync($request->program_ids);
 
             return response()->json([
-                'status'  => 'success',
+                'status' => 'success',
                 'message' => 'Program staff berhasil diperbarui',
-                'data'    => $staff->programs()->get(['programs.id', 'programs.name']),
+                'data' => $staff->programs()->get(['programs.id', 'programs.name']),
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['status' => 'error', 'message' => 'Validasi gagal', 'errors' => $e->errors()], 422);
@@ -1046,11 +1040,10 @@ class StaffController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'data'   => $staff->programs()->get(['programs.id', 'programs.name', 'programs.description']),
+                'data' => $staff->programs()->get(['programs.id', 'programs.name', 'programs.description']),
             ], 200);
         } catch (Exception $e) {
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
         }
     }
 }
-
