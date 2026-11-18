@@ -12,7 +12,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -66,12 +66,12 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [
-            'email'                      => $this->email,
-            'name'                       => $this->name,
-            'role'                       => $this->getRoleNames()->first() ?? 'staf',
-            'is_super_admin'             => $this->isSuperAdmin(),
+            'email' => $this->email,
+            'name' => $this->name,
+            'role' => $this->getRoleNames()->first() ?? 'staf',
+            'is_super_admin' => $this->isSuperAdmin(),
             'accessible_institution_ids' => $this->getAccessibleInstitutionIds(),
-            'accessible_program_ids'     => $this->getAccessibleProgramIds(),
+            'accessible_program_ids' => $this->getAccessibleProgramIds(),
         ];
     }
 
@@ -112,11 +112,20 @@ class User extends Authenticatable implements JWTSubject
      */
     private function resolveInstitutionId($org)
     {
-        if (!$org) return null;
-        if (!empty($org->educational_institution_id)) return $org->educational_institution_id;
+        if (! $org) {
+            return null;
+        }
+        if (! empty($org->educational_institution_id)) {
+            return $org->educational_institution_id;
+        }
         // Lazy load parent if not loaded
-        if (!$org->relationLoaded('parent')) $org->load('parent');
-        if ($org->parent) return $this->resolveInstitutionId($org->parent);
+        if (! $org->relationLoaded('parent')) {
+            $org->load('parent');
+        }
+        if ($org->parent) {
+            return $this->resolveInstitutionId($org->parent);
+        }
+
         return null;
     }
 
@@ -125,11 +134,20 @@ class User extends Authenticatable implements JWTSubject
      */
     private function resolveProgramId($org)
     {
-        if (!$org) return null;
-        if (!empty($org->program_id)) return $org->program_id;
+        if (! $org) {
+            return null;
+        }
+        if (! empty($org->program_id)) {
+            return $org->program_id;
+        }
         // Lazy load parent if not loaded
-        if (!$org->relationLoaded('parent')) $org->load('parent');
-        if ($org->parent) return $this->resolveProgramId($org->parent);
+        if (! $org->relationLoaded('parent')) {
+            $org->load('parent');
+        }
+        if ($org->parent) {
+            return $this->resolveProgramId($org->parent);
+        }
+
         return null;
     }
 
@@ -155,7 +173,9 @@ class User extends Authenticatable implements JWTSubject
 
         foreach ($assignments as $a) {
             $org = $a->position ? $a->position->organization : null;
-            if (!$org) continue;
+            if (! $org) {
+                continue;
+            }
 
             $instId = $this->resolveInstitutionId($org);
             $progId = $this->resolveProgramId($org);
@@ -165,7 +185,9 @@ class User extends Authenticatable implements JWTSubject
                 break;
             }
 
-            if ($instId) $fromInstJob[] = $instId;
+            if ($instId) {
+                $fromInstJob[] = $instId;
+            }
         }
 
         if ($isPusat) {
@@ -196,7 +218,9 @@ class User extends Authenticatable implements JWTSubject
 
         foreach ($assignments as $a) {
             $org = $a->position ? $a->position->organization : null;
-            if (!$org) continue;
+            if (! $org) {
+                continue;
+            }
 
             $instId = $this->resolveInstitutionId($org);
             $progId = $this->resolveProgramId($org);
