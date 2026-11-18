@@ -113,7 +113,7 @@ class User extends Authenticatable implements JWTSubject
     private function resolveInstitutionId($org)
     {
         if (!$org) return null;
-        if ($org->educational_institution_id) return $org->educational_institution_id;
+        if (!empty($org->educational_institution_id)) return $org->educational_institution_id;
         // Lazy load parent if not loaded
         if (!$org->relationLoaded('parent')) $org->load('parent');
         if ($org->parent) return $this->resolveInstitutionId($org->parent);
@@ -126,10 +126,7 @@ class User extends Authenticatable implements JWTSubject
     private function resolveProgramId($org)
     {
         if (!$org) return null;
-        if ($org->program_id) return $org->program_id;
-        if ($org->educationalInstitution && $org->educationalInstitution->program_id) {
-            return $org->educationalInstitution->program_id;
-        }
+        if (!empty($org->program_id)) return $org->program_id;
         // Lazy load parent if not loaded
         if (!$org->relationLoaded('parent')) $org->load('parent');
         if ($org->parent) return $this->resolveProgramId($org->parent);
@@ -154,7 +151,6 @@ class User extends Authenticatable implements JWTSubject
 
         // 1. Resolve institution IDs for all active assignments
         $fromInstJob = [];
-        $fromProgJobInsts = [];
         $isPusat = false;
 
         foreach ($assignments as $a) {
@@ -170,32 +166,13 @@ class User extends Authenticatable implements JWTSubject
             }
 
             if ($instId) $fromInstJob[] = $instId;
-            if ($progId) {
-                // If they have a program scope, they can access all institutions in that program
-                $insts = \App\Models\EducationalInstitution::where('program_id', $progId)->pluck('id')->toArray();
-                $fromProgJobInsts = array_merge($fromProgJobInsts, $insts);
-            }
         }
 
         if ($isPusat) {
             return null;
         }
 
-        $fromJob = array_merge($fromInstJob, $fromProgJobInsts);
-
-        // Institusi via program yang ditugaskan (Manual fallback)
-        $viaProgram = $staff->programs()
-            ->with('institutions:id,program_id')
-            ->get()
-            ->pluck('institutions')
-            ->flatten()
-            ->pluck('id')
-            ->toArray();
-
-        // Institusi yang ditugaskan langsung (Manual fallback)
-        $direct = $staff->educationalInstitutions()->pluck('educational_institutions.id')->toArray();
-
-        return array_values(array_unique(array_merge($fromJob, $viaProgram, $direct)));
+        return array_values(array_unique($fromInstJob));
     }
 
     /**
@@ -212,9 +189,8 @@ class User extends Authenticatable implements JWTSubject
             return [];
         }
 
-        $assignments = $staff->assignments()->where('is_active', true)->with('position.organization.educationalInstitution')->get();
+        $assignments = $staff->assignments()->where('is_active', true)->with('position.organization')->get();
 
-        $fromInstJob = [];
         $fromProgJob = [];
         $isPusat = false;
 
@@ -233,30 +209,15 @@ class User extends Authenticatable implements JWTSubject
             if ($progId) {
                 $fromProgJob[] = $progId;
             }
-            if ($instId) {
-                // Get program of the institution
-                $instProgId = \App\Models\EducationalInstitution::where('id', $instId)->value('program_id');
-                if ($instProgId) {
-                    $fromInstJob[] = $instProgId;
-                }
-            }
         }
 
         if ($isPusat) {
             return null;
         }
 
-        $fromJob = array_merge($fromInstJob, $fromProgJob);
-
-        // Program langsung
+        // Program langsung dari penugasan staff_programs
         $direct = $staff->programs()->pluck('programs.id')->toArray();
 
-        // Program dari institusi yang ditugaskan langsung
-        $viaInst = $staff->educationalInstitutions()
-            ->whereNotNull('program_id')
-            ->pluck('program_id')
-            ->toArray();
-
-        return array_values(array_unique(array_merge($fromJob, $direct, $viaInst)));
+        return array_values(array_unique(array_merge($fromProgJob, $direct)));
     }
 }
