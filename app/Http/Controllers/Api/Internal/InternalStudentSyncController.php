@@ -148,6 +148,18 @@ class InternalStudentSyncController extends Controller
                 $rawGender = strtoupper(trim($s->gender ?? 'L'));
                 $gender = ($rawGender === 'P' || $rawGender === 'PEREMPUAN') ? 'P' : 'L';
 
+                $photo = $s->photo;
+                $photoUrl = null;
+                if (!empty($photo)) {
+                    if (preg_match('/^(https?:\/\/|data:)/i', $photo)) {
+                        $photoUrl = $photo;
+                    } elseif (str_starts_with(ltrim($photo, '/'), 'uploads/')) {
+                        $photoUrl = 'https://api.tamjid.or.id/storage/' . ltrim($photo, '/');
+                    } else {
+                        $photoUrl = 'https://api.tamjid.or.id/storage/uploads/logos/large/' . ltrim($photo, '/');
+                    }
+                }
+
                 return [
                     'staff_id'  => $s->id,
                     'nip'       => $s->nip ?: $s->code ?: null,
@@ -155,6 +167,8 @@ class InternalStudentSyncController extends Controller
                     'gender'    => $gender,
                     'phone'     => $s->phone,
                     'email'     => $s->email ?: $s->user?->email,
+                    'photo'     => $s->photo,
+                    'photo_url' => $photoUrl,
                     'status'    => 'tetap',
                     'is_active' => strtolower($s->status ?? 'aktif') === 'aktif',
                     'roles'     => $s->user?->roles->pluck('name')->values() ?? [],
@@ -166,6 +180,61 @@ class InternalStudentSyncController extends Controller
             'message' => 'Data guru/staf berhasil diambil',
             'total'   => $staffList->count(),
             'data'    => $staffList,
+        ], 200);
+    }
+
+    /**
+     * Endpoint untuk Tarbiyah mengambil info & foto staf spesifik (berdasarkan staff_id, nip, atau code).
+     */
+    public function getStaffPhoto(Request $request)
+    {
+        $incomingKey = $request->header('X-Internal-Key');
+        $expectedKey = config('services.tarbiyah.internal_key', 'smpt-tarbiyah-internal-secret-2026');
+
+        if (empty($incomingKey) || $incomingKey !== $expectedKey) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: Invalid Internal API Key.',
+            ], 401);
+        }
+
+        $staffId = $request->query('staff_id');
+        $nip = $request->query('nip');
+
+        $staff = null;
+        if ($staffId) {
+            $staff = Staff::find($staffId);
+        }
+        if (!$staff && $nip) {
+            $staff = Staff::where('nip', $nip)->orWhere('code', $nip)->first();
+        }
+
+        if (!$staff) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Staff tidak ditemukan',
+            ], 404);
+        }
+
+        $photo = $staff->photo;
+        $photoUrl = null;
+        if (!empty($photo)) {
+            if (preg_match('/^(https?:\/\/|data:)/i', $photo)) {
+                $photoUrl = $photo;
+            } elseif (str_starts_with(ltrim($photo, '/'), 'uploads/')) {
+                $photoUrl = 'https://api.tamjid.or.id/storage/' . ltrim($photo, '/');
+            } else {
+                $photoUrl = 'https://api.tamjid.or.id/storage/uploads/logos/large/' . ltrim($photo, '/');
+            }
+        }
+
+        return response()->json([
+            'status'    => 'success',
+            'staff_id'  => $staff->id,
+            'nip'       => $staff->nip ?: $staff->code,
+            'name'      => trim("{$staff->first_name} {$staff->last_name}"),
+            'photo'     => $photo,
+            'photo_url' => $photoUrl,
         ], 200);
     }
 

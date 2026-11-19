@@ -374,5 +374,6 @@ Route::post('internal/transaction/activate-callback', [TransactionController::cl
 Route::get('internal/students/active', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getActiveStudents']);
 Route::get('internal/student-classes', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getLegacyStudentClasses']);
 Route::get('internal/teachers', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getTeachers']);
+Route::get('internal/staff-photo', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getStaffPhoto']);
 Route::get('internal/programs', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getPrograms']);
 Route::get('internal/academic-years', [\App\Http\Controllers\Api\Internal\InternalStudentSyncController::class, 'getAcademicYears']);
