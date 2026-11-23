@@ -1,0 +1,42 @@
+# ==============================================================================
+# KONFIGURASI BACKUP MULTI-DATABASE PESANTREN KE GOOGLE DRIVE
+# ==============================================================================
+# Salin file ini menjadi `backup.conf` di direktori yang sama:
+#   cp backup.conf.example backup.conf
+#   chmod 600 backup.conf
+# ==============================================================================
+
+# --- KONEKSI DATABASE MYSQL ---
+DB_HOST="127.0.0.1"
+DB_PORT="3306"
+DB_USER="root"
+DB_PASS="rahasia"
+
+# Daftar nama database yang akan dibackup (pisahkan dengan spasi)
+# Contoh: DATABASES=("pesantren" "pendidikan" "bank")
+DATABASES=("pesantren" "pendidikan" "bank")
+
+# Apakah ingin backup seluruh database sekaligus dalam 1 file master? (true/false)
+BACKUP_ALL_DATABASES=true
+
+# --- DIREKTORI PENYIMPANAN TEMPORER ---
+LOCAL_TEMP_DIR="/tmp/pesantren_db_backups"
+
+# --- GOOGLE DRIVE (RCLONE) ---
+# Nama remote rclone yang telah dikonfigurasi (misal: gdrive)
+RCLONE_REMOTE="gdrive"
+# Nama folder tujuan di Google Drive
+RCLONE_DEST_DIR="Backup-Pesantren/Databases"
+
+# --- RETENSI (PEMBERSIHAN OTOMATIS) ---
+# Hapus backup di Google Drive yang lebih tua dari X hari (contoh: 30d, 60d)
+RETENTION_DAYS="30d"
+
+# --- LOGGING ---
+LOG_FILE="/var/log/backup-pesantren.log"
+
+# --- NOTIFIKASI TELEGRAM (OPSIONAL) ---
+# Set ENABLE_TELEGRAM=true jika ingin mendapat notifikasi instan saat backup sukses/gagal
+ENABLE_TELEGRAM=false
+TELEGRAM_BOT_TOKEN=""
+TELEGRAM_CHAT_ID=""
