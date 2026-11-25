@@ -65,6 +65,14 @@ class StudentCardController extends Controller
         }
 
         if (!$card) {
+            if ($student) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Santri belum memiliki kartu santri',
+                    'data' => null
+                ], 200);
+            }
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Student card not found'
