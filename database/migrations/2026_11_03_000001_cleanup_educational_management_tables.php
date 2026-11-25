@@ -37,61 +37,71 @@ return new class extends Migration
             Schema::dropIfExists($table);
         }
 
-        // 2. Adjust menus: rescue Program, Tahun Ajaran, Jadwal Kegiatan, update Asrama route
-        // Move Program (id 53) to Data Master (id 16)
-        DB::table('menus')->where('id', 53)->update([
-            'parent_id' => 16,
-            'route'     => '/dashboard/master-data/program',
-        ]);
+        // 2. Adjust menus by title (avoid hardcoded IDs which differ between dev & production)
+        $dataMasterId = DB::table('menus')->where('id_title', 'Data Master')->value('id');
+        $kepesantrenanId = DB::table('menus')->where('id_title', 'Kepesantrenan')->value('id');
 
-        // Move Tahun Ajaran (id 54) to Data Master (id 16)
-        DB::table('menus')->where('id', 54)->update([
-            'parent_id' => 16,
-            'route'     => '/dashboard/master-data/tahun-ajaran',
-        ]);
+        if ($dataMasterId) {
+            DB::table('menus')->where('id_title', 'Program')->update([
+                'parent_id' => $dataMasterId,
+                'route'     => '/dashboard/master-data/program',
+            ]);
 
-        // Move Jadwal Kegiatan (id 59) to Kepesantrenan (id 12)
-        DB::table('menus')->where('id', 59)->update([
-            'parent_id' => 12,
-            'route'     => '/dashboard/kepesantrenan/jadwal-kegiatan',
-        ]);
+            DB::table('menus')->where('id_title', 'Tahun Ajaran')->update([
+                'parent_id' => $dataMasterId,
+                'route'     => '/dashboard/master-data/tahun-ajaran',
+            ]);
+        }
 
-        // Update Asrama (id 50) route
-        DB::table('menus')->where('id', 50)->update([
+        if ($kepesantrenanId) {
+            DB::table('menus')->where('id_title', 'Jadwal Kegiatan')->update([
+                'parent_id' => $kepesantrenanId,
+                'route'     => '/dashboard/kepesantrenan/jadwal-kegiatan',
+            ]);
+        }
+
+        DB::table('menus')->where('id_title', 'Asrama')->update([
             'route' => '/dashboard/kepesantrenan/asrama',
         ]);
 
-        // 3. Delete obsolete education menus & their role_menu associations
-        $menusToDelete = [
-            9,   // Kurikulum (parent)
-            26,  // Dashboard Kurikulum
-            27,  // Mata Pelajaran
-            28,  // Jam Pelajaran
-            29,  // Sesi Pelajaran
-            30,  // Jadwal Pelajaran
-            31,  // Guru
-            32,  // Penugasan Guru
-            33,  // Jam Mengajar
-            34,  // Presensi
-            35,  // Penilaian
-            36,  // E-Raport
-            37,  // Kenaikan Kelas
-            38,  // Institusi Pendidikan
-            13,  // Manajemen Pendidikan (parent)
-            52,  // Dashboard Pendidikan
-            55,  // Jenjang
-            56,  // Kelas
-            57,  // Rombel
-            58,  // Kelompok Pendidikan
-            67,  // Penempatan Kelas (under Manajemen Santri)
-            5,   // Statistik Presensi (under Laporan)
+        // 3. Delete obsolete education menus & their role_menu associations by title
+        $obsoleteTitles = [
+            'Kurikulum',
+            'Dashboard Kurikulum',
+            'Mata Pelajaran',
+            'Jam Pelajaran',
+            'Sesi Pelajaran',
+            'Jadwal Pelajaran',
+            'Guru',
+            'Penugasan Guru',
+            'Jam Mengajar',
+            'Presensi',
+            'Penilaian',
+            'E-Raport',
+            'Kenaikan Kelas',
+            'Institusi Pendidikan',
+            'Manajemen Pendidikan',
+            'Dashboard Pendidikan',
+            'Jenjang',
+            'Kelas',
+            'Rombel',
+            'Kelompok Pendidikan',
+            'Penempatan Kelas',
+            'Statistik Presensi',
         ];
 
-        if (Schema::hasTable('role_menu')) {
-            DB::table('role_menu')->whereIn('menu_id', $menusToDelete)->delete();
-        }
+        $menusToDelete = DB::table('menus')
+            ->whereIn('id_title', $obsoleteTitles)
+            ->pluck('id')
+            ->toArray();
 
-        DB::table('menus')->whereIn('id', $menusToDelete)->delete();
+        if (!empty($menusToDelete)) {
+            if (Schema::hasTable('role_menu')) {
+                DB::table('role_menu')->whereIn('menu_id', $menusToDelete)->delete();
+            }
+
+            DB::table('menus')->whereIn('id', $menusToDelete)->delete();
+        }
 
         Schema::enableForeignKeyConstraints();
     }

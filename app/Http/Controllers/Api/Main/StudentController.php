@@ -490,7 +490,7 @@ class StudentController extends Controller
             $student = Student::findOrFail($id);
 
             $validator = Validator::make($request->all(), [
-                'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'photo' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             ]);
 
             if ($validator->fails()) {
@@ -510,17 +510,23 @@ class StudentController extends Controller
                 // Upload and resize new photo using Intervention Image
                 $image = new ImageManager(new Driver());
                 $photo = $request->file('photo');
-                
-                // Generate filename with .webp extension
-                $filename = time() . '_' . pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';
+                $safeBaseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'photo';
 
                 $resizedImage = $image->read($photo->getRealPath());
                 // Resize image to a maximum of 800x800 while preserving aspect ratio
                 $resizedImage->cover(800, 800, 'center');
-                
-                // Store in specific directory as WebP
+
+                // Encode as WebP if supported by GD, otherwise fallback gracefully to JPEG
+                if (function_exists('imagewebp')) {
+                    $filename = time() . '_' . $safeBaseName . '.webp';
+                    $encoded = (string) $resizedImage->toWebp(80);
+                } else {
+                    $filename = time() . '_' . $safeBaseName . '.jpg';
+                    $encoded = (string) $resizedImage->toJpeg(85);
+                }
+
                 $path = 'students/photos/' . $filename;
-                Storage::disk('public')->put($path, (string) $resizedImage->toWebp(80));
+                Storage::disk('public')->put($path, $encoded);
 
                 // Update database
                 $student->update(['photo' => $path]);

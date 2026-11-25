@@ -351,16 +351,22 @@ class ParentController extends Controller
                 // Process with Intervention Image (GD driver)
                 $manager = new ImageManager(new Driver());
                 $photo   = $request->file('photo');
+                $safeBaseName = preg_replace('/[^A-Za-z0-9_\-]/', '_', pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'photo';
 
-                // Generate filename with .webp extension
-                $filename = time() . '_' . pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME) . '.webp';
-
-                // Read, resize to 800×800 (cover), encode to WebP quality 80
+                // Read, resize to 800×800 (cover), encode to WebP quality 80 (with JPEG fallback)
                 $image = $manager->read($photo->getRealPath());
                 $image->cover(800, 800, 'center');
 
+                if (function_exists('imagewebp')) {
+                    $filename = time() . '_' . $safeBaseName . '.webp';
+                    $encoded = (string) $image->toWebp(80);
+                } else {
+                    $filename = time() . '_' . $safeBaseName . '.jpg';
+                    $encoded = (string) $image->toJpeg(85);
+                }
+
                 $path = 'parents/photos/' . $filename;
-                Storage::disk('public')->put($path, (string) $image->toWebp(80));
+                Storage::disk('public')->put($path, $encoded);
 
                 $parentProfile->update(['photo' => $path]);
 

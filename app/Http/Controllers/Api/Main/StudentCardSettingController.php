@@ -88,16 +88,18 @@ class StudentCardSettingController extends Controller
                     Storage::disk('public')->delete($setting->$field);
                 }
 
-                // Generate Filename (hash + .webp)
-                $filename = $file->hashName();
-                $filename = pathinfo($filename, PATHINFO_FILENAME) . '.webp';
-                $path = 'student-card/' . $filename;
-
-                // Create Image using Manager and encode to WebP
+                // Generate Filename (hash + .webp or .png fallback)
+                $baseHash = pathinfo($file->hashName(), PATHINFO_FILENAME);
                 $image = $manager->read($file);
-                
-                // Encode to WebP
-                $encoded = $image->toWebp(80); // quality 80
+
+                if (function_exists('imagewebp')) {
+                    $filename = $baseHash . '.webp';
+                    $encoded = $image->toWebp(80);
+                } else {
+                    $filename = $baseHash . '.png';
+                    $encoded = $image->toPng();
+                }
+                $path = 'student-card/' . $filename;
 
                 // Save to storage using Laravel Storage
                 Storage::disk('public')->put($path, (string) $encoded);

@@ -6,6 +6,11 @@ mkdir -p /var/www/html/storage/framework/cache/data \
          /var/www/html/storage/framework/sessions \
          /var/www/html/storage/framework/views \
          /var/www/html/storage/logs \
+         /var/www/html/storage/app/public/students/photos \
+         /var/www/html/storage/app/public/parents/photos \
+         /var/www/html/storage/app/public/student-card \
+         /var/www/html/storage/app/public/uploads/logos/large \
+         /var/www/html/storage/app/public/uploads/logos/small \
          /var/www/html/bootstrap/cache
 
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache

@@ -149,7 +149,6 @@ class MenuSeeder extends Seeder
             'Statistik Santri' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Student Statistics', 'route' => '/dashboard/kesantrian/laporan/statistik-santri', 'icon' => 'pie-chart', 'order' => 1],
             'Laporan Pelanggaran Pesantren' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Violation Report Pesantren', 'route' => '/dashboard/kesantrian/laporan/pelanggaran', 'icon' => 'alert-triangle', 'order' => 2],
             'Laporan Izin Pesantren' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Leave Report Pesantren', 'route' => '/dashboard/kesantrian/laporan/izin', 'icon' => 'calendar', 'order' => 3],
-            'Statistik Presensi' => ['parent' => 'Laporan Pesantren', 'en_title' => 'Presence Statistics', 'route' => '/dashboard/kesantrian/laporan/presensi', 'icon' => 'check-square', 'order' => 4],
         ];
 
         // First pass: Create or update menus based on id_title
